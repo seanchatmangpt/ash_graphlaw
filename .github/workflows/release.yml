@@ -99,7 +99,7 @@ jobs:
           version-type: strict
       - run: mix local.hex --force
       - run: mix local.rebar --force
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
@@ -121,7 +121,7 @@ jobs:
           key: ash-graphlaw-v1-${{ runner.os }}-quality-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
       - run: mix credo --strict
       - run: mix sobelow --skip
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: priv/plts
           key: ash-graphlaw-plt-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}
@@ -202,7 +202,7 @@ jobs:
           version-type: strict
       - run: mix local.hex --force
       - run: mix local.rebar --force
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             deps
