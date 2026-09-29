@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout candidate
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
@@ -72,7 +72,7 @@ jobs:
           test "${onto_market}" = "${MARKETPLACE_SHA}"
 
       - name: Checkout pinned ggen source
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: seanchatmangpt/ggen
           ref: ${{ env.GGEN_SHA }}
@@ -80,7 +80,7 @@ jobs:
           persist-credentials: false
 
       - name: Checkout pinned marketplace (source of the archive)
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: seanchatmangpt/ggen-marketplace
           ref: ${{ env.MARKETPLACE_SHA }}
