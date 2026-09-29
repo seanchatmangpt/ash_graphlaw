@@ -1,0 +1,64 @@
+---
+to: priv/graphlaw/MANIFEST.json
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha .
+    }
+    ORDER BY ?package_version
+  wasi_imports: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Closed WASI import allowlist: name and wasm value types of every function the engine may import.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?import_name ?import_params ?import_results
+    WHERE {
+      ?import a glx:WasiImport ;
+        glx:importName ?import_name ;
+        glx:importParams ?import_params ;
+        glx:importResults ?import_results .
+    }
+    ORDER BY ?import_name
+for_each: project
+force: true
+---
+{# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors> -#}
+{#- SPDX-License-Identifier: MIT -#}
+{#- UNSUPPORTED(generator-capability): local template; no pack emits the wasm manifest. -#}
+{%- set r = results[0] -%}
+{
+  "schema": "ash_graphlaw.graphlaw.manifest/v1",
+  "graphlaw_version": "{{ r.graphlaw_version }}",
+  "abi_version": {{ r.abi_version | int }},
+  "artifact": {
+    "file": "{{ r.wasm_asset }}",
+    "sha256": "{{ r.wasm_sha256 }}",
+    "url": "{{ r.wasm_url }}"
+  },
+  "host_abi": {
+    "exports": ["gl_alloc", "gl_call", "gl_free", "memory"],
+    "import_module": "wasi_snapshot_preview1",
+    "imports": [
+{%- for i in wasi_imports %}
+      {"name": "{{ i.import_name }}", "params": [{% if i.import_params != "" %}{% for t in i.import_params | split(pat=",") %}"{{ t }}"{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}], "results": [{% if i.import_results != "" %}{% for t in i.import_results | split(pat=",") %}"{{ t }}"{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}]}{% if not loop.last %},{% endif %}
+{%- endfor %}
+    ]
+  },
+  "provenance": "release asset pinned by ontology.ttl; NOT a local build"
+}

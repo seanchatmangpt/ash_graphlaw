@@ -1,4 +1,30 @@
-<!--
+---
+to: README.md
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha .
+    }
+    ORDER BY ?package_version
+for_each: project
+force: true
+---
+{% set p = results | first %}<!--
 SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 SPDX-License-Identifier: MIT
 -->
@@ -42,19 +68,19 @@ an admission alone.
 ```elixir
 def deps do
   [
-    {:ash_graphlaw, "~> 26.9.29"}
+    {:ash_graphlaw, "~> {{ p.package_version }}"}
   ]
 end
 ```
 
-The package version is `26.9.29` (calendar versioning). The `graphlaw.wasm` binary
+The package version is `{{ p.package_version }}` (calendar versioning). The `graphlaw.wasm` binary
 is not shipped in the Hex package; fetch the pinned release asset with the vendor task:
 
 ```bash
 mix ash_graphlaw.vendor
 ```
 
-The task downloads the pinned asset (`graphlaw.wasm`, release `26.9.28`) into
+The task downloads the pinned asset (`{{ p.wasm_asset }}`, release `{{ p.graphlaw_version }}`) into
 `priv/graphlaw/` and checks its SHA-256 against `priv/graphlaw/MANIFEST.json` before use.
 
 ## Configuration
@@ -133,12 +159,12 @@ in [typed refusals](documentation/reference/typed_refusals.md).
 
 ## Manufactured provenance
 
-- ash_graphlaw: v26.9.29
-- GraphLaw court release: 26.9.28
-- GraphLaw ABI: 1
-- graphlaw.wasm SHA-256: `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645`
-- ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
-- ggen-marketplace pin: `caa4fe6133445638cbfdbfac017187ed8090dc95`
+- ash_graphlaw: v{{ p.package_version }}
+- GraphLaw court release: {{ p.graphlaw_version }}
+- GraphLaw ABI: {{ p.abi_version }}
+- graphlaw.wasm SHA-256: `{{ p.wasm_sha256 }}`
+- ggen source pin: `{{ p.ggen_sha }}`
+- ggen-marketplace pin: `{{ p.marketplace_sha }}`
 
 ## Documentation
 

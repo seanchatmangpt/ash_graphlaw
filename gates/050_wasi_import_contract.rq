@@ -1,0 +1,29 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# MESSAGE: every glx:WasiImport needs a name, params and results (empty string for none); the allowlist must not be empty.
+# A violation is any returned row. Row 1: an import missing a required property.
+# Row 2: no import declared at all (an empty allowlist would refuse every engine).
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?s ?missing
+WHERE {
+  {
+    ?s a glx:WasiImport .
+    FILTER NOT EXISTS { ?s glx:importName ?n }
+    BIND("importName" AS ?missing)
+  } UNION {
+    ?s a glx:WasiImport .
+    FILTER NOT EXISTS { ?s glx:importParams ?p }
+    BIND("importParams" AS ?missing)
+  } UNION {
+    ?s a glx:WasiImport .
+    FILTER NOT EXISTS { ?s glx:importResults ?r }
+    BIND("importResults" AS ?missing)
+  } UNION {
+    ?project a glx:Project .
+    FILTER NOT EXISTS { ?any a glx:WasiImport }
+    BIND(?project AS ?s)
+    BIND("no-wasi-import-declared" AS ?missing)
+  }
+}
+ORDER BY ?s ?missing

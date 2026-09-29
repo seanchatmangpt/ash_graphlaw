@@ -1,0 +1,13 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Closed WASI import allowlist: name and wasm value types of every function the engine may import.
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?import_name ?import_params ?import_results
+WHERE {
+  ?import a glx:WasiImport ;
+    glx:importName ?import_name ;
+    glx:importParams ?import_params ;
+    glx:importResults ?import_results .
+}
+ORDER BY ?import_name

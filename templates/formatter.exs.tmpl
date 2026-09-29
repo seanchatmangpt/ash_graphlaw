@@ -1,0 +1,42 @@
+---
+to: .formatter.exs
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha .
+    }
+    ORDER BY ?package_version
+for_each: project
+force: true
+---
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+{% set p = results | first %}{# UNSUPPORTED(generator-capability): no marketplace pack emits a consumer .formatter.exs; package {{ p.package_version }} #}
+[
+  import_deps: [:ash, :spark],
+  plugins: [AshGraphLaw.Formatter, Spark.Formatter],
+  spark: [
+    extensions: [AshGraphLaw.Resource]
+  ],
+  line_length: 120,
+  trailing_comma: true,
+  local_pipe_with_parens: true,
+  single_clause_on_do: true,
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
+]

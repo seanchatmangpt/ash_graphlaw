@@ -1,0 +1,59 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# MESSAGE: exactly one glx:Project; every pin present exactly once; wasmSha256 is 64 lowercase hex;
+# ggenSha and marketplaceSha are 40 lowercase hex; abiVersion is an integer.
+# Any row = a violation.
+PREFIX glx: <https://graphlaw.dev/ash#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    SELECT ("project_count" AS ?problem) (<urn:ash-graphlaw:project> AS ?focus)
+           (CONCAT("expected exactly 1 glx:Project, found ", STR(?n)) AS ?detail)
+    WHERE {
+      { SELECT (COUNT(DISTINCT ?p) AS ?n) WHERE { ?p a glx:Project } }
+      FILTER (?n != 1)
+    }
+  }
+  UNION {
+    VALUES ?prop { glx:packageVersion glx:graphLawVersion glx:abiVersion glx:wasmSha256
+                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha }
+    ?focus a glx:Project .
+    FILTER NOT EXISTS { ?focus ?prop ?any }
+    BIND("missing_pin" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    VALUES ?prop { glx:packageVersion glx:graphLawVersion glx:abiVersion glx:wasmSha256
+                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha }
+    ?focus a glx:Project ; ?prop ?v1 , ?v2 .
+    FILTER (STR(?v1) < STR(?v2))
+    BIND("duplicate_pin" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:wasmSha256 ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9a-f]{64}$"))
+    BIND("bad_wasm_sha256" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:ggenSha ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9a-f]{40}$"))
+    BIND("bad_ggen_sha" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:marketplaceSha ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9a-f]{40}$"))
+    BIND("bad_marketplace_sha" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:abiVersion ?v .
+    FILTER (!(DATATYPE(?v) = xsd:integer) && !REGEX(STR(?v), "^[0-9]+$"))
+    BIND("bad_abi_version" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

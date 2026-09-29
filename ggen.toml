@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+#
+# ggen manufacturing contract for ash_graphlaw. Sources: ontology.ttl, queries/, templates/,
+# gates/. Every file named in output_file below is a projection; never hand-edit it.
+# Schema: ggen frontmatter (ggen_engine::config::GgenConfig). Each templates/*.tmpl carries its own
+# `to:` target and inline `sparql:` (copied verbatim from queries/*.rq; test/unit/template_query_sync_test.exs
+# refuses drift). Pack templates (extension/persist/verify/info/install/composition_test) render from [packs].
+# vendor/ is gitignored scratch, materialized by `git archive` of the pinned marketplace
+# sha (ontology.ttl glx:marketplaceSha); it is not a clone or worktree.
+
+[project]
+name = "ash_graphlaw"
+
+[ontology]
+source = "ontology.ttl"
+
+[packs]
+ash-extension-pack = { path = "vendor/ggen-marketplace/packs/ash-extension-pack" }
+
+[templates]
+dir = "templates"
+
+[law]
+gates = [
+  "gates/010_project_contract.rq",
+  "gates/020_refusal_code_contract.rq",
+  "gates/030_standing_contract.rq",
+  "gates/040_admission_vocab_contract.rq",
+  "gates/050_wasi_import_contract.rq",
+]

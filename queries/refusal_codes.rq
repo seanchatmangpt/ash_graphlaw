@@ -1,0 +1,16 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Closed typed-refusal table: code, class, source, doc, Chatman broken term, stable order.
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?code_name ?code_class ?code_source ?code_doc ?broken_term ?code_order
+WHERE {
+  ?code a glx:RefusalCode ;
+    glx:codeName ?code_name ;
+    glx:codeClass ?code_class ;
+    glx:codeSource ?code_source ;
+    glx:codeDoc ?code_doc ;
+    glx:brokenTerm ?broken_term ;
+    glx:codeOrder ?code_order .
+}
+ORDER BY ?code_order

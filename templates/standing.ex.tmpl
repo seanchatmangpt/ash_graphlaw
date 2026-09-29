@@ -1,0 +1,84 @@
+---
+to: lib/ash_graphlaw/standing.ex
+sparql:
+  standing: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Standing vocabulary (closed, ordered). Standing is derived, never stored on the DSL.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?standing_name ?standing_doc ?standing_order
+    WHERE {
+      ?standing a glx:Standing ;
+        glx:standingName ?standing_name ;
+        glx:standingDoc ?standing_doc ;
+        glx:standingOrder ?standing_order .
+    }
+    ORDER BY ?standing_order
+force: true
+---
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+defmodule AshGraphLaw.Standing do
+  @moduledoc """
+  Closed standing vocabulary, generated from the ontology (`queries/standing.rq`).
+
+  Standing is derived from a result and is bound to the exact input digest that
+  produced it. It is never stored on the DSL and never carried between inputs.
+  `of/1` maps:
+
+    * `{:ok, %AshGraphLaw.Admitted{}}` to `:PARTIAL_ALIVE` (admission observed on the
+      exact input, consequence not executed; never `:ALIVE`)
+    * `{:error, %AshGraphLaw.Refusal{class: :blocked_resource}}` to `:BLOCKED`
+    * `{:error, %AshGraphLaw.Refusal{class: :unsupported}}` to `:UNSUPPORTED`
+    * any other refusal and anything else to `:UNKNOWN` (the typed refusal itself
+      carries REFUSED)
+
+  Nothing here authorizes anything.
+  """
+
+  alias AshGraphLaw.{Admitted, Refusal}
+
+  @standings [
+{%- for r in results | sort(attribute="standing_order") %}
+    :{{ r.standing_name }}{% if not loop.last %},{% endif %}
+{%- endfor %}
+  ]
+
+  @type t ::
+{%- for r in results | sort(attribute="standing_order") %}
+          :{{ r.standing_name }}{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+  for required <- [:UNKNOWN, :PARTIAL_ALIVE, :BLOCKED, :UNSUPPORTED] do
+    unless required in @standings do
+      raise CompileError, description: "standing #{inspect(required)} missing from generated vocabulary"
+    end
+  end
+
+  @doc "All standings, in ontology order."
+  @spec all() :: [t()]
+  def all, do: @standings
+
+  @doc "True when `value` is a member of the closed vocabulary."
+  @spec valid?(term()) :: boolean()
+  def valid?(value), do: value in @standings
+
+  @doc "Ontology definition of a standing (string)."
+  @spec describe(t()) :: String.t()
+{%- for r in results | sort(attribute="standing_order") %}
+  def describe(:{{ r.standing_name }}), do: ~S"""
+{{ r.standing_doc | safe }}
+"""
+{%- endfor %}
+
+  @doc "Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`."
+  @spec of(term()) :: t()
+  def of({:ok, %Admitted{}}), do: :PARTIAL_ALIVE
+  def of({:error, %Refusal{class: :blocked_resource}}), do: :BLOCKED
+  def of({:error, %Refusal{class: :unsupported}}), do: :UNSUPPORTED
+  def of({:error, %Refusal{}}), do: :UNKNOWN
+  def of(_other), do: :UNKNOWN
+end

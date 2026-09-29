@@ -1,0 +1,51 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# MESSAGE: glx:Standing individuals are exactly UNKNOWN, PARTIAL_ALIVE, ALIVE, BLOCKED, BUILD_BROKEN,
+# UNSUPPORTED; each has exactly one standingName/standingDoc/standingOrder; orders are unique.
+# Any row = a violation.
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    VALUES ?prop { glx:standingName glx:standingDoc glx:standingOrder }
+    ?focus a glx:Standing .
+    FILTER NOT EXISTS { ?focus ?prop ?any }
+    BIND("missing_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    VALUES ?prop { glx:standingName glx:standingDoc glx:standingOrder }
+    ?focus a glx:Standing ; ?prop ?v1 , ?v2 .
+    FILTER (STR(?v1) < STR(?v2))
+    BIND("duplicate_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Standing ; glx:standingName ?v .
+    FILTER (STR(?v) NOT IN ("UNKNOWN", "PARTIAL_ALIVE", "ALIVE", "BLOCKED", "BUILD_BROKEN", "UNSUPPORTED"))
+    BIND("unexpected_standing" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    VALUES ?want { "UNKNOWN" "PARTIAL_ALIVE" "ALIVE" "BLOCKED" "BUILD_BROKEN" "UNSUPPORTED" }
+    BIND(<urn:ash-graphlaw:standing-set> AS ?focus)
+    FILTER NOT EXISTS { ?s a glx:Standing ; glx:standingName ?n . FILTER (STR(?n) = ?want) }
+    BIND("missing_standing" AS ?problem)
+    BIND(?want AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Standing ; glx:standingOrder ?v .
+    ?other a glx:Standing ; glx:standingOrder ?v2 .
+    FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
+    BIND("duplicate_standing_order" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Standing ; glx:standingName ?v .
+    ?other a glx:Standing ; glx:standingName ?v2 .
+    FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
+    BIND("duplicate_standing_name" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

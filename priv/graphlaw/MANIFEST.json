@@ -1,0 +1,24 @@
+{
+  "schema": "ash_graphlaw.graphlaw.manifest/v1",
+  "graphlaw_version": "26.9.28",
+  "abi_version": 1,
+  "artifact": {
+    "file": "graphlaw.wasm",
+    "sha256": "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645",
+    "url": "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.28/graphlaw.wasm"
+  },
+  "host_abi": {
+    "exports": ["gl_alloc", "gl_call", "gl_free", "memory"],
+    "import_module": "wasi_snapshot_preview1",
+    "imports": [
+      {"name": "clock_time_get", "params": ["i32", "i64", "i32"], "results": ["i32"]},
+      {"name": "environ_get", "params": ["i32", "i32"], "results": ["i32"]},
+      {"name": "environ_sizes_get", "params": ["i32", "i32"], "results": ["i32"]},
+      {"name": "fd_write", "params": ["i32", "i32", "i32", "i32"], "results": ["i32"]},
+      {"name": "proc_exit", "params": ["i32"], "results": []},
+      {"name": "random_get", "params": ["i32", "i32"], "results": ["i32"]},
+      {"name": "sched_yield", "params": [], "results": ["i32"]}
+    ]
+  },
+  "provenance": "release asset pinned by ontology.ttl; NOT a local build"
+}

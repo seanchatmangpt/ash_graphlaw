@@ -1,0 +1,164 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+#
+# Diataxis documentation map for ash_graphlaw.
+# UNSUPPORTED(generator-capability): hand-written. sa2a-diataxis-pack was not run in
+# this wave, so this file is a handwritten projection of the documentation contract
+# and carries no generator receipt.
+@prefix dx:   <https://diataxis.fr/ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix agl:  <https://graphlaw.dev/ash/docs#> .
+
+dx:Tutorial    a rdfs:Class ; rdfs:label "Tutorial" .
+dx:HowTo       a rdfs:Class ; rdfs:label "How-to guide" .
+dx:Reference   a rdfs:Class ; rdfs:label "Reference" .
+dx:Explanation a rdfs:Class ; rdfs:label "Explanation" .
+
+agl:path a rdfs:Property ; rdfs:label "repository-relative path" .
+agl:provenance a rdfs:Property ; rdfs:label "generated or hand" .
+
+agl:documentation_README_md a dx:Explanation ;
+    rdfs:label "Documentation index" ;
+    agl:path "documentation/README.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_tutorials_getting_started_md a dx:Tutorial ;
+    rdfs:label "Getting started" ;
+    agl:path "documentation/tutorials/getting_started.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_tutorials_first_admitted_action_md a dx:Tutorial ;
+    rdfs:label "First admitted action" ;
+    agl:path "documentation/tutorials/first_admitted_action.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_vendor_the_wasm_md a dx:HowTo ;
+    rdfs:label "Vendor the WASM" ;
+    agl:path "documentation/how_to/vendor_the_wasm.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_declare_an_admission_md a dx:HowTo ;
+    rdfs:label "Declare an admission" ;
+    agl:path "documentation/how_to/declare_an_admission.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_write_a_law_module_md a dx:HowTo ;
+    rdfs:label "Write a law module" ;
+    agl:path "documentation/how_to/write_a_law_module.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_run_the_pool_md a dx:HowTo ;
+    rdfs:label "Run the pool" ;
+    agl:path "documentation/how_to/run_the_pool.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_handle_refusals_md a dx:HowTo ;
+    rdfs:label "Handle refusals" ;
+    agl:path "documentation/how_to/handle_refusals.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_how_to_run_the_mutation_catalog_md a dx:HowTo ;
+    rdfs:label "Run the mutation catalog" ;
+    agl:path "documentation/how_to/run_the_mutation_catalog.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_mix_tasks_md a dx:Reference ;
+    rdfs:label "Mix tasks" ;
+    agl:path "documentation/reference/mix_tasks.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_dsl_reference_md a dx:Reference ;
+    rdfs:label "DSL reference" ;
+    agl:path "documentation/reference/dsl_reference.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_abi_reference_md a dx:Reference ;
+    rdfs:label "ABI reference" ;
+    agl:path "documentation/reference/abi_reference.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_claims_and_evidence_md a dx:Reference ;
+    rdfs:label "Claims and evidence" ;
+    agl:path "documentation/reference/claims_and_evidence.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_support_matrix_md a dx:Reference ;
+    rdfs:label "Support matrix" ;
+    agl:path "documentation/reference/support_matrix.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_reference_typed_refusals_md a dx:Reference ;
+    rdfs:label "Typed refusals" ;
+    agl:path "documentation/reference/typed_refusals.md" ;
+    agl:provenance "generated" .
+
+agl:documentation_dsls_dsl_ashgraphlaw_resource_md a dx:Reference ;
+    rdfs:label "DSL cheat sheet" ;
+    agl:path "documentation/dsls/DSL-AshGraphLaw.Resource.md" ;
+    agl:provenance "generated" .
+
+agl:documentation_topics_architecture_md a dx:Explanation ;
+    rdfs:label "Architecture" ;
+    agl:path "documentation/topics/architecture.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_topics_authority_boundary_md a dx:Explanation ;
+    rdfs:label "Authority boundary" ;
+    agl:path "documentation/topics/authority_boundary.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_topics_generation_and_residue_md a dx:Explanation ;
+    rdfs:label "Generation and residue" ;
+    agl:path "documentation/topics/generation_and_residue.md" ;
+    agl:provenance "hand" .
+
+agl:documentation_topics_wasm_host_design_md a dx:Explanation ;
+    rdfs:label "WASM host design" ;
+    agl:path "documentation/topics/wasm_host_design.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_md a dx:Reference ;
+    rdfs:label "Usage rules index" ;
+    agl:path "usage-rules.md" ;
+    agl:provenance "hand" .
+
+agl:AGENTS_md a dx:Reference ;
+    rdfs:label "Agent guide" ;
+    agl:path "AGENTS.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_setup_md a dx:Reference ;
+    rdfs:label "Usage rules: setup" ;
+    agl:path "usage-rules/setup.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_dsl_md a dx:Reference ;
+    rdfs:label "Usage rules: dsl" ;
+    agl:path "usage-rules/dsl.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_admission_md a dx:Reference ;
+    rdfs:label "Usage rules: admission" ;
+    agl:path "usage-rules/admission.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_wasm_host_md a dx:Reference ;
+    rdfs:label "Usage rules: wasm-host" ;
+    agl:path "usage-rules/wasm-host.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_refusals_md a dx:Reference ;
+    rdfs:label "Usage rules: refusals" ;
+    agl:path "usage-rules/refusals.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_testing_md a dx:Reference ;
+    rdfs:label "Usage rules: testing" ;
+    agl:path "usage-rules/testing.md" ;
+    agl:provenance "hand" .
+
+agl:usage_rules_ggen_md a dx:Reference ;
+    rdfs:label "Usage rules: ggen" ;
+    agl:path "usage-rules/ggen.md" ;
+    agl:provenance "hand" .

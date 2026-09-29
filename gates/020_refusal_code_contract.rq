@@ -1,0 +1,66 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# MESSAGE: every glx:RefusalCode has exactly one codeName/codeClass/codeSource/codeDoc/brokenTerm/
+# codeOrder; codeClass is one of the six closed classes; codeSource is engine|host|ash; codeName is
+# snake_case and unique; codeOrder is unique; brokenTerm is in the closed Chatman taxonomy.
+# Any row = a violation.
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    VALUES ?prop { glx:codeName glx:codeClass glx:codeSource glx:codeDoc glx:brokenTerm glx:codeOrder }
+    ?focus a glx:RefusalCode .
+    FILTER NOT EXISTS { ?focus ?prop ?any }
+    BIND("missing_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    VALUES ?prop { glx:codeName glx:codeClass glx:codeSource glx:codeDoc glx:brokenTerm glx:codeOrder }
+    ?focus a glx:RefusalCode ; ?prop ?v1 , ?v2 .
+    FILTER (STR(?v1) < STR(?v2))
+    BIND("duplicate_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeClass ?v .
+    FILTER (STR(?v) NOT IN ("refused_identity", "refused_structure", "refused_authority",
+                            "refused_admission", "blocked_resource", "unsupported"))
+    BIND("unknown_class" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeSource ?v .
+    FILTER (STR(?v) NOT IN ("engine", "host", "ash"))
+    BIND("unknown_source" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeName ?v .
+    FILTER (!REGEX(STR(?v), "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"))
+    BIND("codename_not_snake_case" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeName ?v .
+    ?other a glx:RefusalCode ; glx:codeName ?v2 .
+    FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
+    BIND("duplicate_codename" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeOrder ?v .
+    ?other a glx:RefusalCode ; glx:codeOrder ?v2 .
+    FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
+    BIND("duplicate_codeorder" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:brokenTerm ?v .
+    FILTER (STR(?v) NOT IN ("mu_on_O", "admission_vacuous", "mu_unlawful", "R_missing_identity",
+                            "R_missing_authority", "R_missing_consequence", "R_missing_replay",
+                            "R_missing_standing", "R_not_fed_back"))
+    BIND("unknown_broken_term" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

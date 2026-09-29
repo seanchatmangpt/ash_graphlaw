@@ -1,0 +1,246 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+# Gates (all fail closed; no gate is advisory):
+#   supply-chain : mix.lock drift, hex.audit, mix_audit deps.audit, package closure
+#                  (priv/graphlaw/MANIFEST.json shipped, no *.wasm shipped)
+#   quality      : format --check-formatted, compile --warnings-as-errors,
+#                  credo --strict, sobelow, dialyzer (PLT cached), hex.build
+#   test         : pinned graphlaw.wasm vendored + sha256 verified, mix test --cover,
+#                  mix ash_graphlaw.verify, coverage artifact
+#   mutation     : mix ash_graphlaw.mutate --require-killed, report artifact
+# Every job admits the exact subject (git HEAD == expected SHA) before any gate.
+# GraphLaw derives and validates; this workflow never authorizes anything.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A cancelled superseded PR head yields no receipt by design: only the latest
+# head of a PR is admitted; main/dispatch runs are never cancelled.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  supply-chain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - name: Refuse mix.lock drift
+        run: mix deps.get --check-locked
+      - name: Refuse retired / security-advisory Hex packages
+        run: mix hex.audit
+      - name: Audit dependencies against advisories (mix_audit)
+        run: mix deps.audit
+      - name: Verify mix.lock unchanged
+        run: git diff --exit-code -- mix.lock
+      - name: Package closure ships MANIFEST.json and no wasm binary
+        run: |
+          set -euo pipefail
+          pkg="$RUNNER_TEMP/pkg"
+          rm -rf "$pkg"
+          mix hex.build --unpack -o "$pkg"
+          test -f "$pkg/priv/graphlaw/MANIFEST.json" || { echo "REFUSED(package:missing priv/graphlaw/MANIFEST.json)" >&2; exit 2; }
+          if find "$pkg" -name '*.wasm' | grep -q .; then
+            echo "REFUSED(package:ships a wasm binary)" >&2
+            find "$pkg" -name '*.wasm' >&2
+            exit 2
+          fi
+
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MIX_ENV: dev
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-quality-${{ hashFiles('.tool-versions', 'mix.lock') }}
+          restore-keys: |
+            ash-graphlaw-v1-${{ runner.os }}-quality-${{ hashFiles('.tool-versions', 'mix.lock') }}-
+            ash-graphlaw-v1-${{ runner.os }}-quality-
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - id: compile
+        run: mix compile --warnings-as-errors
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-quality-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
+      - run: mix credo --strict
+      - run: mix sobelow --skip
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: priv/plts
+          key: ash-graphlaw-plt-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}
+          restore-keys: |
+            ash-graphlaw-plt-v1-${{ runner.os }}-
+      - id: plt
+        name: Build dialyzer PLT
+        run: mix dialyzer --plt
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: ${{ !cancelled() && steps.plt.outcome == 'success' }}
+        with:
+          path: priv/plts
+          key: ash-graphlaw-plt-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
+      - run: mix dialyzer
+      - run: mix hex.build
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}
+          restore-keys: |
+            ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}-
+            ash-graphlaw-v1-${{ runner.os }}-test-
+      - run: mix deps.get --check-locked
+      - name: Verify mix.lock unchanged
+        run: git diff --exit-code -- mix.lock
+      - id: compile
+        run: mix compile --warnings-as-errors
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
+      - name: Vendor pinned graphlaw.wasm and verify its digest
+        run: |
+          set -euo pipefail
+          url="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["url"])')"
+          sha="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["sha256"])')"
+          mkdir -p priv/graphlaw
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output priv/graphlaw/graphlaw.wasm "$url"
+          echo "$sha  priv/graphlaw/graphlaw.wasm" | sha256sum --check --strict -
+      # Plain --cover: the coverage threshold in mix.exs test_coverage/0 is only
+      # evaluated by a direct cover run, not with --export-coverage.
+      - run: mix test --cover
+      - run: mix ash_graphlaw.verify
+      - name: Preserve coverage evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-${{ github.event.pull_request.head.sha || github.sha }}
+          path: cover/
+          if-no-files-found: warn
+
+  mutation:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    continue-on-error: false
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}
+          restore-keys: |
+            ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}-
+            ash-graphlaw-v1-${{ runner.os }}-test-
+      - run: mix deps.get --check-locked
+      - id: compile
+        run: mix compile --warnings-as-errors
+      - name: Vendor pinned graphlaw.wasm and verify its digest
+        run: |
+          set -euo pipefail
+          url="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["url"])')"
+          sha="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["sha256"])')"
+          mkdir -p priv/graphlaw
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output priv/graphlaw/graphlaw.wasm "$url"
+          echo "$sha  priv/graphlaw/graphlaw.wasm" | sha256sum --check --strict -
+      - name: Mutation court (every mutant must be killed)
+        run: mix ash_graphlaw.mutate --require-killed --evidence-dir mutation
+      - name: Preserve mutation report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mutation-${{ github.event.pull_request.head.sha || github.sha }}
+          path: mutation/
+          if-no-files-found: warn

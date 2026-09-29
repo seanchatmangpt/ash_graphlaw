@@ -1,0 +1,46 @@
+---
+to: .gitignore
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha .
+    }
+    ORDER BY ?package_version
+for_each: project
+force: true
+---
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+{% set p = results | first %}{# UNSUPPORTED(generator-capability): no marketplace pack emits a consumer .gitignore; package {{ p.package_version }} #}
+/_build/
+/_build-lane*/
+/deps/
+/doc/
+/cover/
+/tmp/
+/.ggen-v2/
+/.ggen/
+/.clap-noun-verb/
+/vendor/
+/priv/graphlaw/*.wasm
+/priv/graphlaw/*.wasm.partial-*
+/priv/plts/
+/marketplace-src/
+/ash_graphlaw-*.tar
+erl_crash.dump

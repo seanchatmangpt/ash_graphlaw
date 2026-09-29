@@ -1,0 +1,72 @@
+---
+to: lib/ash_graphlaw/receipt.ex
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha .
+    }
+    ORDER BY ?package_version
+for_each: project
+force: true
+---
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+defmodule AshGraphLaw.Receipt do
+  @moduledoc """
+  Lossless typed projection of one GraphLaw receipt.
+
+  A receipt is an observation emitted by the engine for one law step, bound to
+  the parent and child graph state ids. It records what happened; it grants no
+  authority. The untouched engine map is kept in `:raw`.
+  """
+
+  @enforce_keys [:step, :parent, :child]
+  defstruct [:step, :parent, :child, :added, :authority, :revision, :lease_id, :plan_sha256, :index, :raw]
+
+  @type t :: %__MODULE__{
+          step: String.t() | nil,
+          parent: term(),
+          child: term(),
+          added: non_neg_integer() | nil,
+          authority: String.t() | nil,
+          revision: term(),
+          lease_id: String.t() | nil,
+          plan_sha256: String.t() | nil,
+          index: non_neg_integer() | nil,
+          raw: map()
+        }
+
+  @doc "Builds a receipt from an engine response map (string keys). Unknown keys survive in `:raw`."
+  @spec from_map(map()) :: t()
+  def from_map(map) when is_map(map) do
+    %__MODULE__{
+      step: map["step"],
+      parent: map["parent"],
+      child: map["child"],
+      added: map["added"],
+      authority: map["authority"],
+      revision: map["revision"],
+      lease_id: map["lease_id"],
+      plan_sha256: map["plan_sha256"],
+      index: map["index"],
+      raw: map
+    }
+  end
+end

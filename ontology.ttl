@@ -1,0 +1,415 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+#
+# ash_graphlaw source ontology (L01). Sources only; every generated file is a projection.
+#
+# Recorded choice (read from ash-extension-pack templates/install.ex.tmpl): the
+# aex:installerRuntimeDep literal is the PIPE form "<dep>|<version_req>" -- the template
+# splits on "|" (split(pat="|") first/last) and renders
+# Igniter.Project.Deps.add_dep({:wasmex, "~> 0.15"}). The space form ("wasmex ~> 0.15"
+# shown in the pack's rdfs:comment) would render a garbage dep tuple, so it is NOT used.
+#
+# Doctrine: GraphLaw derives and validates; it never authorizes. Nothing in this ontology
+# grants authority. Standing is derived from results, never stored on the DSL.
+#
+# Broken-term assignment (Chatman failure taxonomy). Digest/import-surface/ABI/wasm-shape
+# codes -> R_missing_identity. Lease/ceiling/trusted-key codes -> R_missing_authority.
+# Engine and host refusals on the input itself -> mu_on_O. Host runtime failures that
+# leave an admission with no observed consequence -> R_missing_consequence. Steps or
+# admissions that would admit vacuously -> admission_vacuous. Unclassified future engine
+# variants -> R_missing_standing (standing cannot be assigned).
+
+@prefix aex:  <http://seanchatmangpt.github.io/packs/ash-extension-core#> .
+@prefix glx:  <https://graphlaw.dev/ash#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Vocabulary
+#################################################################
+
+glx:Project a rdfs:Class ; rdfs:label "The ash_graphlaw package: version and upstream pins." .
+glx:RefusalCode a rdfs:Class ; rdfs:label "One member of the closed typed-refusal code table." .
+glx:Standing a rdfs:Class ; rdfs:label "One standing atom from the operating doctrine vocabulary." .
+glx:WasiImport a rdfs:Class ; rdfs:label "One WASI preview1 import function the engine may declare (closed allowlist)." .
+
+glx:packageVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "calver of this package." .
+glx:graphLawVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "pinned GraphLaw release tag." .
+glx:abiVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "GraphLaw WASM ABI_VERSION this library speaks." .
+glx:wasmSha256 a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "sha256 of the released graphlaw.wasm asset." .
+glx:wasmAsset a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "release asset file name." .
+glx:wasmUrl a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "download URL of the pinned release asset." .
+glx:marketplaceSha a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "ggen-marketplace commit the packs are materialized from." .
+glx:ggenSha a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "ggen commit the generator identity is pinned to." .
+glx:codeName a rdf:Property ; rdfs:domain glx:RefusalCode .
+glx:codeClass a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "closed: refused_identity | refused_structure | refused_authority | refused_admission | blocked_resource | unsupported." .
+glx:codeSource a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "closed: engine | host | ash." .
+glx:codeDoc a rdf:Property ; rdfs:domain glx:RefusalCode .
+glx:brokenTerm a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "Chatman failure-taxonomy term the refusal names." .
+glx:codeOrder a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "unique integer; fixes rendering order." .
+glx:standingName a rdf:Property ; rdfs:domain glx:Standing .
+glx:standingDoc a rdf:Property ; rdfs:domain glx:Standing .
+glx:standingOrder a rdf:Property ; rdfs:domain glx:Standing .
+glx:importName a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "function name inside wasi_snapshot_preview1." .
+glx:importParams a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "comma-separated wasm value types of the parameters (empty string for none)." .
+glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "comma-separated wasm value types of the results (empty string for none)." .
+
+#################################################################
+# Project facts and pins
+#################################################################
+
+glx:AshGraphLawProject a glx:Project ;
+    glx:packageVersion "26.9.29" ;
+    glx:graphLawVersion "26.9.28" ;
+    glx:abiVersion 1 ;
+    glx:wasmSha256 "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645" ;
+    glx:wasmAsset "graphlaw.wasm" ;
+    glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.28/graphlaw.wasm" ;
+    glx:marketplaceSha "caa4fe6133445638cbfdbfac017187ed8090dc95" ;
+    glx:ggenSha "ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e" .
+
+#################################################################
+# Engine import allowlist (least privilege)
+#
+# The engine is a compute-only module: the host gives it no preopens, args, env or pipes.
+# EngineLoad refuses any import outside this set, by module, name AND type. Observed on the
+# GraphLaw wasm build at /Users/sac/graphlaw (Wasmex.Module.imports, 2026-09-29); not
+# observed on the pinned release asset, which this session could not fetch (UNKNOWN). A
+# lawful engine that needs another function is refused with the offender named; extend
+# these rows, never the loader.
+#################################################################
+
+glx:ImportClockTimeGet a glx:WasiImport ; glx:importName "clock_time_get" ; glx:importParams "i32,i64,i32" ; glx:importResults "i32" .
+glx:ImportEnvironGet a glx:WasiImport ; glx:importName "environ_get" ; glx:importParams "i32,i32" ; glx:importResults "i32" .
+glx:ImportEnvironSizesGet a glx:WasiImport ; glx:importName "environ_sizes_get" ; glx:importParams "i32,i32" ; glx:importResults "i32" .
+glx:ImportFdWrite a glx:WasiImport ; glx:importName "fd_write" ; glx:importParams "i32,i32,i32,i32" ; glx:importResults "i32" .
+glx:ImportProcExit a glx:WasiImport ; glx:importName "proc_exit" ; glx:importParams "i32" ; glx:importResults "" .
+glx:ImportRandomGet a glx:WasiImport ; glx:importName "random_get" ; glx:importParams "i32,i32" ; glx:importResults "i32" .
+glx:ImportSchedYield a glx:WasiImport ; glx:importName "sched_yield" ; glx:importParams "" ; glx:importResults "i32" .
+
+#################################################################
+# ash-extension-pack spec: AshGraphLaw.Resource
+#
+# Optional string/module fields carry NO aex:fieldDefault: the pack renders the literal into the
+# Spark schema, and Spark rejects `default: nil` for :string and :module types. Omitting it
+# leaves the struct field and the option default at nil.
+#################################################################
+
+glx:AshGraphLawSpec a aex:AshExtensionSpec ;
+    aex:packageName "ash_graphlaw" ;
+    aex:moduleName "AshGraphLaw.Resource" ;
+    aex:extensionTarget "resource" ;
+    aex:singleExtensionKind "ash_graphlaw" ;
+    aex:taskModuleName "AshGraphlaw" ;
+    aex:formatterModule "AshGraphLaw.Formatter" ;
+    aex:installerRuntimeDep "wasmex|~> 0.15" ;
+    aex:workflowReactor false ;
+    aex:workflowReversible false ;
+    aex:generatesReceiptedAction false ;
+    aex:dualLevelFixture false ;
+    aex:validateDelegateModule "AshGraphLaw.Contract" ;
+    aex:validateDelegateFunction "validate" .
+
+glx:AshGraphLawGraphlawSection a aex:DslSection ;
+    aex:sectionOf glx:AshGraphLawSpec ;
+    aex:sectionName "graphlaw" ;
+    aex:sectionOrder 1 ;
+    aex:sectionDescribe "GraphLaw admission configuration: one runtime entity and any number of named admissions." ;
+    aex:singletonEntityKey "runtime" .
+
+# --- entity :runtime (singleton, no args) ---
+
+glx:AshGraphLawRuntimeEntity a aex:DslEntity ;
+    aex:entityOf glx:AshGraphLawGraphlawSection ;
+    aex:entityOrder 1 ; aex:entityName "runtime" ;
+    aex:entityStruct "AshGraphLaw.Dsl.Runtime" .
+
+glx:AshGraphLawRuntimeWasmPath a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawRuntimeEntity ;
+    aex:fieldOrder 1 ; aex:fieldName "wasm_path" ; aex:fieldType "string" ;
+    aex:fieldRequired false ;
+    aex:fieldDoc "Path to a graphlaw.wasm file. Nil uses the resolution order in AshGraphLaw.WasmConfig; the digest pin still applies to the vendored path." .
+
+glx:AshGraphLawRuntimeTimeout a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawRuntimeEntity ;
+    aex:fieldOrder 2 ; aex:fieldName "timeout_ms" ; aex:fieldType "integer" ;
+    aex:fieldRequired false ; aex:fieldDefault "5000" ;
+    aex:fieldDoc "Per-call timeout in milliseconds. Must be positive." .
+
+glx:AshGraphLawRuntimeSkew a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawRuntimeEntity ;
+    aex:fieldOrder 3 ; aex:fieldName "max_skew_secs" ; aex:fieldType "integer" ;
+    aex:fieldRequired false ; aex:fieldDefault "60" ;
+    aex:fieldDoc "Allowed clock skew in seconds when the engine checks a lease. Must not be negative." .
+
+glx:AshGraphLawRuntimeTrustedKeys a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawRuntimeEntity ;
+    aex:fieldOrder 4 ; aex:fieldName "trusted_keys" ; aex:fieldType "list_string" ;
+    aex:fieldRequired false ; aex:fieldDefault "[]" ;
+    aex:fieldDoc "Hex-encoded 32-byte public keys (64 characters each) whose lease signatures the engine may accept." .
+
+# --- entity :admission (arg :name, identifier :name) ---
+
+glx:AshGraphLawAdmissionEntity a aex:DslEntity ;
+    aex:entityOf glx:AshGraphLawGraphlawSection ;
+    aex:entityOrder 2 ; aex:entityName "admission" ;
+    aex:entityStruct "AshGraphLaw.Dsl.Admission" ;
+    aex:entityIdentifier "name" .
+
+glx:AshGraphLawAdmissionArgName a aex:EntityArg ;
+    aex:argOf glx:AshGraphLawAdmissionEntity ; aex:argOrder 1 ; aex:argName "name" .
+
+glx:AshGraphLawAdmissionName a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawAdmissionEntity ;
+    aex:fieldOrder 1 ; aex:fieldName "name" ; aex:fieldType "atom" ;
+    aex:fieldRequired true ;
+    aex:fieldDoc "Unique name of the admission within the resource." .
+
+glx:AshGraphLawAdmissionStep a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawAdmissionEntity ;
+    aex:fieldOrder 2 ; aex:fieldName "step" ; aex:fieldType "one_of" ;
+    aex:fieldRequired true ;
+    aex:fieldDoc "The GraphLaw law step this admission runs." .
+
+glx:AshGraphLawStepShacl a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 1 ; aex:oneOfValueName "shacl" .
+glx:AshGraphLawStepN3 a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 2 ; aex:oneOfValueName "n3" .
+glx:AshGraphLawStepRdfs a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 3 ; aex:oneOfValueName "rdfs" .
+glx:AshGraphLawStepOwlRl a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 4 ; aex:oneOfValueName "owl_rl" .
+glx:AshGraphLawStepHooks a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 5 ; aex:oneOfValueName "hooks" .
+glx:AshGraphLawStepPlan a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 6 ; aex:oneOfValueName "plan" .
+glx:AshGraphLawStepRequireReceipt a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 7 ; aex:oneOfValueName "require_receipt" .
+glx:AshGraphLawStepRequireSignedReceipt a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionStep ; aex:oneOfValueOrder 8 ; aex:oneOfValueName "require_signed_receipt" .
+
+glx:AshGraphLawAdmissionCeiling a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawAdmissionEntity ;
+    aex:fieldOrder 3 ; aex:fieldName "ceiling" ; aex:fieldType "one_of" ;
+    aex:fieldRequired false ; aex:fieldDefault ":construct" ;
+    aex:fieldDoc "Highest authority ceiling the caller's lease must reach before the engine is consulted. Admission itself never grants authority." .
+
+glx:AshGraphLawCeilingObserve a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionCeiling ; aex:oneOfValueOrder 1 ; aex:oneOfValueName "observe" .
+glx:AshGraphLawCeilingSelect a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionCeiling ; aex:oneOfValueOrder 2 ; aex:oneOfValueName "select" .
+glx:AshGraphLawCeilingConstruct a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawAdmissionCeiling ; aex:oneOfValueOrder 3 ; aex:oneOfValueName "construct" .
+
+glx:AshGraphLawAdmissionLaw a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawAdmissionEntity ;
+    aex:fieldOrder 4 ; aex:fieldName "law" ; aex:fieldType "module" ;
+    aex:fieldRequired false ;
+    aex:fieldDoc "Module implementing AshGraphLaw.Law that supplies the step payload for this admission." .
+
+glx:AshGraphLawAdmissionProjection a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawAdmissionEntity ;
+    aex:fieldOrder 5 ; aex:fieldName "projection" ; aex:fieldType "module" ;
+    aex:fieldRequired false ;
+    aex:fieldDoc "Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default." .
+
+#################################################################
+# Package license (pack templates/LICENSE.tmpl; gate 070)
+#################################################################
+
+glx:AshGraphLawLicense a aex:PackageLicenseFile ;
+    aex:licensePackage "ash_graphlaw" ;
+    aex:licenseSpdx "MIT" ;
+    aex:licenseCopyrightLine "Copyright (c) 2026 ash_graphlaw contributors" .
+
+#################################################################
+# Typed refusal codes (closed table, 35 codes)
+#################################################################
+
+glx:CodeNotAdmitted a glx:RefusalCode ;
+    glx:codeName "not_admitted" ; glx:codeClass "refused_admission" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine evaluated the admission steps and refused the input: at least one step (SHACL, N3, RDFS, OWL-RL, hooks) did not admit it." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 1 .
+
+glx:CodePlanRefused a glx:RefusalCode ;
+    glx:codeName "plan_refused" ; glx:codeClass "refused_admission" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine's plan step refused: the submitted plan violates a precondition or goal it can verify against the data." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 2 .
+
+glx:CodeReceiptRequired a glx:RefusalCode ;
+    glx:codeName "receipt_required" ; glx:codeClass "refused_admission" ; glx:codeSource "engine" ;
+    glx:codeDoc "A require_receipt step found no receipt for the required step, so the transition has no receipted admission behind it." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 3 .
+
+glx:CodeLeaseRefused a glx:RefusalCode ;
+    glx:codeName "lease_refused" ; glx:codeClass "refused_authority" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine refused the supplied lease: it is unsigned, expired, outside the allowed clock skew, or signed by an untrusted key." ;
+    glx:brokenTerm "R_missing_authority" ; glx:codeOrder 4 .
+
+glx:CodeResourceLimit a glx:RefusalCode ;
+    glx:codeName "resource_limit" ; glx:codeClass "blocked_resource" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine hit a resource limit (input size, fuel, or memory) before it could decide; nothing was admitted or refused." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 5 .
+
+glx:CodePolicyRefused a glx:RefusalCode ;
+    glx:codeName "policy_refused" ; glx:codeClass "refused_admission" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine refused the request under its policy: the requested authority ceiling or operation is not permitted." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 6 .
+
+glx:CodeEngineRefused a glx:RefusalCode ;
+    glx:codeName "engine_refused" ; glx:codeClass "refused_structure" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine refused the request for a structural reason (malformed op, data, or steps) reported under its error kind." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 7 .
+
+glx:CodeEngineUnclassified a glx:RefusalCode ;
+    glx:codeName "engine_unclassified" ; glx:codeClass "unsupported" ; glx:codeSource "engine" ;
+    glx:codeDoc "The engine returned a refusal variant this library does not know; it is carried verbatim and classified unsupported rather than guessed." ;
+    glx:brokenTerm "R_missing_standing" ; glx:codeOrder 8 .
+
+glx:CodeWasmNotVendored a glx:RefusalCode ;
+    glx:codeName "wasm_not_vendored" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "No GraphLaw WASM binary exists at the resolved path; run mix ash_graphlaw.vendor to fetch the pinned release asset." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 9 .
+
+glx:CodeWasmUnreadable a glx:RefusalCode ;
+    glx:codeName "wasm_unreadable" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The GraphLaw WASM file exists at the resolved path but could not be read." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 10 .
+
+glx:CodeWasmInvalid a glx:RefusalCode ;
+    glx:codeName "wasm_invalid" ; glx:codeClass "refused_structure" ; glx:codeSource "host" ;
+    glx:codeDoc "The bytes at the WASM path do not compile as a WebAssembly module." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 11 .
+
+glx:CodeWasmDigestMismatch a glx:RefusalCode ;
+    glx:codeName "wasm_digest_mismatch" ; glx:codeClass "refused_identity" ; glx:codeSource "host" ;
+    glx:codeDoc "The sha256 of the WASM bytes differs from the pinned digest, so the module is not the admitted GraphLaw release." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 12 .
+
+glx:CodeWasmImportSurfaceMismatch a glx:RefusalCode ;
+    glx:codeName "wasm_import_surface_mismatch" ; glx:codeClass "refused_identity" ; glx:codeSource "host" ;
+    glx:codeDoc "The module imports something other than the wasi_snapshot_preview1 surface, so it is not the pinned GraphLaw shape." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 13 .
+
+glx:CodeWasmMissingExport a glx:RefusalCode ;
+    glx:codeName "wasm_missing_export" ; glx:codeClass "refused_structure" ; glx:codeSource "host" ;
+    glx:codeDoc "The module lacks a required export (gl_alloc, gl_call, gl_free, or memory)." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 14 .
+
+glx:CodeAbiVersionMismatch a glx:RefusalCode ;
+    glx:codeName "abi_version_mismatch" ; glx:codeClass "refused_identity" ; glx:codeSource "host" ;
+    glx:codeDoc "The engine reports an ABI version different from the version this library was built for." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 15 .
+
+glx:CodeInstantiationFailed a glx:RefusalCode ;
+    glx:codeName "instantiation_failed" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The WASM module passed admission but could not be instantiated by the runtime." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 16 .
+
+glx:CodeAbiFailure a glx:RefusalCode ;
+    glx:codeName "abi_failure" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "A GraphLaw ABI call violated its contract, for example a bad pointer or a failed allocation; the instance is recycled." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 17 .
+
+glx:CodeCallTrapped a glx:RefusalCode ;
+    glx:codeName "call_trapped" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The WASM call trapped while executing; the instance is recycled." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 18 .
+
+glx:CodeCallExited a glx:RefusalCode ;
+    glx:codeName "call_exited" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The WASM program exited during the call; the instance is recycled." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 19 .
+
+glx:CodeCallTimeout a glx:RefusalCode ;
+    glx:codeName "call_timeout" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The call did not finish within the configured timeout_ms." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 20 .
+
+glx:CodeSaturated a glx:RefusalCode ;
+    glx:codeName "saturated" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The host queue is full (max_queue), so the request was shed instead of waiting." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 21 .
+
+glx:CodeHostNotStarted a glx:RefusalCode ;
+    glx:codeName "host_not_started" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "No GraphLaw host process is running under the requested server name." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 22 .
+
+glx:CodeFuelExhausted a glx:RefusalCode ;
+    glx:codeName "fuel_exhausted" ; glx:codeClass "blocked_resource" ; glx:codeSource "host" ;
+    glx:codeDoc "The call used up its fuel budget before the engine returned." ;
+    glx:brokenTerm "R_missing_consequence" ; glx:codeOrder 23 .
+
+glx:CodeInvalidEncoding a glx:RefusalCode ;
+    glx:codeName "invalid_encoding" ; glx:codeClass "refused_structure" ; glx:codeSource "host" ;
+    glx:codeDoc "The request contained a string that is not valid UTF-8 and was refused before reaching the engine." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 24 .
+
+glx:CodeInvalidJson a glx:RefusalCode ;
+    glx:codeName "invalid_json" ; glx:codeClass "refused_structure" ; glx:codeSource "host" ;
+    glx:codeDoc "A request could not be encoded as JSON, or an engine response was not valid JSON." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 25 .
+
+glx:CodeMalformedResponse a glx:RefusalCode ;
+    glx:codeName "malformed_response" ; glx:codeClass "refused_structure" ; glx:codeSource "host" ;
+    glx:codeDoc "The engine response was valid JSON but lacked the expected envelope fields." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 26 .
+
+glx:CodeUnknownAdmission a glx:RefusalCode ;
+    glx:codeName "unknown_admission" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "The named admission is not declared in the resource's graphlaw section." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 27 .
+
+glx:CodeDuplicateAdmission a glx:RefusalCode ;
+    glx:codeName "duplicate_admission" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "Two admissions in one resource share the same name." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 28 .
+
+glx:CodeMissingLawModule a glx:RefusalCode ;
+    glx:codeName "missing_law_module" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "An admission uses a step that needs a payload but declares no law module, so it would admit vacuously." ;
+    glx:brokenTerm "admission_vacuous" ; glx:codeOrder 29 .
+
+glx:CodeInvalidRuntimeOption a glx:RefusalCode ;
+    glx:codeName "invalid_runtime_option" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "A graphlaw runtime option is out of range: timeout_ms must be positive and max_skew_secs non-negative." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 30 .
+
+glx:CodeInvalidTrustedKey a glx:RefusalCode ;
+    glx:codeName "invalid_trusted_key" ; glx:codeClass "refused_authority" ; glx:codeSource "ash" ;
+    glx:codeDoc "A trusted key is not a 64-character hexadecimal public key, so lease signatures cannot be checked against it." ;
+    glx:brokenTerm "R_missing_authority" ; glx:codeOrder 31 .
+
+glx:CodeCeilingUnmet a glx:RefusalCode ;
+    glx:codeName "ceiling_unmet" ; glx:codeClass "refused_authority" ; glx:codeSource "ash" ;
+    glx:codeDoc "The lease in the changeset context does not reach the ceiling the admission requires; refused before the engine is called." ;
+    glx:brokenTerm "R_missing_authority" ; glx:codeOrder 32 .
+
+glx:CodeProjectionFailed a glx:RefusalCode ;
+    glx:codeName "projection_failed" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "The projection module could not produce N-Triples data for the subject." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 33 .
+
+glx:CodeLawModuleFailed a glx:RefusalCode ;
+    glx:codeName "law_module_failed" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "The law module raised or returned a value that is not a list of step maps." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 34 .
+
+glx:CodeUnsupportedStep a glx:RefusalCode ;
+    glx:codeName "unsupported_step" ; glx:codeClass "unsupported" ; glx:codeSource "ash" ;
+    glx:codeDoc "The admission step is not supported by this library version or by the pinned engine release." ;
+    glx:brokenTerm "admission_vacuous" ; glx:codeOrder 35 .
+
+#################################################################
+# Standing atoms (derived from results, never stored on the DSL)
+#################################################################
+
+glx:StandingUnknown a glx:Standing ;
+    glx:standingName "UNKNOWN" ; glx:standingDoc "No observation binds this subject yet; not admitted, not refused." ; glx:standingOrder 1 .
+
+glx:StandingPartialAlive a glx:Standing ;
+    glx:standingName "PARTIAL_ALIVE" ; glx:standingDoc "Admission was observed on the exact input digest; the consequence was not executed." ; glx:standingOrder 2 .
+
+glx:StandingAlive a glx:Standing ;
+    glx:standingName "ALIVE" ; glx:standingDoc "The exact admitted subject was observed executing. This library never assigns it from admission alone." ; glx:standingOrder 3 .
+
+glx:StandingBlocked a glx:Standing ;
+    glx:standingName "BLOCKED" ; glx:standingDoc "A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided." ; glx:standingOrder 4 .
+
+glx:StandingBuildBroken a glx:Standing ;
+    glx:standingName "BUILD_BROKEN" ; glx:standingDoc "The subject does not build, so no admission can be observed on it." ; glx:standingOrder 5 .
+
+glx:StandingUnsupported a glx:Standing ;
+    glx:standingName "UNSUPPORTED" ; glx:standingDoc "The requested step or engine variant is outside what this library version supports." ; glx:standingOrder 6 .

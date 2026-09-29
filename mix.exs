@@ -1,0 +1,166 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+defmodule AshGraphLaw.MixProject do
+  @moduledoc false
+  use Mix.Project
+
+  @version "26.9.29"
+  @name "AshGraphLaw"
+  @description "GraphLaw WASM admission engine for Ash Framework: derives and validates, never authorizes"
+  @github_url "https://github.com/seanchatmangpt/ash_graphlaw"
+
+  def project do
+    [
+      app: :ash_graphlaw,
+      version: @version,
+      elixir: "~> 1.17",
+      start_permanent: Mix.env() == :prod,
+      package: package(),
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
+      docs: &docs/0,
+      dialyzer: [
+        plt_add_apps: [:jason, :mix, :ex_unit],
+        plt_local_path: "priv/plts",
+        plt_core_path: "priv/plts",
+        ignore_warnings: ".dialyzer_ignore.exs"
+      ],
+      test_coverage: [
+        summary: [threshold: 70],
+        ignore_modules: [~r/^AshGraphLaw\.Test\./, ~r/^AshGraphLaw\.Mutation/]
+      ],
+      consolidate_protocols: Mix.env() == :prod,
+      aliases: aliases(),
+      name: @name,
+      source_url: @github_url,
+      homepage_url: @github_url,
+      description: @description
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        credo: :test,
+        dialyzer: :test,
+        sobelow: :test,
+        "spark.formatter": :test,
+        "spark.cheat_sheets": :test
+      ]
+    ]
+  end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  def docs do
+    [
+      homepage_url: @github_url,
+      source_url: @github_url,
+      source_ref: "v#{@version}",
+      main: "readme",
+      extras:
+        [
+          {"README.md", title: "Home"},
+          {"LICENSES/MIT.md", title: "License"}
+        ] ++
+          Path.wildcard("documentation/tutorials/*.md") ++
+          Path.wildcard("documentation/how_to/*.md") ++
+          Path.wildcard("documentation/reference/*.md") ++
+          Path.wildcard("documentation/topics/*.md") ++
+          ["usage-rules.md"] ++
+          Path.wildcard("usage-rules/*.md") ++
+          ["CHANGELOG.md"],
+      groups_for_extras: [
+        Tutorials: ~r'documentation/tutorials',
+        "How To": ~r'documentation/how_to',
+        Reference: ~r'documentation/reference',
+        Topics: ~r'documentation/topics',
+        "About AshGraphLaw": ["CHANGELOG.md", "LICENSES/MIT.md", ~r'usage-rules']
+      ],
+      groups_for_modules: [
+        AshGraphLaw: [
+          AshGraphLaw,
+          AshGraphLaw.Resource,
+          AshGraphLaw.Resource.Info,
+          AshGraphLaw.Admissions,
+          AshGraphLaw.Authority,
+          AshGraphLaw.Law,
+          AshGraphLaw.Projection,
+          AshGraphLaw.Projection.Default,
+          AshGraphLaw.Evidence,
+          AshGraphLaw.Standing
+        ],
+        "Ash integration": [
+          AshGraphLaw.Change.Admit,
+          AshGraphLaw.Validation.Admissible,
+          AshGraphLaw.Preparation.Admit
+        ],
+        "WASM host": [
+          AshGraphLaw.Host,
+          AshGraphLaw.Pool,
+          AshGraphLaw.EngineLoad,
+          AshGraphLaw.WasmConfig,
+          AshGraphLaw.ABI,
+          AshGraphLaw.Application
+        ],
+        "Refusals and evidence": [
+          AshGraphLaw.Refusal,
+          AshGraphLaw.Error.Refused,
+          AshGraphLaw.Receipt,
+          AshGraphLaw.Admitted
+        ],
+        Mutation: ~r/AshGraphLaw\.Mutation/,
+        "Mix tasks": ~r/Mix\.Tasks\.AshGraphlaw/,
+        Internals: ~r/.*/
+      ]
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["AshGraphLaw contributors"],
+      licenses: ["MIT"],
+      files:
+        ~w(lib priv/graphlaw/MANIFEST.json .formatter.exs mix.exs AGENTS.md usage-rules.md usage-rules README* LICENSE* CHANGELOG* SECURITY* documentation),
+      links: %{
+        "GitHub" => @github_url,
+        "Changelog" => "#{@github_url}/blob/main/CHANGELOG.md"
+      }
+    ]
+  end
+
+  def application do
+    [
+      mod: {AshGraphLaw.Application, []},
+      extra_applications: [:logger, :crypto]
+    ]
+  end
+
+  defp deps do
+    [
+      {:ash, "~> 3.33 and >= 3.33.11"},
+      {:spark, ">= 2.7.0"},
+      {:jason, "~> 1.4"},
+      {:wasmex, "~> 0.15.1"},
+      {:telemetry, "~> 1.0"},
+      {:igniter, ">= 0.6.29 and < 1.0.0-0", optional: true},
+      {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false},
+      {:credo, ">= 1.7.16", only: [:dev, :test], runtime: false},
+      {:dialyxir, ">= 1.4.3", only: [:dev, :test], runtime: false},
+      {:sobelow, ">= 0.13.0", only: [:dev, :test], runtime: false},
+      {:mix_audit, ">= 2.1.0", only: [:dev, :test], runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      sobelow: "sobelow --skip",
+      credo: "credo --strict",
+      "spark.formatter": "spark.formatter --extensions AshGraphLaw.Resource",
+      "spark.cheat_sheets": "spark.cheat_sheets --extensions AshGraphLaw.Resource"
+    ]
+  end
+end

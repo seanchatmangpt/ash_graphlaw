@@ -1,0 +1,47 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# MESSAGE: the :admission entity's :step field is one_of exactly the eight steps (shacl n3 rdfs owl_rl
+# hooks plan require_receipt require_signed_receipt); its :ceiling field is one_of exactly observe,
+# select, construct; every aex:EntitySchemaField has a non-empty fieldDoc. Any row = a violation.
+PREFIX aex: <http://seanchatmangpt.github.io/packs/ash-extension-core#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    VALUES (?fname ?want) {
+      ("step" "shacl") ("step" "n3") ("step" "rdfs") ("step" "owl_rl") ("step" "hooks")
+      ("step" "plan") ("step" "require_receipt") ("step" "require_signed_receipt")
+      ("ceiling" "observe") ("ceiling" "select") ("ceiling" "construct")
+    }
+    ?focus a aex:DslEntity ; aex:entityName ?en .
+    FILTER (STR(?en) = "admission")
+    FILTER NOT EXISTS {
+      ?f a aex:EntitySchemaField ; aex:fieldOf ?focus ; aex:fieldName ?n .
+      FILTER (STR(?n) = ?fname)
+      ?v a aex:FieldOneOfValue ; aex:oneOfValueOf ?f ; aex:oneOfValueName ?vn .
+      FILTER (STR(?vn) = ?want)
+    }
+    BIND("missing_one_of_value" AS ?problem)
+    BIND(CONCAT(?fname, "=", ?want) AS ?detail)
+  }
+  UNION {
+    VALUES ?fname { "step" "ceiling" }
+    ?ent a aex:DslEntity ; aex:entityName ?en .
+    FILTER (STR(?en) = "admission")
+    ?f a aex:EntitySchemaField ; aex:fieldOf ?ent ; aex:fieldName ?n .
+    FILTER (STR(?n) = ?fname)
+    ?focus a aex:FieldOneOfValue ; aex:oneOfValueOf ?f ; aex:oneOfValueName ?vn .
+    FILTER (CONCAT(?fname, "=", STR(?vn)) NOT IN (
+      "step=shacl", "step=n3", "step=rdfs", "step=owl_rl", "step=hooks", "step=plan",
+      "step=require_receipt", "step=require_signed_receipt",
+      "ceiling=observe", "ceiling=select", "ceiling=construct"))
+    BIND("unexpected_one_of_value" AS ?problem)
+    BIND(CONCAT(?fname, "=", STR(?vn)) AS ?detail)
+  }
+  UNION {
+    ?focus a aex:EntitySchemaField .
+    FILTER NOT EXISTS { ?focus aex:fieldDoc ?d . FILTER (STRLEN(STR(?d)) > 0) }
+    BIND("missing_field_doc" AS ?problem)
+    BIND("fieldDoc" AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

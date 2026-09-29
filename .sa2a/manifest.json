@@ -14,7 +14,6 @@
     "engineering-standards"
   ],
   "generated_paths": [
-    ".sa2a/bootstrap",
     ".sa2a/manifest.json",
     ".sa2a/diataxis.ttl"
   ]

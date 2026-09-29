@@ -1,0 +1,107 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+version = 1
+
+[[annotations]]
+path = "mix.lock"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "priv/graphlaw/MANIFEST.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "priv/graphlaw/.gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ".tool-versions"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ".gitignore"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ".formatter.exs"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "documentation/reference/typed_refusals.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "documentation/dsls/DSL-AshGraphLaw.Resource.md"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "LICENSE"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "ggen.lock"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ".sa2a/manifest.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/ash_graphlaw/resource.ex"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/ash_graphlaw/persist.ex"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/ash_graphlaw/verify.ex"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/ash_graphlaw/info.ex"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "lib/mix/tasks/ash_graphlaw.install.ex"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "test/ash_graphlaw_composition_test.exs"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>"
+SPDX-License-Identifier = "MIT"
