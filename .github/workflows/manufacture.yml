@@ -1,0 +1,731 @@
+name: Manufacture AshGraphLaw with ggen
+
+on:
+  push:
+    branches:
+      - feat/ggen-ash-graphlaw-v26.9.28
+
+permissions:
+  contents: write
+
+jobs:
+  manufacture:
+    if: ${{ !contains(github.event.head_commit.message, '[ggen-generated]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GGEN_SHA: ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e
+      MARKETPLACE_SHA: caa4fe6133445638cbfdbfac017187ed8090dc95
+      GRAPHLAW_VERSION: v26.9.28
+      GRAPHLAW_WASM_SHA256: 30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645
+
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Checkout pinned ggen source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: seanchatmangpt/ggen
+          ref: ${{ env.GGEN_SHA }}
+          path: vendor/ggen
+          persist-credentials: false
+
+      - name: Checkout pinned marketplace
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: seanchatmangpt/ggen-marketplace
+          ref: ${{ env.MARKETPLACE_SHA }}
+          path: vendor/ggen-marketplace
+          persist-credentials: false
+
+      - name: Materialize semantic manufacture source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p queries templates lib test tmp
+
+          cat > ggen.toml <<'EOF'
+          [project]
+          name = "ash_graphlaw"
+
+          [ontology]
+          source = "ontology.ttl"
+
+          [packs]
+          ash-extension = { path = "vendor/ggen-marketplace/packs/ash-extension-pack" }
+
+          [generation]
+          output_dir = "."
+
+          [templates]
+          dir = "templates"
+
+          [sync]
+          enabled = true
+          on_change = "manual"
+          validate_after = true
+          conflict_mode = "fail"
+
+          [[generation.rules]]
+          name = "project-mix"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/mix.exs.tera" }
+          output_file = "mix.exs"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "formatter"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/formatter.exs.tera" }
+          output_file = ".formatter.exs"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "gitignore"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/gitignore.tera" }
+          output_file = ".gitignore"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "root-api"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/ash_graphlaw.ex.tera" }
+          output_file = "lib/ash_graphlaw.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "runtime"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/runtime.ex.tera" }
+          output_file = "lib/ash_graphlaw/runtime.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "abi"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/abi.ex.tera" }
+          output_file = "lib/ash_graphlaw/abi.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "refusal"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/refusal.ex.tera" }
+          output_file = "lib/ash_graphlaw/refusal.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "receipt"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/receipt.ex.tera" }
+          output_file = "lib/ash_graphlaw/receipt.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "admitted"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/admitted.ex.tera" }
+          output_file = "lib/ash_graphlaw/admitted.ex"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "test-helper"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/test_helper.exs.tera" }
+          output_file = "test/test_helper.exs"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "runtime-test"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/ash_graphlaw_test.exs.tera" }
+          output_file = "test/ash_graphlaw_test.exs"
+          mode = "Overwrite"
+
+          [[generation.rules]]
+          name = "readme"
+          query = { file = "queries/project.rq" }
+          template = { file = "templates/README.md.tera" }
+          output_file = "README.md"
+          mode = "Overwrite"
+          EOF
+
+          cat > queries/project.rq <<'EOF'
+          PREFIX glx: <https://graphlaw.dev/ash#>
+          SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?marketplace_sha ?ggen_sha WHERE {
+            glx:AshGraphLawProject a glx:Project ;
+              glx:packageVersion ?package_version ;
+              glx:graphLawVersion ?graphlaw_version ;
+              glx:abiVersion ?abi_version ;
+              glx:wasmSha256 ?wasm_sha256 ;
+              glx:marketplaceSha ?marketplace_sha ;
+              glx:ggenSha ?ggen_sha .
+          } ORDER BY ?package_version
+          EOF
+
+          cat > ontology.ttl <<'EOF'
+          @prefix aex: <http://seanchatmangpt.github.io/packs/ash-extension-core#> .
+          @prefix glx: <https://graphlaw.dev/ash#> .
+          @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+          glx:Project a rdf:Class .
+          glx:packageVersion a rdf:Property .
+          glx:graphLawVersion a rdf:Property .
+          glx:abiVersion a rdf:Property .
+          glx:wasmSha256 a rdf:Property .
+          glx:marketplaceSha a rdf:Property .
+          glx:ggenSha a rdf:Property .
+
+          glx:AshGraphLawProject a glx:Project ;
+              glx:packageVersion "26.9.28" ;
+              glx:graphLawVersion "26.9.28" ;
+              glx:abiVersion 1 ;
+              glx:wasmSha256 "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645" ;
+              glx:marketplaceSha "caa4fe6133445638cbfdbfac017187ed8090dc95" ;
+              glx:ggenSha "ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e" .
+
+          glx:AshGraphLawSpec a aex:AshExtensionSpec ;
+              aex:packageName "ash_graphlaw" ;
+              aex:moduleName "AshGraphLaw.Resource" ;
+              aex:extensionTarget "resource" ;
+              aex:singleExtensionKind "ash_graphlaw" ;
+              aex:workflowReactor false ;
+              aex:workflowReversible false ;
+              aex:generatesReceiptedAction false ;
+              aex:provenanceSource "graphlaw_wasm" .
+
+          glx:GraphLawSection a aex:DslSection ;
+              aex:sectionOf glx:AshGraphLawSpec ;
+              aex:sectionName "graphlaw" ;
+              aex:sectionOrder 1 ;
+              aex:sectionDescribe "GraphLaw WASI law-state boundary configuration." ;
+              aex:singletonEntityKey "runtime" .
+
+          glx:RuntimeEntity a aex:DslEntity ;
+              aex:entityOf glx:GraphLawSection ;
+              aex:entityOrder 1 ;
+              aex:entityName "runtime" ;
+              aex:entityStruct "AshGraphLaw.Dsl.Runtime" .
+
+          glx:RuntimeWasmPath a aex:EntitySchemaField ;
+              aex:fieldOf glx:RuntimeEntity ; aex:fieldOrder 1 ; aex:fieldName "wasm_path" ;
+              aex:fieldType "string" ; aex:fieldRequired false ; aex:fieldDefault "nil" ;
+              aex:fieldDoc "Path to graphlaw.wasm; nil means runtime callers supply bytes/path explicitly." .
+
+          glx:RuntimeTimeout a aex:EntitySchemaField ;
+              aex:fieldOf glx:RuntimeEntity ; aex:fieldOrder 2 ; aex:fieldName "timeout_ms" ;
+              aex:fieldType "integer" ; aex:fieldRequired false ; aex:fieldDefault "5000" ;
+              aex:fieldDoc "Wasmex call timeout in milliseconds." .
+
+          glx:RuntimeMaxSkew a aex:EntitySchemaField ;
+              aex:fieldOf glx:RuntimeEntity ; aex:fieldOrder 3 ; aex:fieldName "max_skew_secs" ;
+              aex:fieldType "integer" ; aex:fieldRequired false ; aex:fieldDefault "60" ;
+              aex:fieldDoc "Default signed-lease clock-skew ceiling passed to GraphLaw." .
+
+          glx:RuntimeTrustedKeys a aex:EntitySchemaField ;
+              aex:fieldOf glx:RuntimeEntity ; aex:fieldOrder 4 ; aex:fieldName "trusted_keys" ;
+              aex:fieldType "list_string" ; aex:fieldRequired false ; aex:fieldDefault "[]" ;
+              aex:fieldDoc "Hex Ed25519 public keys trusted for signed receipt/lease verification." .
+
+          glx:AdmissionEntity a aex:DslEntity ;
+              aex:entityOf glx:GraphLawSection ; aex:entityOrder 2 ; aex:entityName "admission" ;
+              aex:entityStruct "AshGraphLaw.Dsl.Admission" ; aex:entityIdentifier "name" .
+
+          glx:AdmissionNameArg a aex:EntityArg ;
+              aex:argOf glx:AdmissionEntity ; aex:argOrder 1 ; aex:argName "name" .
+
+          glx:AdmissionName a aex:EntitySchemaField ;
+              aex:fieldOf glx:AdmissionEntity ; aex:fieldOrder 1 ; aex:fieldName "name" ;
+              aex:fieldType "atom" ; aex:fieldRequired true ;
+              aex:fieldDoc "Consumer-defined admission boundary name, commonly an Ash action." .
+
+          glx:AdmissionStep a aex:EntitySchemaField ;
+              aex:fieldOf glx:AdmissionEntity ; aex:fieldOrder 2 ; aex:fieldName "step" ;
+              aex:fieldType "one_of" ; aex:fieldRequired true ;
+              aex:fieldDoc "GraphLaw law step associated with this admission boundary." .
+
+          glx:StepShacl a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 1 ; aex:oneOfValueName "shacl" .
+          glx:StepN3 a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 2 ; aex:oneOfValueName "n3" .
+          glx:StepRdfs a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 3 ; aex:oneOfValueName "rdfs" .
+          glx:StepOwlRl a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 4 ; aex:oneOfValueName "owl_rl" .
+          glx:StepHooks a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 5 ; aex:oneOfValueName "hooks" .
+          glx:StepPlan a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 6 ; aex:oneOfValueName "plan" .
+          glx:StepRequireReceipt a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 7 ; aex:oneOfValueName "require_receipt" .
+          glx:StepRequireSignedReceipt a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionStep ; aex:oneOfValueOrder 8 ; aex:oneOfValueName "require_signed_receipt" .
+
+          glx:AdmissionCeiling a aex:EntitySchemaField ;
+              aex:fieldOf glx:AdmissionEntity ; aex:fieldOrder 3 ; aex:fieldName "ceiling" ;
+              aex:fieldType "one_of" ; aex:fieldRequired false ; aex:fieldDefault ":construct" ;
+              aex:fieldDoc "Minimum authority ceiling expected by the consumer boundary." .
+
+          glx:CeilingObserve a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionCeiling ; aex:oneOfValueOrder 1 ; aex:oneOfValueName "observe" .
+          glx:CeilingSelect a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionCeiling ; aex:oneOfValueOrder 2 ; aex:oneOfValueName "select" .
+          glx:CeilingConstruct a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AdmissionCeiling ; aex:oneOfValueOrder 3 ; aex:oneOfValueName "construct" .
+          EOF
+
+          cat > templates/mix.exs.tera <<'EOF'
+          defmodule AshGraphLaw.MixProject do
+            use Mix.Project
+            @version "{{ package_version }}"
+
+            def project do
+              [
+                app: :ash_graphlaw,
+                version: @version,
+                elixir: "~> 1.17",
+                start_permanent: Mix.env() == :prod,
+                deps: deps(),
+                description: "Ash extension and Wasmex runtime membrane for GraphLaw",
+                source_url: "https://github.com/seanchatmangpt/ash_graphlaw",
+                package: [licenses: ["MIT"], links: %{"GitHub" => "https://github.com/seanchatmangpt/ash_graphlaw"}]
+              ]
+            end
+
+            def application, do: [extra_applications: [:logger, :crypto]]
+
+            defp deps do
+              [
+                {:ash, "~> 3.33 and >= 3.33.11"},
+                {:spark, ">= 2.7.0"},
+                {:jason, "~> 1.4"},
+                {:wasmex, "~> 0.15.1"},
+                {:ex_doc, "~> 0.38", only: :dev, runtime: false}
+              ]
+            end
+          end
+          EOF
+
+          cat > templates/formatter.exs.tera <<'EOF'
+          [inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]]
+          EOF
+
+          cat > templates/gitignore.tera <<'EOF'
+          /_build/
+          /deps/
+          /doc/
+          /tmp/
+          /.ggen-v2/
+          /vendor/
+          erl_crash.dump
+          EOF
+
+          cat > templates/ash_graphlaw.ex.tera <<'EOF'
+          defmodule AshGraphLaw do
+            @moduledoc """
+            Thin Elixir/Ash membrane over GraphLaw's WASI ABI.
+
+            GraphLaw remains the semantic authority. This package does not reimplement RDF,
+            SPARQL, SHACL, ShEx, N3, Datalog, entailment, hooks, plan admission, leases, or
+            receipt verification in Elixir.
+            """
+
+            alias AshGraphLaw.{ABI, Admitted, Refusal, Runtime}
+            @abi_version {{ abi_version }}
+            @graphlaw_release "{{ graphlaw_version }}"
+
+            def abi_version, do: @abi_version
+            def graphlaw_release, do: @graphlaw_release
+            def start_link(opts), do: Runtime.start_link(opts)
+
+            def call(runtime, request, opts \\ []) when is_map(request) do
+              case ABI.call(runtime, request, opts) do
+                {:ok, %{"ok" => true} = response} -> {:ok, response}
+                {:ok, %{"ok" => false, "error" => error}} -> {:error, Refusal.from_map(error)}
+                {:ok, other} -> {:error, Refusal.transport("MalformedResponse", "GraphLaw response lacks boolean ok", %{response: other})}
+                {:error, %Refusal{} = refusal} -> {:error, refusal}
+                {:error, reason} -> {:error, Refusal.transport("Transport", inspect(reason))}
+              end
+            end
+
+            def capabilities(runtime, opts \\ []), do: call(runtime, %{"op" => "capabilities"}, opts)
+
+            def sniff(runtime, text, hint \\ nil, opts \\ []) when is_binary(text) do
+              request = %{"op" => "sniff", "text" => text}
+              request = if hint, do: Map.put(request, "hint", hint), else: request
+              call(runtime, request, opts)
+            end
+
+            def law(runtime, data, steps, opts \\ []) when is_list(steps) do
+              request = %{"op" => "law", "data" => data_spec(data), "steps" => steps} |> put_auth(opts)
+              case call(runtime, request, opts) do
+                {:ok, response} -> {:ok, Admitted.from_map(response)}
+                {:error, refusal} -> {:error, refusal}
+              end
+            end
+
+            def hooks(runtime, data, pack, opts \\ []) do
+              call(runtime, %{"op" => "hooks", "data" => data_spec(data), "pack" => data_spec(pack)}, opts)
+            end
+
+            defp data_spec(%{} = spec), do: spec
+            defp data_spec(text) when is_binary(text), do: %{"text" => text}
+
+            defp put_auth(request, opts) do
+              Enum.reduce([:signed_lease, :trusted_keys, :max_skew_secs, :lease, :unverified_lease, :now_unix], request, fn key, acc ->
+                case Keyword.fetch(opts, key) do
+                  {:ok, value} -> Map.put(acc, Atom.to_string(key), value)
+                  :error -> acc
+                end
+              end)
+            end
+          end
+          EOF
+
+          cat > templates/runtime.ex.tera <<'EOF'
+          defmodule AshGraphLaw.Runtime do
+            @moduledoc "Starts one GraphLaw WASI module under Wasmex; semantics remain in GraphLaw."
+            @default_timeout 5_000
+
+            def child_spec(opts) do
+              %{id: Keyword.get(opts, :id, __MODULE__), start: {__MODULE__, :start_link, [opts]}, type: :worker, restart: :permanent, shutdown: 5_000}
+            end
+
+            def start_link(opts) when is_list(opts) do
+              timeout = Keyword.get(opts, :timeout, @default_timeout)
+              with {:ok, bytes} <- wasm_bytes(opts),
+                   {:ok, pid} <- Wasmex.start_link(wasmex_opts(bytes, opts)),
+                   :ok <- initialize(pid, timeout) do
+                {:ok, pid}
+              end
+            end
+
+            defp wasm_bytes(opts) do
+              cond do
+                is_binary(opts[:bytes]) -> {:ok, opts[:bytes]}
+                is_binary(opts[:wasm_path]) -> File.read(opts[:wasm_path])
+                true -> {:error, :graphlaw_wasm_required}
+              end
+            end
+
+            defp wasmex_opts(bytes, opts) do
+              %{bytes: bytes, wasi: true}
+              |> maybe_name(opts[:name])
+            end
+
+            defp maybe_name(options, nil), do: options
+            defp maybe_name(options, name), do: Map.put(options, :name, name)
+
+            defp initialize(pid, timeout) do
+              if Wasmex.function_exists(pid, "_initialize") do
+                case Wasmex.call_function(pid, "_initialize", [], timeout) do
+                  {:ok, _} -> :ok
+                  {:error, reason} ->
+                    if Process.alive?(pid), do: GenServer.stop(pid, :normal)
+                    {:error, {:initialize_failed, reason}}
+                end
+              else
+                :ok
+              end
+            end
+          end
+          EOF
+
+          cat > templates/abi.ex.tera <<'EOF'
+          defmodule AshGraphLaw.ABI do
+            @moduledoc "Exact GraphLaw ABI {{ abi_version }} transport over Wasmex linear memory."
+            import Bitwise
+            alias AshGraphLaw.Refusal
+
+            @default_timeout 5_000
+            @u32 0x1_0000_0000
+            @u64 0x1_0000_0000_0000_0000
+
+            def call(runtime, request, opts \\ []) when is_map(request) do
+              timeout = Keyword.get(opts, :timeout, @default_timeout)
+
+              with {:ok, payload} <- Jason.encode(request),
+                   {:ok, [raw_ptr]} <- Wasmex.call_function(runtime, "gl_alloc", [byte_size(payload)], timeout),
+                   {:ok, store} <- Wasmex.store(runtime),
+                   {:ok, memory} <- Wasmex.memory(runtime),
+                   :ok <- write_request(store, memory, raw_ptr, payload),
+                   {:ok, [packed]} <- Wasmex.call_function(runtime, "gl_call", [raw_ptr, byte_size(payload)], timeout) do
+                read_and_free(runtime, store, memory, packed, timeout)
+              else
+                {:error, %Refusal{} = refusal} -> {:error, refusal}
+                {:error, reason} -> {:error, Refusal.transport("Wasmex", inspect(reason))}
+                other -> {:error, Refusal.transport("Wasmex", "unexpected ABI transport result", %{result: other})}
+              end
+            end
+
+            def unpack_result(packed) when is_integer(packed) do
+              unsigned = if packed < 0, do: packed + @u64, else: packed
+              {unsigned >>> 32, unsigned &&& 0xFFFF_FFFF}
+            end
+
+            defp write_request(_store, _memory, 0, _payload), do: :ok
+            defp write_request(store, memory, raw_ptr, payload), do: Wasmex.Memory.write_binary(store, memory, normalize_u32(raw_ptr), payload)
+
+            defp read_and_free(runtime, store, memory, packed, timeout) do
+              {out_ptr, out_len} = unpack_result(packed)
+              body = Wasmex.Memory.read_binary(store, memory, out_ptr, out_len)
+              _ = Wasmex.call_function(runtime, "gl_free", [signed_i32(out_ptr), out_len], timeout)
+
+              case Jason.decode(body) do
+                {:ok, response} -> {:ok, response}
+                {:error, reason} -> {:error, Refusal.transport("InvalidJson", Exception.message(reason), %{body: body})}
+              end
+            end
+
+            defp normalize_u32(value), do: value &&& 0xFFFF_FFFF
+            defp signed_i32(value) when value >= 0x8000_0000, do: value - @u32
+            defp signed_i32(value), do: value
+          end
+          EOF
+
+          cat > templates/refusal.ex.tera <<'EOF'
+          defmodule AshGraphLaw.Refusal do
+            @moduledoc "Typed GraphLaw refusal; clients inspect details/code rather than parsing message."
+            defexception [:kind, :engine, :dialect, :message, :details]
+
+            def from_map(map) when is_map(map) do
+              %__MODULE__{kind: map["kind"], engine: map["engine"], dialect: map["dialect"], message: map["message"] || "GraphLaw refused", details: map["details"] || %{}}
+            end
+
+            def transport(kind, message, details \\ %{}), do: %__MODULE__{kind: kind, message: message, details: details}
+          end
+          EOF
+
+          cat > templates/receipt.ex.tera <<'EOF'
+          defmodule AshGraphLaw.Receipt do
+            @moduledoc "Lossless typed projection of a GraphLaw receipt."
+            @enforce_keys [:step, :parent, :child]
+            defstruct [:step, :parent, :child, :added, :authority, :revision, :lease_id, :plan_sha256, :index, :raw]
+
+            def from_map(map) when is_map(map) do
+              %__MODULE__{step: map["step"], parent: map["parent"], child: map["child"], added: map["added"], authority: map["authority"], revision: map["revision"], lease_id: map["lease_id"], plan_sha256: map["plan_sha256"], index: map["index"], raw: map}
+            end
+          end
+          EOF
+
+          cat > templates/admitted.ex.tera <<'EOF'
+          defmodule AshGraphLaw.Admitted do
+            @moduledoc "Successful GraphLaw law transition; standing is not invented outside GraphLaw."
+            alias AshGraphLaw.Receipt
+            @enforce_keys [:states, :receipts, :nquads]
+            defstruct [:states, :receipts, :nquads, :raw]
+
+            def from_map(map) when is_map(map) do
+              %__MODULE__{states: map["states"] || [], receipts: Enum.map(map["receipts"] || [], &Receipt.from_map/1), nquads: map["nquads"] || "", raw: map}
+            end
+          end
+          EOF
+
+          cat > templates/test_helper.exs.tera <<'EOF'
+          ExUnit.start()
+          EOF
+
+          cat > templates/ash_graphlaw_test.exs.tera <<'EOF'
+          defmodule AshGraphLawTest do
+            use ExUnit.Case, async: false
+            import Bitwise
+            alias AshGraphLaw.{ABI, Admitted, Refusal}
+
+            defmodule Domain do
+              use Ash.Domain
+              resources do
+                resource AshGraphLawTest.Fixture
+              end
+            end
+
+            defmodule Fixture do
+              use Ash.Resource,
+                domain: AshGraphLawTest.Domain,
+                data_layer: Ash.DataLayer.Ets,
+                extensions: [AshGraphLaw.Resource]
+
+              graphlaw do
+                runtime wasm_path: nil, timeout_ms: 5_000, max_skew_secs: 60, trusted_keys: []
+                admission :deploy, step: :plan, ceiling: :select
+              end
+
+              attributes do
+                uuid_primary_key :id
+              end
+            end
+
+            test "generated Ash extension persists its semantic DSL" do
+              assert AshGraphLaw.Resource.Info.compiled?(Fixture)
+              assert entities = AshGraphLaw.Resource.Info.graphlaw(Fixture)
+              assert Enum.any?(entities, &match?(%AshGraphLaw.Dsl.Runtime{}, &1))
+              assert Enum.any?(entities, &match?(%AshGraphLaw.Dsl.Admission{name: :deploy}, &1))
+            end
+
+            test "packed pointer/length ABI decodes exactly" do
+              assert ABI.unpack_result((123 <<< 32) + 45) == {123, 45}
+            end
+
+            test "typed refusal preserves details" do
+              refusal = Refusal.from_map(%{"kind" => "EngineRejected", "engine" => "PurRdf", "dialect" => "Turtle", "message" => "refused", "details" => %{"code" => "NotAdmitted", "violations" => []}})
+              assert refusal.details["code"] == "NotAdmitted"
+            end
+
+            describe "real graphlaw.wasm" do
+              setup do
+                path = System.fetch_env!("GRAPHLAW_WASM_PATH")
+                {:ok, runtime} = AshGraphLaw.start_link(wasm_path: path)
+                on_exit(fn -> if Process.alive?(runtime), do: GenServer.stop(runtime) end)
+                {:ok, runtime: runtime}
+              end
+
+              test "negotiates ABI {{ abi_version }} and exposes semantic engines", %{runtime: runtime} do
+                assert {:ok, response} = AshGraphLaw.capabilities(runtime)
+                assert response["abi_version"] == {{ abi_version }}
+                assert "datalog" in response["ops"]
+                assert "n3" in response["ops"]
+                assert "hooks" in response["ops"]
+                assert "law" in response["ops"]
+              end
+
+              test "admits and receipts a plan through real WASI", %{runtime: runtime} do
+                pending = "<urn:item> <urn:state> <urn:pending> ."
+                admitted = "<urn:item> <urn:state> <urn:admitted> ."
+                steps = [%{"step" => "plan", "plan" => %{"actions" => [%{"name" => "deploy", "pre" => pending, "add" => admitted, "del" => pending}], "goal" => admitted}}]
+
+                assert {:ok, %Admitted{} = result} = AshGraphLaw.law(runtime, %{"text" => pending, "dialect" => "ntriples"}, steps)
+                assert length(result.states) >= 2
+                assert [%AshGraphLaw.Receipt{step: "plan-action"}] = result.receipts
+                assert result.nquads =~ "urn:admitted"
+              end
+            end
+          end
+          EOF
+
+          cat > templates/README.md.tera <<'EOF'
+          # ash_graphlaw
+
+          `ash_graphlaw` is the Ash/BEAM membrane for GraphLaw. It hosts the official
+          `graphlaw.wasm` WASI module through Wasmex and preserves GraphLaw's JSON ABI
+          without reimplementing semantic standards in Elixir.
+
+          ```text
+          Ash / Reactor / SA2A / ash_r2rml
+                        |
+                        v
+                  ash_graphlaw
+                Wasmex + exact ABI
+                        |
+                        v
+                  graphlaw.wasm
+                        |
+             PurRDF + Eyeron + GraphLaw
+          ```
+
+          A caller proposes a request. GraphLaw determines whether the semantic state and
+          transition are admitted. `ash_graphlaw` transports bytes and projects typed
+          success/refusal values; it does not manufacture authority.
+
+          ## Runtime
+
+          ```elixir
+          {:ok, graphlaw} = AshGraphLaw.start_link(wasm_path: "/path/to/graphlaw.wasm")
+          {:ok, capabilities} = AshGraphLaw.capabilities(graphlaw)
+          ```
+
+          `AshGraphLaw.call/3` exposes every GraphLaw ABI operation, including `datalog`,
+          `n3`, `hooks`, `policy`, and `law`; new GraphLaw operations do not require a
+          shadow semantic implementation here.
+
+          ## Ash DSL
+
+          ```elixir
+          use Ash.Resource, extensions: [AshGraphLaw.Resource]
+
+          graphlaw do
+            runtime wasm_path: "/srv/graphlaw.wasm", timeout_ms: 5_000, max_skew_secs: 60, trusted_keys: []
+            admission :deploy, step: :plan, ceiling: :select
+          end
+          ```
+
+          ## Manufactured provenance
+
+          - ash_graphlaw: v{{ package_version }}
+          - GraphLaw court release: v{{ graphlaw_version }}
+          - GraphLaw ABI: {{ abi_version }}
+          - graphlaw.wasm SHA-256: `{{ wasm_sha256 }}`
+          - ggen source pin: `{{ ggen_sha }}`
+          - ggen-marketplace pin: `{{ marketplace_sha }}`
+
+          `ggen sync run` manufactures the implementation from `ontology.ttl`, the local
+          projection templates, and the canonical `ash-extension-pack`.
+          EOF
+
+      - name: Build pinned ggen from Rust source
+        shell: bash
+        env:
+          RUSTC_WRAPPER: ""
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang libclang-dev llvm-dev
+          rustup toolchain install nightly-2026-06-22 --profile minimal --component rustfmt --component clippy
+          rustup override set nightly-2026-06-22
+          cargo build --release --locked --manifest-path vendor/ggen/crates/ggen-cli/Cargo.toml --bin ggen
+          mkdir -p .bin
+          cp vendor/ggen/target/release/ggen .bin/ggen
+          .bin/ggen --version
+
+      - name: Manufacture with ggen
+        shell: bash
+        run: |
+          set -euo pipefail
+          .bin/ggen sync run
+          test -f lib/ash_graphlaw/resource.ex
+          test -f lib/ash_graphlaw/persist.ex
+          test -f lib/ash_graphlaw/verify.ex
+          test -f lib/ash_graphlaw/info.ex
+          test -f lib/ash_graphlaw/abi.ex
+          git diff --binary -- . ':!vendor' ':!.bin' > /tmp/first.patch
+          .bin/ggen sync run
+          git diff --binary -- . ':!vendor' ':!.bin' > /tmp/second.patch
+          cmp /tmp/first.patch /tmp/second.patch
+
+      - name: Install BEAM
+        uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          elixir-version: '1.18.4'
+          otp-version: '27.3'
+
+      - name: Download pinned GraphLaw WASM
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            -o tmp/graphlaw.wasm \
+            "https://github.com/seanchatmangpt/graphlaw/releases/download/${GRAPHLAW_VERSION}/graphlaw.wasm"
+          echo "${GRAPHLAW_WASM_SHA256}  tmp/graphlaw.wasm" | sha256sum --check --strict
+
+      - name: Verify generated extension
+        shell: bash
+        env:
+          GRAPHLAW_WASM_PATH: ${{ github.workspace }}/tmp/graphlaw.wasm
+          MIX_ENV: test
+        run: |
+          set -euo pipefail
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+          mix format
+          mix format --check-formatted
+          mix compile --warnings-as-errors
+          mix test
+
+      - name: Commit manufactured tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf vendor .bin tmp _build deps .ggen-v2
+          git config user.name "ggen-ecosystem"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No generated delta"
+            exit 0
+          fi
+          git commit -m "feat: manufacture GraphLaw Ash membrane [ggen-generated]"
+          git push origin HEAD:${GITHUB_REF_NAME}
