@@ -79,7 +79,9 @@ defmodule AshGraphLaw.TemplateQuerySyncTest do
     for template <- @templates do
       assert frontmatter(template) =~ ~r/^to: \S+$/m, "#{template} has no `to:`"
       body = template |> File.read!() |> String.split(~r/^---\n/m, parts: 3) |> List.last()
+      # REUSE-IgnoreStart
       assert body =~ "SPDX-License-Identifier: MIT", "#{template} lacks the SPDX header"
+      # REUSE-IgnoreEnd
     end
   end
 end
