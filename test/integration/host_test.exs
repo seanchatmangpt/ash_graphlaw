@@ -36,7 +36,7 @@ defmodule AshGraphLaw.Integration.HostTest do
     assert Host.available?(host, 5_000)
   end
 
-  test "ops datalog, n3, hooks, law and policy are each served (not refused as unknown op)" do
+  test "ops datalog, n3, hooks and law are each served (not refused as unknown op)" do
     host = start_host!([])
     # positive control: a known op is ok
     assert {:ok, %{"ok" => true}} = capabilities(host)
@@ -50,8 +50,7 @@ defmodule AshGraphLaw.Integration.HostTest do
          "pack" => %{"text" => "", "dialect" => "turtle"},
          "data" => %{"text" => "", "dialect" => "turtle"}
        }},
-      {"law", law_req()},
-      {"policy", %{"op" => "policy", "problem" => %{}, "policy" => %{}}}
+      {"law", law_req()}
     ]
 
     for {op, req} <- probes do

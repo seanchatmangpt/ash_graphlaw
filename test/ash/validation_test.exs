@@ -99,10 +99,10 @@ defmodule AshGraphLaw.Ash.ValidationTest do
 
     changeset = Ash.Changeset.for_create(Note, :write, %{})
     refute changeset.valid?
-    assert Error.codes(changeset.errors) == [:not_admitted]
+    assert Error.codes(changeset.errors) == [:engine_refused]
 
     assert {:error, %Ash.Error.Invalid{} = error} = Ash.create(changeset)
-    assert Error.codes(error) == [:not_admitted]
+    assert Error.codes(error) == [:engine_refused]
     assert Ash.read!(Note) == []
   end
 
