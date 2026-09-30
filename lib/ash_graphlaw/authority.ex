@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+# UNSUPPORTED(generator-capability): no pack template emits DSL legality/authority semantics
+
 defmodule AshGraphLaw.Authority do
   @moduledoc """
   The single authority boundary shared by `AshGraphLaw.Change.Admit` and
@@ -27,6 +29,29 @@ defmodule AshGraphLaw.Authority do
   refused by the engine (`:lease_refused`). Evidence records the lease identity
   (`identity/1`) so the authority behind an admitted change can be replayed.
 
+  ## Ceiling ordering
+
+  Ceilings are totally ordered `:observe < :select < :construct`. A lease satisfies an
+  admission when its claimed ceiling is greater than or equal to the admission's `ceiling`
+  option. `:observe` (the default) needs no lease at all. A lease never widens what the
+  engine derives; it only records that the caller presented the material the ceiling demands.
+
+  ## Signed-lease shape
+
+  The container in `changeset.context[lease_key]` (default key `:graphlaw_lease`) carries the
+  signed lease minted by the engine's issuer:
+
+      %{
+        signed_lease: %{
+          "lease" => %{"id" => "lease-1", "ceiling" => "construct", "...": "..."},
+          "attestation" => %{"key_id" => "ops-2026", "signature" => "...", "...": "..."}
+        }
+      }
+
+  String and atom keys are both accepted. `claim/1` reads `"lease"."ceiling"`; `identity/1`
+  reads `"lease"."id"` and `"attestation"."key_id"`. The signature itself is never checked in
+  Elixir: verification is the engine's job on the same request.
+
   ## Trust anchors and time
 
   `engine_opts/3` takes `trusted_keys` and `max_skew_secs` ONLY from the resource's `runtime`
@@ -42,10 +67,20 @@ defmodule AshGraphLaw.Authority do
   @ceiling_rank %{observe: 0, select: 1, construct: 2}
   @ceiling_names %{"observe" => :observe, "select" => :select, "construct" => :construct}
 
-  @typedoc "What a lease container presented: the ceiling it claims and the signed lease (if any)."
+  @typedoc """
+  What a lease container presented: the ceiling it claims and the signed lease (if any).
+
+  `signed_lease` is `nil` exactly when `ceiling` is `:observe` because nothing signed was
+  presented.
+  """
   @type claim :: %{ceiling: :observe | :select | :construct, signed_lease: map() | nil}
 
-  @typedoc "Identity of the presented lease, recorded in `AshGraphLaw.Evidence`."
+  @typedoc """
+  Identity of the presented lease, recorded in `AshGraphLaw.Evidence`.
+
+  `lease_digest` is the lowercase-hex SHA-256 of the canonical (sorted-key JSON) signed lease.
+  `lease_id` and `key_id` are `nil` when the signed lease omits them.
+  """
   @type identity :: %{
           ceiling: :observe | :select | :construct,
           lease_id: String.t() | nil,
@@ -56,6 +91,21 @@ defmodule AshGraphLaw.Authority do
   @doc """
   What `lease` (a value from changeset context) presents. Only a signed lease claims a ceiling
   above `:observe`.
+
+  Total: any term is accepted, and anything that is not a well-formed signed-lease container
+  with a known ceiling claims `:observe` with `signed_lease: nil`.
+
+  ## Examples
+
+      iex> AshGraphLaw.Authority.claim(nil)
+      %{ceiling: :observe, signed_lease: nil}
+
+      iex> AshGraphLaw.Authority.claim(%{ceiling: :construct})
+      %{ceiling: :observe, signed_lease: nil}
+
+      iex> signed = %{"lease" => %{"ceiling" => "select"}, "attestation" => %{}}
+      iex> AshGraphLaw.Authority.claim(%{signed_lease: signed}).ceiling
+      :select
   """
   @spec claim(term()) :: claim()
   def claim(lease) do
@@ -71,7 +121,11 @@ defmodule AshGraphLaw.Authority do
   @doc """
   Checks the presented lease against the admission's required ceiling.
 
-  `:ok`, or `{:error, %Refusal{code: :ceiling_unmet}}` before the engine is called.
+  `:ok`, or `{:error, %Refusal{code: :ceiling_unmet}}` before the engine is called. The
+  refusal details carry `:admission`, `:required` and `:granted`. An admission with ceiling
+  `:observe` is always `:ok`.
+
+  This is a presentation check only; the engine still verifies signature, signer and expiry.
   """
   @spec check_ceiling(struct(), term()) :: :ok | {:error, Refusal.t()}
   def check_ceiling(%Admission{ceiling: :observe}, _lease), do: :ok
@@ -91,9 +145,100 @@ defmodule AshGraphLaw.Authority do
     end
   end
 
+  @op_ceilings %{
+    "capabilities" => :observe,
+    "sniff" => :observe,
+    "parse" => :observe,
+    "convert" => :observe,
+    "canonical" => :observe,
+    "sparql" => :observe,
+    "shacl" => :observe,
+    "shex" => :observe,
+    "policy" => :observe,
+    "n3" => :construct,
+    "entail" => :construct,
+    "datalog" => :construct,
+    "hooks" => :construct,
+    "law" => :construct
+  }
+
+  @doc """
+  The minimum ceiling a capability declaration must carry for engine op `op` (atom or string).
+
+  `:observe` for capabilities, sniff, parse, convert, canonical, sparql, shacl, shex and policy;
+  `:construct` for n3, entail, datalog, hooks and law. Any other op is a typed
+  `:unknown_capability` refusal.
+  """
+  @spec op_ceiling(atom() | String.t()) :: {:ok, :observe | :select | :construct} | {:error, Refusal.t()}
+  def op_ceiling(op) when is_atom(op) and not is_nil(op), do: op_ceiling(Atom.to_string(op))
+
+  def op_ceiling(op) when is_binary(op) do
+    case Map.fetch(@op_ceilings, op) do
+      {:ok, ceiling} ->
+        {:ok, ceiling}
+
+      :error ->
+        {:error,
+         Refusal.new(:unknown_capability, "no capability #{inspect(op)} in the GraphLaw registry", %{
+           op: op,
+           known: @op_ceilings |> Map.keys() |> Enum.sort()
+         })}
+    end
+  end
+
+  def op_ceiling(other),
+    do: {:error, Refusal.new(:unknown_capability, "capability #{inspect(other)} is not a name", %{op: inspect(other)})}
+
+  @doc """
+  Checks that `resource` may run engine op `op`.
+
+  A resource declaring no capability allows every op (back-compat) and a declared op returns
+  `:ok`; an undeclared op on a resource that declares at least one is a typed
+  `:capability_not_declared` refusal, and an unknown op is `:unknown_capability`.
+
+  `policy` is a keyword list. With `lease: term`, the ceiling that lease claims (`claim/1`) must
+  be at least the declared capability's ceiling, else `:ceiling_unmet`. Presentation check only;
+  the engine still verifies signature, signer and expiry.
+  """
+  @spec check_op(module(), atom() | String.t(), keyword()) :: :ok | {:error, Refusal.t()}
+  def check_op(resource, op, policy \\ []) when is_list(policy) do
+    with {:ok, _required} <- op_ceiling(op) do
+      case Admissions.capabilities(resource) do
+        [] -> :ok
+        _declared -> check_declared(resource, op, policy)
+      end
+    end
+  end
+
+  defp check_declared(resource, op, policy) do
+    with {:ok, capability} <- Admissions.capability(resource, op) do
+      if Keyword.has_key?(policy, :lease) do
+        %{ceiling: granted} = claim(Keyword.fetch!(policy, :lease))
+        required = capability.ceiling
+
+        if Map.fetch!(@ceiling_rank, granted) >= Map.fetch!(@ceiling_rank, required) do
+          :ok
+        else
+          {:error,
+           Refusal.new(
+             :ceiling_unmet,
+             "capability #{inspect(capability.name)} requires ceiling #{required}, lease grants #{granted}",
+             %{capability: to_string(capability.name), required: required, granted: granted}
+           )}
+        end
+      else
+        :ok
+      end
+    end
+  end
+
   @doc """
   The engine options both admission paths send: `:server`, `:timeout`, the runtime's
   `max_skew_secs` and `trusted_keys`, and the signed lease when one was presented.
+
+  `opts` may override `:server` (default `AshGraphLaw.Pool`) and `:timeout` (default the
+  runtime's `timeout_ms`); every other key is ignored, so caller options can never supply
+  trust anchors, a clock or an unsigned lease.
   """
   @spec engine_opts(module(), term(), keyword()) :: keyword()
   def engine_opts(resource, lease, opts) do

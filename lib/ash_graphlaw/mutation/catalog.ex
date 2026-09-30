@@ -34,6 +34,8 @@ defmodule AshGraphLaw.Mutation.Catalog do
   | AGL-MUT-012 | malformed trusted keys accepted                             | `AshGraphLaw.Contract.key_refusals/1` |
   | AGL-MUT-013 | guards of the ceiling normalization negated                 | `AshGraphLaw.Authority.ceiling_of/1` |
   | AGL-MUT-014 | every caller claims `:construct` without a signed lease     | `AshGraphLaw.Authority.claim/1` |
+  | AGL-MUT-015 | parity court accepts any list comparison (P1, P2)           | `AshGraphLaw.Parity.same_list?/2` |
+  | AGL-MUT-016 | parity court accepts any digest comparison (P3, R1)         | `AshGraphLaw.Parity.same_digest?/2` |
   """
 
   alias AshGraphLaw.Mutation
@@ -114,6 +116,14 @@ defmodule AshGraphLaw.Mutation.Catalog do
         {:replace_body, ~S"#{ceiling => construct, signed_lease => nil}."},
         guard: "Authority signed-lease requirement",
         description: "a caller self-grants :construct with no signed lease at all"
+      ),
+      entry("AGL-MUT-015", AshGraphLaw.Parity, :same_list?, 2, {:replace_body, "true."},
+        guard: "Parity list comparison (P1, P2)",
+        description: "a dropped, reordered or extra op or dialect no longer reports capability_parity_drift"
+      ),
+      entry("AGL-MUT-016", AshGraphLaw.Parity, :same_digest?, 2, {:replace_body, "true."},
+        guard: "Parity digest comparison (P3, R1)",
+        description: "a mismatched registry or surface digest no longer reports capability_parity_drift"
       )
     ]
   end

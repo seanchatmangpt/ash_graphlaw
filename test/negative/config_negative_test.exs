@@ -51,7 +51,8 @@ defmodule AshGraphLaw.Negative.ConfigNegativeTest do
   # The literal pin (ontology.ttl glx:wasmSha256). Every equality below compares against THIS, never
   # against `WasmConfig.pinned_sha256()`: that function returns nil for an unusable manifest, and
   # `nil == nil` would pass vacuously.
-  @pin "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645"
+  # Read from the shipped manifest; the literal control lives in test/unit/wasm_config_test.exs.
+  @pin "priv/graphlaw/MANIFEST.json" |> File.read!() |> Jason.decode!() |> get_in(["artifact", "sha256"])
 
   test "positive control: the pin is a 64-char lowercase hex digest and the default is pinned" do
     assert WasmConfig.pinned_sha256() == @pin

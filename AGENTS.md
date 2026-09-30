@@ -40,7 +40,10 @@ typed `%AshGraphLaw.Refusal{}` (`code`, `class`, `broken_term`).
 ## Generation law
 
 Generated, never hand-edited: `lib/ash_graphlaw/{resource,persist,verify,info,abi,receipt,
-admitted,standing,refusal}.ex`, `lib/ash_graphlaw.ex`, `lib/mix/tasks/ash_graphlaw.install.ex`,
+admitted,standing,refusal}.ex`, `lib/ash_graphlaw.ex`, the typed capability surface
+(`lib/ash_graphlaw/capability.ex`, `capability/{registry,api}.ex`, one module per op under
+`capability/` and `result/`, `documentation/reference/capabilities*`,
+`test/generated/capability_surface_test.exs`), `lib/mix/tasks/ash_graphlaw.install.ex`,
 `mix.exs`, `.formatter.exs`, `.gitignore`, `README.md`, `LICENSE`,
 `priv/graphlaw/MANIFEST.json`, `test/test_helper.exs`,
 `test/ash_graphlaw_composition_test.exs`, `documentation/reference/typed_refusals.md`,
@@ -73,6 +76,16 @@ pre-existing), form a hypothesis, repair at the source, rerun the failed boundar
 expand. Tests are Chicago style: real collaborators, no mocks, positive control before each
 negative. CI supplements local execution; it is not truth. Report exact commands and exit
 codes; never claim unrun work.
+
+## Typed capabilities and parity
+
+Expose, do not reimplement: this library never evaluates RDF, SPARQL, SHACL, ShEx, N3, Datalog,
+entailment or planning. The typed surface is generated from the GraphLaw registry
+(`priv/graphlaw/capability-registry.json`, spliced into `ontology.ttl`). `mix ash_graphlaw.parity`
+is a failing court: never skip it, never allow-list drift. Engine pin `v26.9.28` predates the
+registry; drift against it is reported, not masked, until the pin is bumped. A parity pass is
+`PARTIAL_ALIVE` at most. Rules: `usage-rules/capabilities.md`, `usage-rules/parity.md`,
+`usage-rules/lifecycle.md`.
 
 ## No branches, main only
 

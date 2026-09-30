@@ -1,0 +1,175 @@
+<!--
+SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+
+SPDX-License-Identifier: MIT
+-->
+
+# Ash-first admission
+
+Start with ordinary Ash resources and add only what admission needs. Nothing here requires the
+engine until the last step; every earlier cell is decided in Elixir.
+
+```elixir
+Mix.install(
+  [
+    {:ash, "~> 3.0"},
+    {:ash_graphlaw, path: Path.expand("../..", __DIR__)}
+  ],
+  consolidate_protocols: false
+)
+```
+
+## An ordinary resource
+
+`Demo.Note` knows nothing about GraphLaw. It is a plain Ash resource on the ETS data layer.
+
+```elixir
+defmodule Demo.Note do
+  use Ash.Resource,
+    domain: Demo.Domain,
+    data_layer: Ash.DataLayer.Ets
+
+  ets do
+    private? true
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :body, :string, public?: true
+  end
+
+  actions do
+    defaults [:read]
+
+    create :write do
+      accept [:body]
+    end
+  end
+end
+```
+
+## Add the extension
+
+Adding admission is additive: list `AshGraphLaw.Resource` under `extensions`, declare an
+admission, and point an action at it with `AshGraphLaw.Change.Admit`. The `:rdfs` step needs no
+law module; the built-in step runs over the default projection of the changeset.
+
+`api_token` is `sensitive?: true`. The default projection omits sensitive attributes and
+arguments entirely.
+
+```elixir
+defmodule Demo.Memo do
+  use Ash.Resource,
+    domain: Demo.Domain,
+    data_layer: Ash.DataLayer.Ets,
+    extensions: [AshGraphLaw.Resource]
+
+  ets do
+    private? true
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :subject, :string, public?: true
+    attribute :api_token, :string, public?: true, sensitive?: true
+  end
+
+  actions do
+    defaults [:read]
+
+    create :file do
+      accept [:subject, :api_token]
+      change {AshGraphLaw.Change.Admit, admission: :memo_closure}
+    end
+  end
+
+  graphlaw do
+    admission :memo_closure do
+      step(:rdfs)
+    end
+  end
+end
+
+defmodule Demo.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
+
+  resources do
+    resource Demo.Note
+    resource Demo.Memo
+  end
+end
+```
+
+The plain resource still works, unchanged:
+
+```elixir
+note = Ash.create!(Demo.Note, %{body: "plain Ash, no admission"}, action: :write)
+{note.body, Ash.read!(Demo.Note) |> length()}
+```
+
+## The projection is deterministic and offline
+
+What the engine will observe is the default N-Triples projection of the changeset. It is a pure
+function of the input: build the changeset, project it, hash it. No engine is involved.
+
+```elixir
+{:ok, admission} = AshGraphLaw.Admissions.fetch(Demo.Memo, :memo_closure)
+
+changeset =
+  Ash.Changeset.for_create(Demo.Memo, :file, %{subject: "Q3 plan", api_token: "s3cr3t-token"})
+
+{:ok, projection} = AshGraphLaw.Projection.Default.data(changeset, admission: admission)
+
+%{
+  dialect: projection.dialect,
+  sha256: :crypto.hash(:sha256, projection.text) |> Base.encode16(case: :lower),
+  mentions_subject?: String.contains?(projection.text, "Q3 plan"),
+  leaks_sensitive?: String.contains?(projection.text, "s3cr3t-token")
+}
+```
+
+`leaks_sensitive?` is `false` by construction: redaction is omission, not masking.
+
+Projecting the same input twice yields byte-identical text, which is what makes evidence
+replayable:
+
+```elixir
+{:ok, again} = AshGraphLaw.Projection.Default.data(changeset, admission: admission)
+again.text == projection.text
+```
+
+## Unknown admissions are refused, not ignored
+
+Asking for an admission the resource never declared is a typed refusal with the known names
+attached:
+
+```elixir
+{:error, refusal} = AshGraphLaw.Admissions.fetch(Demo.Memo, :no_such_admission)
+{refusal.code, refusal.class, refusal.details.known}
+```
+
+## Cross the engine boundary
+
+Start the pool and file a memo. With the engine vendored (`mix ash_graphlaw.vendor`) the outcome
+is evidence. Without it the outcome is a typed refusal and nothing is persisted. Either way it
+is a value you can match on.
+
+```elixir
+case AshGraphLaw.Pool.start_link(size: 1) do
+  {:ok, _pool} -> :started
+  {:error, {:already_started, _pool}} -> :already_running
+end
+
+outcome = Ash.create(Demo.Memo, %{subject: "Q3 plan", api_token: "s3cr3t-token"}, action: :file)
+
+case outcome do
+  {:ok, memo} -> {:admitted, memo.subject}
+  {:error, error} -> {:refused, AshGraphLaw.Error.codes(error)}
+end
+```
+
+## Ontology-first
+
+When the admission model is larger than a handful of resources, do not hand-maintain it. Model
+the admissions in RDF, generate the resources and law modules with ggen, and treat the Elixir
+as a projection. See `documentation/how_to/regenerate_with_ggen.md`.

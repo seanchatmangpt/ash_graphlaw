@@ -1,0 +1,22 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# GraphLaw capability table for the root API: op name, order, summary, legacy flag.
+# A missing consumer OpBinding means legacy=false. Legacy ops keep their hand-shaped root API.
+PREFIX gac: <http://seanchatmangpt.github.io/packs/graphlaw-ash-capability#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?opName ?opOrder ?opSummary ?legacy
+WHERE {
+  ?cap a gac:Capability ;
+    gac:opName ?opName ;
+    gac:opOrder ?opOrder .
+  OPTIONAL { ?cap gac:opSummary ?summary }
+  OPTIONAL {
+    ?binding a gac:OpBinding ;
+      gac:bindingOp ?opName ;
+      gac:bindingLegacy ?bindingLegacy .
+  }
+  BIND(COALESCE(?summary, "") AS ?opSummary)
+  BIND(COALESCE(?bindingLegacy, false) AS ?legacy)
+}
+ORDER BY ?opOrder

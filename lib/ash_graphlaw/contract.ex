@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+# UNSUPPORTED(generator-capability): no pack template emits DSL legality/authority semantics
+
 defmodule AshGraphLaw.Contract do
   @moduledoc """
   UNSUPPORTED(generator-capability): hand-written legality contract for the `:graphlaw` DSL section.
@@ -26,7 +28,9 @@ defmodule AshGraphLaw.Contract do
       `AshGraphLaw.Admissions` instead.
 
   Refusal codes emitted here belong to the closed `AshGraphLaw.Refusal` table:
-  `:duplicate_admission`, `:missing_law_module`, `:invalid_trusted_key`, `:invalid_runtime_option`.
+  `:duplicate_admission`, `:missing_law_module`, `:invalid_trusted_key`, `:invalid_runtime_option`,
+  plus, for `capability` entities, `:duplicate_capability`, `:unknown_capability` and `:ceiling_unmet`
+  (these are verifier finding labels rendered into a `Spark.Error.DslError` message).
   """
 
   @payload_steps [:shacl, :n3, :hooks, :plan, :require_receipt, :require_signed_receipt]
@@ -62,11 +66,13 @@ defmodule AshGraphLaw.Contract do
     entities = entities(compiled)
     admissions = Enum.filter(entities, &is_struct(&1, AshGraphLaw.Dsl.Admission))
     runtimes = Enum.filter(entities, &is_struct(&1, AshGraphLaw.Dsl.Runtime))
+    capabilities = Enum.filter(entities, &match?(%{__struct__: AshGraphLaw.Dsl.Capability}, &1))
 
     refusals =
       duplicate_refusals(admissions) ++
         law_refusals(admissions) ++
-        Enum.flat_map(runtimes, &runtime_refusals/1)
+        Enum.flat_map(runtimes, &runtime_refusals/1) ++
+        capability_refusals(capabilities)
 
     case refusals do
       [] -> :ok
@@ -112,6 +118,81 @@ defmodule AshGraphLaw.Contract do
       {:module, ^law} -> if function_exported?(law, :steps, 2), do: nil, else: "does not export steps/2"
       {:error, :unavailable} -> nil
       {:error, reason} -> "is not available (#{reason})"
+    end
+  end
+
+  # Capability checks: name in the GraphLaw registry, ceiling >= the op's minimum, no duplicates.
+  # Matched by struct name so this module needs no compile-time dependency on the generated struct.
+  defp capability_refusals([]), do: []
+
+  defp capability_refusals(capabilities) do
+    duplicates =
+      capabilities
+      |> Enum.frequencies_by(&to_string(&1.name))
+      |> Enum.filter(fn {_name, count} -> count > 1 end)
+      |> Enum.sort()
+      |> Enum.map(fn {name, count} ->
+        refusal(:duplicate_capability, "capability #{inspect(name)} is declared #{count} times")
+      end)
+
+    duplicates ++
+      case registry_names() do
+        {:ok, names} -> Enum.flat_map(capabilities, &capability_refusal(&1, names))
+        {:error, detail} -> [refusal(:unknown_capability, detail)]
+      end
+  end
+
+  defp capability_refusal(%{name: name, ceiling: ceiling}, names) do
+    name = to_string(name)
+
+    if name in names do
+      ceiling_refusal(name, ceiling)
+    else
+      [
+        refusal(
+          :unknown_capability,
+          "capability #{inspect(name)} is not in the GraphLaw registry (known: #{Enum.join(names, ", ")})"
+        )
+      ]
+    end
+  end
+
+  defp ceiling_refusal(name, ceiling) do
+    case AshGraphLaw.Authority.op_ceiling(name) do
+      {:ok, required} ->
+        if rank(ceiling) >= rank(required) do
+          []
+        else
+          [
+            refusal(
+              :ceiling_unmet,
+              "capability #{inspect(name)} declares ceiling #{inspect(ceiling)}, below the required #{inspect(required)}"
+            )
+          ]
+        end
+
+      {:error, %{message: message}} ->
+        [refusal(:unknown_capability, message)]
+    end
+  end
+
+  defp rank(:observe), do: 0
+  defp rank(:select), do: 1
+  defp rank(:construct), do: 2
+  defp rank(_other), do: -1
+
+  defp registry_names do
+    registry = AshGraphLaw.Capability.Registry
+
+    case Code.ensure_compiled(registry) do
+      {:module, ^registry} ->
+        if function_exported?(registry, :names, 0),
+          do: {:ok, apply(registry, :names, [])},
+          else: {:error, "capability registry #{inspect(registry)} does not export names/0"}
+
+      {:error, reason} ->
+        {:error,
+         "cannot validate capability declarations: #{inspect(registry)} is not available (#{reason}); run scripts/ggen_sync.sh"}
     end
   end
 

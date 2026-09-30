@@ -21,6 +21,9 @@ edit them by hand: change the source and run `scripts/ggen_sync.sh` (`scripts/ve
 Generated: `mix.exs`, `.formatter.exs`, `.gitignore`, `README.md`, `lib/ash_graphlaw.ex`,
 `lib/ash_graphlaw/{abi,receipt,admitted,standing,refusal,resource,persist,verify,info}.ex`,
 `lib/mix/tasks/ash_graphlaw.install.ex`, `documentation/reference/typed_refusals.md`,
+the typed capability surface (`lib/ash_graphlaw/capability.ex`, `capability/{registry,api}.ex`,
+one module per op under `capability/` and `result/`, `documentation/reference/capabilities.md` and
+`capabilities/*.md`, `test/generated/capability_surface_test.exs`),
 `documentation/dsls/DSL-AshGraphLaw.Resource.md` (via `mix spark.cheat_sheets`) and
 `priv/graphlaw/MANIFEST.json`.
 
@@ -39,12 +42,27 @@ mix credo --strict
 mix dialyzer
 mix ash_graphlaw.vendor          # needed for tests tagged :wasm
 mix test
+mix ash_graphlaw.parity          # capability parity court; never skips
 mix ash_graphlaw.mutate --require-killed
 mix hex.build
 ```
 
 Report real command output in pull requests. A failure that predates your change is reported as
 pre-existing, not silently ignored.
+
+## Registry changes
+
+When the GraphLaw capability registry changes, run `scripts/vendor_registry.sh`,
+`scripts/import_registry.sh`, `scripts/vendor_marketplace.sh` (when the marketplace sha moves) and
+`scripts/ggen_sync.sh`, then `scripts/ggen_sync.sh --check`. Never edit the `GENERATED-REGISTRY`
+block of `ontology.ttl` or a generated capability module by hand.
+
+## Documentation
+
+Docs follow Diataxis (`documentation/{tutorials,how_to,reference,topics}`). Every `.md` starts with
+the SPDX comment. State standing with the vocabulary; do not write `ALIVE` without an exact-SHA
+receipt; leave `<<RECEIPT:claim-N>>` tokens in place. Describe only what you re-read in source; a
+claim about code you did not run is `UNKNOWN`.
 
 ## Testing
 

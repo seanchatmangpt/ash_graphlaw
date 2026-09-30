@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+name: Refusal report
+description: A typed refusal that looks wrong (unexpected, missing, or misclassified).
+labels: ["refusal"]
+body:
+  - type: input
+    id: sha
+    attributes:
+      label: Exact subject (commit SHA or released version)
+      description: Full 40-character SHA, or the published version.
+    validations:
+      required: true
+  - type: input
+    id: engine_sha256
+    attributes:
+      label: Engine SHA-256
+      description: Output of `sha256sum priv/graphlaw/graphlaw.wasm`, or "engine not vendored".
+    validations:
+      required: true
+  - type: input
+    id: code
+    attributes:
+      label: Refusal code
+      description: The `code` field of the returned refusal (see documentation/reference/typed_refusals.md).
+    validations:
+      required: true
+  - type: textarea
+    id: refusal
+    attributes:
+      label: Full refusal term
+      description: Paste the exact returned value.
+      render: elixir
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Input that produced it
+      description: The resource, request or lease, with secrets removed.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is wrong
+      options:
+        - Refused when it should be admitted
+        - Admitted when it should be refused
+        - Wrong refusal code
+        - Crash instead of a typed refusal
+    validations:
+      required: true

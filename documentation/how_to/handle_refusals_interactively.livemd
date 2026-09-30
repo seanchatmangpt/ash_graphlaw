@@ -1,0 +1,224 @@
+<!--
+SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+
+SPDX-License-Identifier: MIT
+-->
+
+# Handle refusals interactively
+
+Every failure this library returns is an `AshGraphLaw.Refusal` from a closed table. This
+notebook walks that table with each code's class and Chatman broken term, then triggers refusals
+you can produce without any engine.
+
+```elixir
+Mix.install(
+  [
+    {:ash, "~> 3.0"},
+    {:ash_graphlaw, path: Path.expand("../..", __DIR__)}
+  ],
+  consolidate_protocols: false
+)
+```
+
+## The closed table
+
+The table is generated from the ontology. `code`, `class`, `broken_term` and one-line meaning
+are functions of the code alone.
+
+```elixir
+table =
+  for code <- AshGraphLaw.Refusal.codes() do
+    %{
+      code: code,
+      class: AshGraphLaw.Refusal.class_of(code),
+      broken_term: AshGraphLaw.Refusal.broken_term_of(code),
+      doc: AshGraphLaw.Refusal.doc_of(code)
+    }
+  end
+
+length(table)
+```
+
+Every class and every broken term used is inside the closed vocabularies:
+
+```elixir
+classes_ok? = Enum.all?(table, &(&1.class in AshGraphLaw.Refusal.classes()))
+terms_ok? = Enum.all?(table, &(&1.broken_term in AshGraphLaw.Refusal.broken_terms()))
+{classes_ok?, terms_ok?}
+```
+
+Group the table by class to see what kind of thing can go wrong:
+
+```elixir
+table
+|> Enum.group_by(& &1.class, & &1.code)
+|> Enum.sort_by(fn {class, _codes} -> class end)
+```
+
+Group by broken term to see which Chatman failure each code witnesses:
+
+```elixir
+table
+|> Enum.group_by(& &1.broken_term, & &1.code)
+|> Enum.sort_by(fn {term, _codes} -> term end)
+```
+
+## Codes outside the table raise
+
+The table is closed on purpose. A code that is not in it is a bug, not a refusal:
+
+```elixir
+try do
+  AshGraphLaw.Refusal.class_of(:not_a_real_code)
+rescue
+  error in ArgumentError -> {:raised, error.message}
+end
+```
+
+## Refusals are values
+
+Build one directly and read what a caller reads:
+
+```elixir
+refusal = AshGraphLaw.Refusal.new(:ceiling_unmet, "admission :publish requires select")
+
+%{
+  code: refusal.code,
+  class: refusal.class,
+  broken_term: refusal.broken_term,
+  standing: AshGraphLaw.Standing.of({:error, refusal}),
+  message: Exception.message(refusal)
+}
+```
+
+Standing is derived from the class, never stored. A resource limit is `:BLOCKED`, an unsupported
+step is `:UNSUPPORTED`, every other refusal is `:UNKNOWN`:
+
+```elixir
+for code <- [:not_admitted, :resource_limit, :unsupported_step, :wasm_not_vendored] do
+  {code, AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(code)})}
+end
+```
+
+## Provoke refusals through Ash
+
+Define a resource whose admissions are misconfigured on purpose, so each refusal is decided
+before the engine is asked anything:
+
+```elixir
+defmodule Demo.Order do
+  use Ash.Resource,
+    domain: Demo.Domain,
+    data_layer: Ash.DataLayer.Ets,
+    extensions: [AshGraphLaw.Resource]
+
+  ets do
+    private? true
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :sku, :string, public?: true
+  end
+
+  actions do
+    defaults [:read]
+
+    create :place do
+      accept [:sku]
+      change {AshGraphLaw.Change.Admit, admission: :not_declared}
+    end
+
+    create :place_gated do
+      accept [:sku]
+      change {AshGraphLaw.Change.Admit, admission: :gated}
+    end
+
+    create :place_planned do
+      accept [:sku]
+      change {AshGraphLaw.Change.Admit, admission: :planned}
+    end
+  end
+
+  graphlaw do
+    admission :gated do
+      step(:rdfs)
+      ceiling(:construct)
+    end
+
+    admission :planned do
+      step(:plan)
+    end
+  end
+end
+
+defmodule Demo.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
+
+  resources do
+    resource Demo.Order
+  end
+end
+```
+
+Run each action and read the typed refusal out of the Ash error:
+
+```elixir
+refusal_of = fn action ->
+  case Ash.create(Demo.Order, %{sku: "A-1"}, action: action) do
+    {:ok, _order} -> :admitted
+    {:error, error} -> AshGraphLaw.Error.refusals(error) |> Enum.map(&{&1.code, &1.class, &1.broken_term})
+  end
+end
+
+%{
+  undeclared: refusal_of.(:place),
+  no_lease: refusal_of.(:place_gated),
+  no_law_module: refusal_of.(:place_planned)
+}
+```
+
+Read the three results together:
+
+  * `:unknown_admission` (class `:refused_structure`, broken term `:mu_on_O`): the action names
+    an admission the resource never declared.
+  * `:ceiling_unmet` (class `:refused_authority`, broken term `:R_missing_authority`): the
+    admission needs ceiling `:construct` and no signed lease was presented.
+  * `:missing_law_module` (class `:refused_structure`, broken term `:admission_vacuous`): the
+    `:plan` step carries a payload and there is no law module to supply it. An admission that
+    could never refuse is refused.
+
+## Host and pool refusals
+
+Without a live pool, the engine call is refused as `:host_not_started`. A refusal here is the
+system telling the truth about what it could not observe:
+
+```elixir
+case AshGraphLaw.Pool.info() do
+  {:error, refusal} -> {refusal.code, refusal.class, refusal.broken_term}
+  {:ok, info} -> {:pool_live, Map.keys(info)}
+end
+```
+
+## Handling policy
+
+Match on `class`, not on message text:
+
+```elixir
+handle = fn {:error, %AshGraphLaw.Refusal{} = refusal} ->
+  case refusal.class do
+    :refused_admission -> :fix_the_input
+    :refused_authority -> :present_a_signed_lease
+    :refused_identity -> :fix_the_engine_artifact
+    :refused_structure -> :fix_the_declaration
+    :blocked_resource -> :retry_or_raise_limits
+    :unsupported -> :file_a_generator_capability_request
+  end
+end
+
+for code <- [:not_admitted, :ceiling_unmet, :wasm_digest_mismatch, :unknown_admission, :saturated, :unsupported_step] do
+  {code, handle.({:error, AshGraphLaw.Refusal.new(code)})}
+end
+```
+
+A refusal grants and withdraws no authority. It is an observation about one exact input.

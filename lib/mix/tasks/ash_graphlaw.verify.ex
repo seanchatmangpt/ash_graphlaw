@@ -22,6 +22,22 @@ defmodule Mix.Tasks.AshGraphlaw.Verify do
   ## Usage
 
       mix ash_graphlaw.verify
+
+  ## Options
+
+  None. The task takes no arguments; any are ignored.
+
+  ## Exit codes
+
+    * `0` - the engine was admitted and reports the manifest `abi_version`.
+    * `1` - refusal, raised as `Mix.Error` with a typed code in brackets:
+      `[wasm_not_vendored]`, `[wasm_invalid]` (manifest), `[abi_version_mismatch]`,
+      `[malformed_response]`, or any `AshGraphLaw.Refusal` code returned by
+      `AshGraphLaw.EngineLoad.admit/2` or `AshGraphLaw.Host`.
+
+  ## Examples
+
+      mix ash_graphlaw.vendor && mix ash_graphlaw.verify
   """
 
   use Mix.Task
@@ -30,7 +46,11 @@ defmodule Mix.Tasks.AshGraphlaw.Verify do
   alias AshGraphLaw.Host
   alias AshGraphLaw.Refusal
 
+  @doc """
+  Runs the task. Returns `:ok`; raises `Mix.Error` with a `[code]` prefix on refusal.
+  """
   @impl Mix.Task
+  @spec run([String.t()]) :: :ok
   def run(_argv) do
     Mix.Task.run("app.start")
     dir = priv_dir()
@@ -54,6 +74,7 @@ defmodule Mix.Tasks.AshGraphlaw.Verify do
     Mix.shell().info("engine admitted: sha256=#{admitted.wasm_sha256}")
     check_abi!(bytes, artifact["sha256"], expected)
     Mix.shell().info("GraphLaw engine VERIFIED (abi_version #{expected}).")
+    :ok
   end
 
   defp check_abi!(bytes, sha, expected) do

@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+name: Bug report
+description: Something behaves differently from the documentation.
+labels: ["bug"]
+body:
+  - type: input
+    id: sha
+    attributes:
+      label: Exact subject (commit SHA or released version)
+      description: Full 40-character SHA, or the published version.
+    validations:
+      required: true
+  - type: input
+    id: engine_sha256
+    attributes:
+      label: Engine SHA-256
+      description: Output of `sha256sum priv/graphlaw/graphlaw.wasm`, or "engine not vendored".
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Elixir / OTP / Ash / Spark versions
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A real Ash resource and the exact calls; no mocks.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected versus observed
+      description: Paste real output. Do not paraphrase.
+    validations:
+      required: true

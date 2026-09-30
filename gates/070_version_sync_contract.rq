@@ -1,0 +1,95 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Version-sync contract. glx:packageVersion equals every package-kind version literal binding;
+# every engine-kind binding equals glx:graphLawVersion; glx:engineReleaseTag is exactly "v" +
+# glx:graphLawVersion and is the tag inside glx:wasmUrl; calver shape holds; the release date
+# is ISO 8601 and its calver prefix matches the package version (YY.M.D against YYYY-MM-DD).
+PREFIX glx: <https://graphlaw.dev/ash#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    ?focus a glx:VersionBinding ; glx:bindingKind ?k ; glx:bindingValue ?v ; glx:bindingPath ?path .
+    ?project a glx:Project ; glx:packageVersion ?pv .
+    FILTER (STR(?k) = "package" && STR(?v) != STR(?pv))
+    BIND("package_binding_drift" AS ?problem)
+    BIND(CONCAT(STR(?path), ": ", STR(?v), " != ", STR(?pv)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:VersionBinding ; glx:bindingKind ?k ; glx:bindingValue ?v ; glx:bindingPath ?path .
+    ?project a glx:Project ; glx:graphLawVersion ?gv .
+    FILTER (STR(?k) = "engine" && STR(?v) != STR(?gv))
+    BIND("engine_binding_drift" AS ?problem)
+    BIND(CONCAT(STR(?path), ": ", STR(?v), " != ", STR(?gv)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:VersionBinding ; glx:bindingKind ?k ; glx:bindingPath ?path .
+    FILTER (STR(?k) NOT IN ("package", "engine"))
+    BIND("unknown_binding_kind" AS ?problem)
+    BIND(CONCAT(STR(?path), " kind=", STR(?k)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:VersionBinding .
+    FILTER NOT EXISTS { ?focus glx:bindingPath ?a }
+    BIND("binding_missing_path" AS ?problem)
+    BIND("bindingPath" AS ?detail)
+  }
+  UNION {
+    ?focus a glx:VersionBinding ; glx:bindingPath ?a , ?b .
+    FILTER (STR(?a) < STR(?b))
+    BIND("binding_duplicate_path" AS ?problem)
+    BIND(STR(?a) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:VersionBinding ; glx:bindingPath ?p .
+    ?other a glx:VersionBinding ; glx:bindingPath ?p2 ; glx:bindingKind ?k2 .
+    ?focus glx:bindingKind ?k1 .
+    FILTER (?focus != ?other && STR(?p) = STR(?p2) && STR(?k1) = STR(?k2) && STR(?focus) < STR(?other))
+    BIND("binding_duplicate_path" AS ?problem)
+    BIND(STR(?p) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:packageVersion ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9]{2}\\.[0-9]{1,2}\\.[0-9]{1,2}$"))
+    BIND("package_version_not_calver" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:graphLawVersion ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9]{2}\\.[0-9]{1,2}\\.[0-9]{1,2}$"))
+    BIND("engine_version_not_calver" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:graphLawVersion ?gv ; glx:engineReleaseTag ?t .
+    FILTER (STR(?t) != CONCAT("v", STR(?gv)))
+    BIND("engine_tag_not_v_prefixed_graphlaw_version" AS ?problem)
+    BIND(CONCAT(STR(?t), " != v", STR(?gv)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:engineReleaseTag ?t ; glx:wasmUrl ?u ; glx:wasmAsset ?a .
+    FILTER (!CONTAINS(STR(?u), CONCAT("/releases/download/", STR(?t), "/", STR(?a))))
+    BIND("wasm_url_tag_mismatch" AS ?problem)
+    BIND(STR(?u) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:dateReleased ?d .
+    FILTER (!REGEX(STR(?d), "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))
+    BIND("bad_date_released" AS ?problem)
+    BIND(STR(?d) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:packageVersion ?pv ; glx:dateReleased ?d .
+    FILTER (REGEX(STR(?d), "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") &&
+            STR(?pv) != CONCAT(SUBSTR(STR(?d), 3, 2), ".", STR(xsd:integer(SUBSTR(STR(?d), 6, 2))), ".", STR(xsd:integer(SUBSTR(STR(?d), 9, 2)))))
+    BIND("release_date_calver_mismatch" AS ?problem)
+    BIND(CONCAT(STR(?pv), " vs ", STR(?d)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:coverageThreshold ?c .
+    FILTER (!(xsd:integer(?c) >= 1 && xsd:integer(?c) <= 100))
+    BIND("coverage_threshold_out_of_range" AS ?problem)
+    BIND(STR(?c) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

@@ -55,6 +55,16 @@ defmodule AshGraphLaw.Negative.RefusalNegativeTest do
     {:unsupported_step, :unsupported}
   ]
 
+  # Codes 36..40, added by the capability surface. Their class is ontology-owned, so this court
+  # pins names and order only.
+  @capability_codes [
+    :invalid_capability_request,
+    :unknown_capability,
+    :capability_not_declared,
+    :capability_parity_drift,
+    :capability_response_undecodable
+  ]
+
   @taxonomy [
     :mu_on_O,
     :admission_vacuous,
@@ -81,8 +91,9 @@ defmodule AshGraphLaw.Negative.RefusalNegativeTest do
                refusal
     end
 
-    test "the generated codes are exactly the contract codes" do
-      assert Enum.sort(Refusal.codes()) == @table |> Enum.map(&elem(&1, 0)) |> Enum.sort()
+    test "the generated codes are exactly the contract codes plus the capability codes" do
+      expected = (@table |> Enum.map(&elem(&1, 0))) ++ @capability_codes
+      assert Enum.sort(Refusal.codes()) == Enum.sort(expected)
     end
 
     test "every code maps to its contract class and to a taxonomy term" do

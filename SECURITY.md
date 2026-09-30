@@ -45,6 +45,11 @@ In scope:
   `ceiling` is not checked before the engine runs, or where `AshGraphLaw.Standing` reports `:ALIVE`
   from an admission alone.
 - **Refusal integrity.** Untyped or unclassified failures that escape `AshGraphLaw.Refusal`.
+- **Typed capability surface.** A typed op (`AshGraphLaw.Capability.*`, the `AshGraphLaw.Capability.API`
+  functions, the Ash lifecycle modules) that reads trust anchors, a clock or an unsigned lease from
+  caller options, an undeclared op that runs on a resource declaring `capability` entities, a
+  decoder (`AshGraphLaw.Result.*`, `AshGraphLaw.Capability.Decode`) that raises on engine output, or
+  a parity court that reports a pass while a registry op has no typed module.
 - **CI and release workflows** in `.github/`.
 
 Out of scope: vulnerabilities in GraphLaw itself (report them to the GraphLaw repository), in Ash,
@@ -57,6 +62,10 @@ GraphLaw derives and validates; it never authorizes. This library transports a p
 the pinned engine and returns a typed success or refusal. Admission evidence is an observation bound
 to an exact input digest and grants no authority. Signed leases and receipts are verified by
 GraphLaw against the trusted keys configured in the `runtime` entity.
+
+Typed capability calls add no authority path: lease fields are ordinary request arguments, and
+trust anchors come only from the resource `runtime`. See
+[security model](documentation/topics/security_model.md).
 
 ## Response targets
 

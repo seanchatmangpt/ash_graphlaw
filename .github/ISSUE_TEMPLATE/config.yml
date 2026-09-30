@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/seanchatmangpt/ash_graphlaw/security/advisories/new
+    about: Private reporting only. Do not open a public issue for a vulnerability.
+  - name: Documentation
+    url: https://hexdocs.pm/ash_graphlaw
+    about: Guides, reference and typed refusal table.

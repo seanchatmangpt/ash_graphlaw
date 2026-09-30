@@ -1,0 +1,79 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Capability contract. Every gac:Capability carries a snake_case gac:opName (so its module name
+# Camel(op) is derivable without consulting any gac:OpBinding), every gac:OpBinding names exactly
+# one existing op, no op is bound twice, and exactly one op carries the bindingResultModule
+# override "AshGraphLaw.Admitted" (law). No count is hardcoded: the op set is whatever the
+# imported registry block declares (gac:opCount is checked by gates/090).
+PREFIX glx: <https://graphlaw.dev/ash#>
+PREFIX gac: <http://seanchatmangpt.github.io/packs/graphlaw-ash-capability#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    ?focus a gac:Capability .
+    FILTER NOT EXISTS { ?focus gac:opName ?n }
+    BIND("capability_missing_op_name" AS ?problem)
+    BIND("gac:opName" AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Capability ; gac:opName ?n .
+    FILTER (!REGEX(STR(?n), "^[a-z][a-z0-9_]*$"))
+    BIND("capability_module_name_not_derivable" AS ?problem)
+    BIND(STR(?n) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Capability ; gac:opName ?a , ?b .
+    FILTER (STR(?a) < STR(?b))
+    BIND("capability_duplicate_op_name" AS ?problem)
+    BIND(CONCAT(STR(?a), " / ", STR(?b)) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Capability ; gac:opName ?n .
+    ?other a gac:Capability ; gac:opName ?n2 .
+    FILTER (?focus != ?other && STR(?n) = STR(?n2) && STR(?focus) < STR(?other))
+    BIND("capability_op_name_not_unique" AS ?problem)
+    BIND(STR(?n) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:OpBinding .
+    FILTER NOT EXISTS { ?focus gac:bindingOp ?o }
+    BIND("binding_missing_op" AS ?problem)
+    BIND("gac:bindingOp" AS ?detail)
+  }
+  UNION {
+    ?focus a gac:OpBinding ; gac:bindingOp ?o .
+    FILTER NOT EXISTS { ?cap a gac:Capability ; gac:opName ?n . FILTER (STR(?n) = STR(?o)) }
+    BIND("binding_op_unknown" AS ?problem)
+    BIND(STR(?o) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:OpBinding ; gac:bindingOp ?o1 .
+    ?other a gac:OpBinding ; gac:bindingOp ?o2 .
+    FILTER (?focus != ?other && STR(?o1) = STR(?o2) && STR(?focus) < STR(?other))
+    BIND("binding_op_duplicated" AS ?problem)
+    BIND(STR(?o1) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:OpBinding .
+    FILTER NOT EXISTS { ?focus gac:bindingLegacy ?l }
+    BIND("binding_missing_legacy_flag" AS ?problem)
+    BIND("gac:bindingLegacy" AS ?detail)
+  }
+  UNION {
+    ?focus a gac:OpBinding ; gac:bindingResultModule ?m .
+    FILTER (STR(?m) != "AshGraphLaw.Admitted")
+    BIND("binding_result_module_not_admitted" AS ?problem)
+    BIND(STR(?m) AS ?detail)
+  }
+  UNION {
+    BIND(<urn:ash-graphlaw:capability-set> AS ?focus)
+    { SELECT (COUNT(DISTINCT ?o) AS ?n) WHERE {
+        ?b a gac:OpBinding ; gac:bindingOp ?o ; gac:bindingResultModule ?m .
+        FILTER (STR(?m) = "AshGraphLaw.Admitted")
+    } }
+    FILTER (?n != 1)
+    BIND("admitted_result_binding_count_not_one" AS ?problem)
+    BIND(CONCAT("ops bound to AshGraphLaw.Admitted: ", STR(?n)) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

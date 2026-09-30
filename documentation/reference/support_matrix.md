@@ -19,6 +19,13 @@ What is generated, what is hand-written, and what is not supported. Provenance l
 | `test/ash_graphlaw_composition_test.exs`, `LICENSE` | repo | GENERATED (ash-extension-pack) |
 | `Mix.Tasks.AshGraphlaw.Install` | `lib/mix/tasks/ash_graphlaw.install.ex` | GENERATED (ash-extension-pack) |
 | `AshGraphLaw`, `.ABI`, `.Refusal`, `.Receipt`, `.Admitted`, `.Standing` | `lib/ash_graphlaw*.ex` | GENERATED (local templates) |
+| `AshGraphLaw.Capability` (behaviour), `.Capability.Registry`, `.Capability.API`, `.Capability.<Op>` (14) | `lib/ash_graphlaw/capability*.ex` | GENERATED (graphlaw-ash-capability-pack) |
+| `AshGraphLaw.Result.Term`, `.Result.<Op>` (13) | `lib/ash_graphlaw/result/*.ex` | GENERATED (graphlaw-ash-capability-pack) |
+| `documentation/reference/capabilities.md`, `capabilities/<op>.md` (14), `test/generated/capability_surface_test.exs` | | GENERATED (graphlaw-ash-capability-pack) |
+| `AshGraphLaw.Capability.CanonicalJSON`, `.Coerce`, `.Decode` | `lib/ash_graphlaw/capability/` | HAND |
+| `AshGraphLaw.Telemetry`, `.Lifecycle`, `.Parity`, `mix ash_graphlaw.parity` | `lib/` | HAND |
+| `AshGraphLaw.Calculation.{Conforms,CanonicalId,Sparql}`, `.Validation.Shacl`, `.Change.Canonicalize`, `.Projection.Origin` | `lib/ash_graphlaw/` | HAND |
+| `AshGraphLaw.Reactor`, `.Reactor.Hooks`, `.Reactor.Capability` | `lib/ash_graphlaw/reactor*` | HAND (optional `:reactor`) |
 | `mix.exs`, `.formatter.exs`, `.gitignore`, `README.md`, `priv/graphlaw/MANIFEST.json`, `test/test_helper.exs` | repo root | GENERATED (local templates) |
 | `documentation/reference/typed_refusals.md` | | GENERATED |
 | `documentation/dsls/DSL-AshGraphLaw.Resource.md` | | TOOL (`mix spark.cheat_sheets`) |
@@ -35,21 +42,52 @@ Why hand-written: no listed pack emits Spark transformer injection into actions,
 Ash Change/Validation/Preparation modules, a Splode error, or a mutation engine. See
 [generation and residue](../topics/generation_and_residue.md).
 
-## Ops exposed
+## Ops exposed: 14-op parity table
 
-| Op | Surface |
-|---|---|
-| `law` | `AshGraphLaw.law/3`; the admission path used by Change, Validation and Preparation |
-| `hooks` | `AshGraphLaw.hooks/3` |
-| `capabilities` | `AshGraphLaw.capabilities/1`; used for the ABI check |
-| `sniff` | `AshGraphLaw.sniff/3` |
-| any other op (`parse`, `convert`, `canonical`, `sparql`, `shacl`, `shex`, `n3`, `entail`, `datalog`, `policy`) | `AshGraphLaw.call/2` with a raw request map; no dedicated wrapper |
+Every op in the registry has a typed module, a result struct and a function on
+`AshGraphLaw.Capability.API`. Root function: the function on `AshGraphLaw`. Legacy: the root
+function keeps its pre-26.9.29 return shape, and the typed form lives only on
+`AshGraphLaw.Capability.API`. Ceiling: the minimum `capability` ceiling
+(`AshGraphLaw.Authority.op_ceiling/1`). Labels: the typed module, result struct and root delegate
+are `GENERATED`; the ceiling table is `HAND` (`authority.ex`).
+
+| # | Op | Typed module | Result struct | Root function | Ceiling | Legacy | Label |
+|---|---|---|---|---|---|---|---|
+| 1 | `capabilities` | `AshGraphLaw.Capability.Capabilities` | `AshGraphLaw.Result.Capabilities` | `capabilities/1` | observe | yes | GENERATED / HAND |
+| 2 | `sniff` | `AshGraphLaw.Capability.Sniff` | `AshGraphLaw.Result.Sniff` | `sniff/3` | observe | yes | GENERATED / HAND |
+| 3 | `parse` | `AshGraphLaw.Capability.Parse` | `AshGraphLaw.Result.Parse` | `parse/2` | observe | no | GENERATED / HAND |
+| 4 | `convert` | `AshGraphLaw.Capability.Convert` | `AshGraphLaw.Result.Convert` | `convert/2` | observe | no | GENERATED / HAND |
+| 5 | `canonical` | `AshGraphLaw.Capability.Canonical` | `AshGraphLaw.Result.Canonical` | `canonical/2` | observe | no | GENERATED / HAND |
+| 6 | `sparql` | `AshGraphLaw.Capability.Sparql` | `AshGraphLaw.Result.Sparql` | `sparql/2` | observe | no | GENERATED / HAND |
+| 7 | `shacl` | `AshGraphLaw.Capability.Shacl` | `AshGraphLaw.Result.Shacl` | `shacl/2` | observe | no | GENERATED / HAND |
+| 8 | `shex` | `AshGraphLaw.Capability.Shex` | `AshGraphLaw.Result.Shex` | `shex/2` | observe | no | GENERATED / HAND |
+| 9 | `n3` | `AshGraphLaw.Capability.N3` | `AshGraphLaw.Result.N3` | `n3/2` | construct | no | GENERATED / HAND |
+| 10 | `entail` | `AshGraphLaw.Capability.Entail` | `AshGraphLaw.Result.Entail` | `entail/2` | construct | no | GENERATED / HAND |
+| 11 | `datalog` | `AshGraphLaw.Capability.Datalog` | `AshGraphLaw.Result.Datalog` | `datalog/2` | construct | no | GENERATED / HAND |
+| 12 | `hooks` | `AshGraphLaw.Capability.Hooks` | `AshGraphLaw.Result.Hooks` | `hooks/3` | construct | yes | GENERATED / HAND |
+| 13 | `law` | `AshGraphLaw.Capability.Law` | `AshGraphLaw.Admitted` (binding override) | `law/3` | construct | yes | GENERATED / HAND |
+| 14 | `policy` | `AshGraphLaw.Capability.Policy` | `AshGraphLaw.Result.Policy` | `policy/2` | observe | no | GENERATED / HAND |
+
+Whether every generated module exists on this tree is UNKNOWN until `scripts/ggen_sync.sh` has
+run; whether the live engine agrees with this table is UNKNOWN until `mix ash_graphlaw.parity`
+runs (see [claims and evidence](claims_and_evidence.md)). `call/2` remains for raw requests, and
+`capabilities/1`, `sniff/3`, `law/3`, `hooks/3` and the admission DSL keep working.
 
 ## Law steps supported in admissions
 
 `shacl`, `n3`, `rdfs`, `owl_rl`, `hooks`, `plan`, `require_receipt`, `require_signed_receipt`.
 `record-receipts` is an engine step available through raw `law` requests; the DSL does not
 expose it as an `admission` step.
+
+## Capability lifecycle modules
+
+| Module | Op | Atomic |
+|---|---|---|
+| `AshGraphLaw.Validation.Shacl` | `shacl` | not applicable |
+| `AshGraphLaw.Change.Canonicalize` | `canonical` | no (`{:not_atomic, ...}`) |
+| `AshGraphLaw.Calculation.Conforms` | `shacl` | no `expression/2` |
+| `AshGraphLaw.Calculation.CanonicalId` | `canonical` | no `expression/2` |
+| `AshGraphLaw.Calculation.Sparql` | `sparql` | no `expression/2` |
 
 ## Ash integration points
 
@@ -63,7 +101,7 @@ expose it as an `admission` step.
 
 | Capability | Standing | Reason |
 |---|---|---|
-| Reactor middleware / workflow reactor | UNSUPPORTED | Not built; pack spec sets `workflowReactor false` |
+| Reactor middleware | UNSUPPORTED | Steps exist (`AshGraphLaw.Reactor.Hooks`, `.Capability`), not middleware; pack spec sets `workflowReactor false` |
 | Atomic actions | UNSUPPORTED | Admission needs a WASM call; `atomic/3` returns `{:not_atomic, ...}` |
 | Lease signing | UNSUPPORTED | The library verifies via the engine; it never issues or signs leases. Key custody is outside the library |
 | Installer `--target` patching | UNSUPPORTED | The pack's generated installer inserts unparsable code (SyntaxError); the formatter and `wasmex` wiring work |
@@ -80,3 +118,5 @@ expose it as an `admission` step.
 - [Claims and evidence](claims_and_evidence.md)
 - [DSL reference](dsl_reference.md)
 - [ABI reference](abi_reference.md)
+- [Capabilities](capabilities.md) (generated)
+- [Conformance claim](conformance_claim.md)

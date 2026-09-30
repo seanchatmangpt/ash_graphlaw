@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 #
 # SPDX-License-Identifier: MIT
+# UNSUPPORTED(generator-capability): hand-written residue; no pack emits this module.
+# Recorded in HANDWRITTEN.md. Do not regenerate over it.
 
 defmodule AshGraphLaw.Host do
   @moduledoc """
@@ -72,6 +74,30 @@ defmodule AshGraphLaw.Host do
       (`:invalid_encoding`) by `AshGraphLaw.ABI.encode_request/1` before any byte
       reaches the engine.
 
+  ## Usage
+
+      {:ok, _pid} = AshGraphLaw.Host.start_link(name: MyApp.Host)
+      true = AshGraphLaw.Host.available?(MyApp.Host)
+      {:ok, response} = AshGraphLaw.Host.request(MyApp.Host, %{"op" => "capabilities"})
+
+  ## Options
+
+  See `t:opts/0` and `start_link/1`.
+
+  ## Failure modes
+
+  Transport and host failures are `{:error, %AshGraphLaw.Refusal{}}` with one of
+  `:host_not_started`, `:saturated`, `:resource_limit`, `:call_timeout`,
+  `:call_exited`, `:call_trapped`, `:fuel_exhausted`, `:abi_failure`,
+  `:malformed_response`, `:invalid_encoding`, `:instantiation_failed`,
+  `:wasm_not_vendored`, `:wasm_unreadable` or a `:wasm_*` admission code from
+  `AshGraphLaw.EngineLoad`.
+
+  ## See Also
+
+  `AshGraphLaw.Pool`, `AshGraphLaw.EngineLoad`, `AshGraphLaw.WasmConfig`,
+  `AshGraphLaw.ABI`.
+
   ## Timeouts, nested
 
   native call deadline (`timeout`) < per-step `GenServer.call` (`timeout` +
@@ -105,6 +131,26 @@ defmodule AshGraphLaw.Host do
   @typedoc "Server reference accepted by every function in this module."
   @type server :: GenServer.server()
 
+  @typedoc "Options for `start_link/1`."
+  @type opts :: [
+          name: GenServer.name() | nil,
+          wasm_path: String.t(),
+          bytes: binary(),
+          expected_sha256: String.t() | :unpinned,
+          fuel: pos_integer(),
+          memory_limit_bytes: pos_integer(),
+          recycle_bytes: pos_integer(),
+          max_queue: pos_integer(),
+          max_response_bytes: pos_integer(),
+          timeout_ms: pos_integer(),
+          registry: atom(),
+          retry_base_ms: pos_integer(),
+          retry_max_ms: pos_integer()
+        ]
+
+  @typedoc "Options for `request/3`."
+  @type request_opts :: [timeout_ms: pos_integer(), max_queue: pos_integer()]
+
   # ---------------------------------------------------------------------
   # Public API
   # ---------------------------------------------------------------------
@@ -122,7 +168,7 @@ defmodule AshGraphLaw.Host do
   A missing or unloadable engine never fails the start; it becomes a typed
   refusal on every call.
   """
-  @spec start_link(keyword()) :: GenServer.on_start()
+  @spec start_link(opts()) :: GenServer.on_start()
   def start_link(opts \\ []) do
     case Keyword.pop(opts, :name, __MODULE__) do
       {nil, rest} -> GenServer.start_link(__MODULE__, rest)
@@ -135,10 +181,10 @@ defmodule AshGraphLaw.Host do
 
   Returns the decoded response map whether the engine answered `"ok" => true`
   or `"ok" => false`; only transport and host failures are `{:error, refusal}`.
-  Options: `:timeout` (native call deadline in ms). Note the arity-2 form is
+  Options: `:timeout_ms` (native call deadline in ms; see `t:request_opts/0`). Note the arity-2 form is
   `request(server, map)`; use `AshGraphLaw.Pool.request/2` to route by pool.
   """
-  @spec request(server(), map(), keyword()) :: {:ok, map()} | {:error, Refusal.t()}
+  @spec request(server(), map(), request_opts()) :: {:ok, map()} | {:error, Refusal.t()}
   def request(server \\ __MODULE__, request, opts \\ []) when is_map(request) and is_list(opts) do
     limits = WasmConfig.limits(opts)
     timeout = limits.timeout_ms

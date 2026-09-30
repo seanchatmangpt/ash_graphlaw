@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 #
 # SPDX-License-Identifier: MIT
+# UNSUPPORTED(generator-capability): hand-written residue; no pack emits this module.
+# Recorded in HANDWRITTEN.md. Do not regenerate over it.
 
 defmodule AshGraphLaw.EngineLoad do
   @moduledoc """
@@ -34,6 +36,23 @@ defmodule AshGraphLaw.EngineLoad do
   Telemetry: `[:ash_graphlaw, :engine, :admit]` with metadata `outcome`,
   `code`, `wasm_sha256`.
 
+  ## Usage
+
+      bytes = File.read!(AshGraphLaw.WasmConfig.vendored_path())
+      {:ok, %{wasm_sha256: sha}} = AshGraphLaw.EngineLoad.admit(bytes)
+      true = AshGraphLaw.EngineLoad.cached?(sha)
+
+  ## Failure modes
+
+  Every refusal is an `AshGraphLaw.Refusal`: `:wasm_digest_mismatch`,
+  `:wasm_invalid`, `:wasm_import_surface_mismatch` (also returned when the
+  manifest allowlist is unavailable) and `:wasm_missing_export`. `admit/2`
+  never raises for foreign bytes.
+
+  ## See Also
+
+  `AshGraphLaw.WasmConfig`, `AshGraphLaw.Host`, `AshGraphLaw.Refusal`.
+
   GraphLaw derives and validates; nothing here authorizes or actuates.
   """
 
@@ -61,8 +80,11 @@ defmodule AshGraphLaw.EngineLoad do
   @spec pinned_sha256() :: String.t() | nil
   def pinned_sha256, do: WasmConfig.pinned_sha256()
 
+  @typedoc "Options for `admit/2`."
+  @type opts :: [expected_sha256: String.t() | :unpinned | nil, fuel?: boolean(), wasm_path: String.t()]
+
   @doc "Compiles and admits `bytes`; see the module doc for the order of checks."
-  @spec admit(binary(), keyword()) :: {:ok, admitted()} | {:error, Refusal.t()}
+  @spec admit(binary(), opts()) :: {:ok, admitted()} | {:error, Refusal.t()}
   def admit(bytes, opts \\ [])
 
   def admit(bytes, opts) when is_binary(bytes) and is_list(opts) do

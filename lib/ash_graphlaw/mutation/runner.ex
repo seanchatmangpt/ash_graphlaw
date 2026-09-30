@@ -36,6 +36,7 @@ defmodule AshGraphLaw.Mutation.Runner do
 
   alias AshGraphLaw.Mutation.Collector
 
+  @typedoc "Counts and failed test names from one killer run."
   @type summary :: %{
           total: non_neg_integer(),
           failures: non_neg_integer(),

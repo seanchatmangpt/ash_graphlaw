@@ -15,6 +15,17 @@ defmodule AshGraphLaw.Test.Case do
   name. `start_pool!/1` starts the real `AshGraphLaw.Pool`, which registers fixed names
   (`AshGraphLaw.Pool`, `AshGraphLaw.Host`), so a module that starts a pool must be
   `async: false`.
+
+  ## Tags
+
+    * `:wasm` - the test needs the REAL vendored engine. Excluded (with a printed reason) by
+      `test/test_helper.exs` when the engine is absent or fails the digest pin.
+    * `:slow` - long-running test. Excluded by default; run with `mix test --include slow`.
+
+  `require_engine!/0` is the fail-closed companion for `:wasm` tests: when the engine is not
+  usable it raises `ExUnit.AssertionError` if `ASH_GRAPHLAW_REQUIRE_ENGINE` is set to a truthy
+  value (CI sets it, so an unvendored engine can never pass silently), and otherwise returns
+  `:skip`-style `false` so the caller can decide.
   """
 
   use ExUnit.CaseTemplate
@@ -24,7 +35,18 @@ defmodule AshGraphLaw.Test.Case do
   using do
     quote do
       import AshGraphLaw.Test.Case,
-        only: [wasm_available?: 0, wasm_path: 0, start_host!: 0, start_host!: 1, start_pool!: 0, start_pool!: 1, nt: 1]
+        only: [
+          wasm_available?: 0,
+          wasm_path: 0,
+          start_host!: 0,
+          start_host!: 1,
+          start_pool!: 0,
+          start_pool!: 1,
+          nt: 1,
+          require_engine!: 0,
+          manifest: 0,
+          manifest_pin: 0
+        ]
 
       alias AshGraphLaw.Refusal
     end
@@ -43,6 +65,39 @@ defmodule AshGraphLaw.Test.Case do
     else
       _ -> false
     end
+  end
+
+  @doc """
+  Decodes the shipped `priv/graphlaw/MANIFEST.json` (the generated pin table).
+
+  Tests read the pin from here so a legitimate ontology-driven engine bump does not require
+  hand-editing every assertion; one literal-pin control per suite guards the manifest itself.
+  """
+  @spec manifest() :: map()
+  def manifest do
+    Path.join(File.cwd!(), "priv/graphlaw/MANIFEST.json") |> File.read!() |> Jason.decode!()
+  end
+
+  @doc "The wasm SHA-256 recorded in the manifest."
+  @spec manifest_pin() :: String.t()
+  def manifest_pin, do: manifest()["artifact"]["sha256"]
+
+  @doc """
+  Asserts the real engine is usable when `ASH_GRAPHLAW_REQUIRE_ENGINE` is truthy
+  (`1`, `true`, `yes`); returns whether the engine is available otherwise.
+  """
+  @spec require_engine!() :: boolean()
+  def require_engine! do
+    available = wasm_available?()
+
+    if not available and System.get_env("ASH_GRAPHLAW_REQUIRE_ENGINE") in ~w(1 true yes) do
+      raise ExUnit.AssertionError,
+        message:
+          "ASH_GRAPHLAW_REQUIRE_ENGINE is set but the engine at #{wasm_path()} is not usable; " <>
+            "run `mix ash_graphlaw.vendor`"
+    end
+
+    available
   end
 
   @doc "Starts a real Host under the test supervisor and returns its pid."

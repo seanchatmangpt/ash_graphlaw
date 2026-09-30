@@ -45,6 +45,14 @@ defmodule AshGraphLaw.Mutation do
     * `:blocked` - target or killer files unavailable
     * `:unknown` - baseline not green, a run unreadable, or restoration not verified
 
+  ## Anti-vacuity
+
+  A negative test asserts that a bad input is refused. If deleting the refusal guard leaves the
+  test green, the test never exercised the guard. Each catalog entry (ids `AGL-MUT-001` to
+  `AGL-MUT-014`, append-only) removes exactly one guard and requires at least one killer test to
+  fail while the unmutated baseline is green. A survivor is a vacuous killer, never a pass, and
+  `mix ash_graphlaw.mutate --require-killed` turns any survivor into a failed build.
+
   Nothing here grants authority. A verdict is an observation bound to the exact BEAM md5s
   recorded in `:applied` and `:restored`.
   """
@@ -64,9 +72,12 @@ defmodule AshGraphLaw.Mutation do
     killers: []
   ]
 
+  @typedoc "Which clauses of the target function an operator applies to."
   @type selector :: :all | {:clause, pos_integer()}
+  @typedoc "`{:replace_body, erlang_source}` or `{:negate_guard}`."
   @type operator :: {:replace_body, String.t()} | {:negate_guard}
 
+  @typedoc "One mutation: exact target `Module.function/arity`, operator, killers."
   @type t :: %__MODULE__{
           id: String.t(),
           module: module(),
@@ -79,8 +90,10 @@ defmodule AshGraphLaw.Mutation do
           killers: [String.t()]
         }
 
+  @typedoc "Typed refusal: a code from `refusal_codes/0` and a human detail."
   @type refusal :: %{code: atom(), detail: String.t()}
 
+  @typedoc "A prepared, not yet loaded, mutant with the md5 of both BEAMs."
   @type plan :: %{
           mutation_id: String.t(),
           module: module(),

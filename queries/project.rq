@@ -5,6 +5,7 @@
 PREFIX glx: <https://graphlaw.dev/ash#>
 
 SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+       ?docs_url ?repository_url ?maintainer ?date_released ?coverage_threshold ?engine_release_tag
 WHERE {
   ?project a glx:Project ;
     glx:packageVersion ?package_version ;
@@ -14,6 +15,12 @@ WHERE {
     glx:wasmAsset ?wasm_asset ;
     glx:wasmUrl ?wasm_url ;
     glx:marketplaceSha ?marketplace_sha ;
-    glx:ggenSha ?ggen_sha .
+    glx:ggenSha ?ggen_sha ;
+    glx:docsUrl ?docs_url ;
+    glx:repositoryUrl ?repository_url ;
+    glx:maintainer ?maintainer ;
+    glx:dateReleased ?date_released ;
+    glx:coverageThreshold ?coverage_threshold ;
+    glx:engineReleaseTag ?engine_release_tag .
 }
 ORDER BY ?package_version

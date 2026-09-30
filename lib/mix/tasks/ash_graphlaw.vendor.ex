@@ -26,6 +26,28 @@ defmodule Mix.Tasks.AshGraphlaw.Vendor do
     * `--from PATH` - copy a local file instead of downloading, only if its SHA-256 matches.
     * `--check` - verify the existing vendored file; writes nothing; non-zero exit on drift or
       absence.
+
+  Unknown switches raise `OptionParser.ParseError`. `--check` wins over `--from`.
+
+  ## Exit codes
+
+    * `0` - the engine was vendored, or (`--check`) the vendored file equals the pin.
+    * `1` - every failure, raised as `Mix.Error` with a typed code in brackets:
+      `[wasm_digest_mismatch]` (candidate or vendored bytes differ from the pin; a candidate is
+      never kept and an existing verified engine is never deleted or replaced),
+      `[wasm_not_vendored]` (`--check` and no file), `[wasm_unreadable]` (`--from` path or
+      download failed, or the manifest cannot be read), `[wasm_invalid]` (manifest schema).
+
+  ## Examples
+
+      # download the pinned release asset and keep it only if the digest matches
+      mix ash_graphlaw.vendor
+
+      # offline: admit a local copy (rejected, nothing written, on digest mismatch)
+      mix ash_graphlaw.vendor --from ~/Downloads/graphlaw.wasm
+
+      # CI: fail when the vendored file drifted from priv/graphlaw/MANIFEST.json
+      mix ash_graphlaw.vendor --check
   """
 
   use Mix.Task
@@ -34,7 +56,12 @@ defmodule Mix.Tasks.AshGraphlaw.Vendor do
   @manifest_schema "ash_graphlaw.graphlaw.manifest/v1"
   @max_redirects 5
 
+  @doc """
+  Runs the task with raw `argv`. Returns `:ok`; raises `Mix.Error` with a `[code]` prefix on
+  refusal (see the module documentation for the exit codes).
+  """
   @impl Mix.Task
+  @spec run([String.t()]) :: :ok
   def run(argv) do
     {opts, _rest} = OptionParser.parse!(argv, strict: @switches)
     dir = priv_dir()

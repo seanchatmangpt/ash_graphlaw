@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: MIT
 # MESSAGE: every glx:RefusalCode has exactly one codeName/codeClass/codeSource/codeDoc/brokenTerm/
 # codeOrder; codeClass is one of the six closed classes; codeSource is engine|host|ash; codeName is
-# snake_case and unique; codeOrder is unique; brokenTerm is in the closed Chatman taxonomy.
+# snake_case and unique; codeOrder is unique and the five capability codes hold orders 36..40
+# (invalid_capability_request 36, unknown_capability 37, capability_not_declared 38,
+# capability_parity_drift 39, capability_response_undecodable 40); brokenTerm is in the closed Chatman taxonomy.
 # Any row = a violation.
 PREFIX glx: <https://graphlaw.dev/ash#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT ?problem ?focus ?detail WHERE {
   {
@@ -52,6 +55,28 @@ SELECT ?problem ?focus ?detail WHERE {
     ?other a glx:RefusalCode ; glx:codeOrder ?v2 .
     FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
     BIND("duplicate_codeorder" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    VALUES (?req_name ?req_order) {
+      ("invalid_capability_request" 36) ("unknown_capability" 37) ("capability_not_declared" 38)
+      ("capability_parity_drift" 39) ("capability_response_undecodable" 40)
+    }
+    FILTER NOT EXISTS {
+      ?any_code a glx:RefusalCode ; glx:codeName ?n ; glx:codeOrder ?o .
+      FILTER (STR(?n) = ?req_name && xsd:integer(STR(?o)) = ?req_order)
+    }
+    BIND(IRI(CONCAT("urn:glx:required-code:", ?req_name)) AS ?focus)
+    BIND("capability_code_missing_or_misordered" AS ?problem)
+    BIND(CONCAT(?req_name, "@", STR(?req_order)) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:RefusalCode ; glx:codeOrder ?v .
+    FILTER (xsd:integer(STR(?v)) >= 36 && xsd:integer(STR(?v)) <= 40)
+    ?focus glx:codeName ?n40 .
+    FILTER (STR(?n40) NOT IN ("invalid_capability_request", "unknown_capability", "capability_not_declared",
+                              "capability_parity_drift", "capability_response_undecodable"))
+    BIND("reserved_order_misused" AS ?problem)
     BIND(STR(?v) AS ?detail)
   }
   UNION {

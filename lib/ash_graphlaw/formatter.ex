@@ -5,6 +5,17 @@
 defmodule AshGraphLaw.Formatter do
   @moduledoc """
   UNSUPPORTED(generator-capability): `Spark.Formatter` plugin helper for the AshGraphLaw DSL (`graphlaw` section).
+
+  A `Mix.Tasks.Format` plugin that keeps the `graphlaw` section in canonical Spark order and
+  drops parentheses on its entity calls. Enable it in a consumer's `.formatter.exs`:
+
+      [
+        plugins: [AshGraphLaw.Formatter],
+        inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
+      ]
+
+  Without `Spark.Formatter` loaded the plugin returns the contents unchanged, so it can never
+  fail a format run.
   """
 
   @doc "Returns the list of Spark extensions exported by AshGraphLaw."

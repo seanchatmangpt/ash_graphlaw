@@ -21,6 +21,7 @@
 # variants -> R_missing_standing (standing cannot be assigned).
 
 @prefix aex:  <http://seanchatmangpt.github.io/packs/ash-extension-core#> .
+@prefix gac:  <http://seanchatmangpt.github.io/packs/graphlaw-ash-capability#> .
 @prefix glx:  <https://graphlaw.dev/ash#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -34,6 +35,8 @@ glx:Project a rdfs:Class ; rdfs:label "The ash_graphlaw package: version and ups
 glx:RefusalCode a rdfs:Class ; rdfs:label "One member of the closed typed-refusal code table." .
 glx:Standing a rdfs:Class ; rdfs:label "One standing atom from the operating doctrine vocabulary." .
 glx:WasiImport a rdfs:Class ; rdfs:label "One WASI preview1 import function the engine may declare (closed allowlist)." .
+glx:UnsupportedResidue a rdfs:Class ; rdfs:label "One hand-written element no pack capability emits: UNSUPPORTED(generator-capability), ledgered in HANDWRITTEN.md." .
+glx:VersionBinding a rdfs:Class ; rdfs:label "One file that carries a literal copy of the package or engine version (drift tripwire)." .
 
 glx:packageVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "calver of this package." .
 glx:graphLawVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "pinned GraphLaw release tag." .
@@ -41,8 +44,25 @@ glx:abiVersion a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "GraphLaw
 glx:wasmSha256 a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "sha256 of the released graphlaw.wasm asset." .
 glx:wasmAsset a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "release asset file name." .
 glx:wasmUrl a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "download URL of the pinned release asset." .
+glx:maintainer a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "package maintainer name as published to Hex." .
+glx:repositoryUrl a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "canonical source repository URL." .
+glx:docsUrl a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "published documentation URL (HexDocs)." .
+glx:dateReleased a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "ISO 8601 release date of packageVersion." .
+glx:coverageThreshold a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "minimum line coverage percentage the test gate enforces." .
+glx:engineReleaseTag a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "GraphLaw release tag with its leading v, exactly as spelled in the release URL." .
 glx:marketplaceSha a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "ggen-marketplace commit the packs are materialized from." .
+glx:registrySha256 a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "registry_sha256 of the vendored priv/graphlaw/capability-registry.json (DIGEST RULE, graphlaw.capability-registry/1); rewritten by scripts/import_registry.sh." .
+glx:registryFile a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "repository-relative path of the vendored capability registry JSON." .
 glx:ggenSha a rdf:Property ; rdfs:domain glx:Project ; rdfs:comment "ggen commit the generator identity is pinned to." .
+glx:residuePath a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "repository-relative path of the hand-written file." .
+glx:residueElement a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "the module, task or file element that is hand-written." .
+glx:residueCapability a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "the generator capability that does not exist." .
+glx:residueOwnerPack a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "the pack that would own the capability." .
+glx:residueDate a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "ISO 8601 date the gap was last observed." .
+glx:residueLedger a rdf:Property ; rdfs:domain glx:UnsupportedResidue ; rdfs:comment "ledger file that must carry a row for residuePath." .
+glx:bindingPath a rdf:Property ; rdfs:domain glx:VersionBinding ; rdfs:comment "repository-relative path of the file carrying the literal." .
+glx:bindingKind a rdf:Property ; rdfs:domain glx:VersionBinding ; rdfs:comment "closed: package | engine." .
+glx:bindingValue a rdf:Property ; rdfs:domain glx:VersionBinding ; rdfs:comment "the version literal the file must carry." .
 glx:codeName a rdf:Property ; rdfs:domain glx:RefusalCode .
 glx:codeClass a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "closed: refused_identity | refused_structure | refused_authority | refused_admission | blocked_resource | unsupported." .
 glx:codeSource a rdf:Property ; rdfs:domain glx:RefusalCode ; rdfs:comment "closed: engine | host | ash." .
@@ -63,12 +83,44 @@ glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "co
 glx:AshGraphLawProject a glx:Project ;
     glx:packageVersion "26.9.29" ;
     glx:graphLawVersion "26.9.28" ;
+    glx:engineReleaseTag "v26.9.28" ;
+    glx:maintainer "Sean Chatman" ;
+    glx:repositoryUrl "https://github.com/seanchatmangpt/ash_graphlaw" ;
+    glx:docsUrl "https://hexdocs.pm/ash_graphlaw" ;
+    glx:dateReleased "2026-09-29" ;
+    glx:coverageThreshold 80 ;
     glx:abiVersion 1 ;
     glx:wasmSha256 "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645" ;
     glx:wasmAsset "graphlaw.wasm" ;
     glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.28/graphlaw.wasm" ;
     glx:marketplaceSha "caa4fe6133445638cbfdbfac017187ed8090dc95" ;
+    glx:registryFile "priv/graphlaw/capability-registry.json" ;
+    glx:registrySha256 "sha256:0000000000000000000000000000000000000000000000000000000000000000" ;
     glx:ggenSha "ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e" .
+
+#################################################################
+# Capability op bindings (consumer-supplied; graphlaw does not emit these)
+#
+# gac:OpBinding rows tell the graphlaw-ash-capability pack how this package binds each
+# registry op. Legacy ops (capabilities sniff law hooks) keep their root-API shapes; their
+# typed equivalents live only at AshGraphLaw.Capability.API. law decodes to the existing
+# AshGraphLaw.Admitted instead of a generated Result module.
+#################################################################
+
+glx:OpBindingCapabilities a gac:OpBinding ; gac:bindingOp "capabilities" ; gac:bindingLegacy true .
+glx:OpBindingSniff a gac:OpBinding ; gac:bindingOp "sniff" ; gac:bindingLegacy true .
+glx:OpBindingParse a gac:OpBinding ; gac:bindingOp "parse" ; gac:bindingLegacy false .
+glx:OpBindingConvert a gac:OpBinding ; gac:bindingOp "convert" ; gac:bindingLegacy false .
+glx:OpBindingCanonical a gac:OpBinding ; gac:bindingOp "canonical" ; gac:bindingLegacy false .
+glx:OpBindingSparql a gac:OpBinding ; gac:bindingOp "sparql" ; gac:bindingLegacy false .
+glx:OpBindingShacl a gac:OpBinding ; gac:bindingOp "shacl" ; gac:bindingLegacy false .
+glx:OpBindingShex a gac:OpBinding ; gac:bindingOp "shex" ; gac:bindingLegacy false .
+glx:OpBindingN3 a gac:OpBinding ; gac:bindingOp "n3" ; gac:bindingLegacy false .
+glx:OpBindingEntail a gac:OpBinding ; gac:bindingOp "entail" ; gac:bindingLegacy false .
+glx:OpBindingDatalog a gac:OpBinding ; gac:bindingOp "datalog" ; gac:bindingLegacy false .
+glx:OpBindingHooks a gac:OpBinding ; gac:bindingOp "hooks" ; gac:bindingLegacy true .
+glx:OpBindingLaw a gac:OpBinding ; gac:bindingOp "law" ; gac:bindingResultModule "AshGraphLaw.Admitted" ; gac:bindingLegacy true .
+glx:OpBindingPolicy a gac:OpBinding ; gac:bindingOp "policy" ; gac:bindingLegacy false .
 
 #################################################################
 # Engine import allowlist (least privilege)
@@ -204,6 +256,42 @@ glx:AshGraphLawAdmissionProjection a aex:EntitySchemaField ;
     aex:fieldRequired false ;
     aex:fieldDoc "Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default." .
 
+# --- entity :capability (arg :name, identifier :name) ---
+# Declares which GraphLaw registry ops a resource may run through the typed capability API.
+# Name legality and ceiling floor are enforced by the hand-written verifier (Contract /
+# Authority.op_ceiling/1); a resource declaring none allows every op (back-compat).
+
+glx:AshGraphLawCapabilityEntity a aex:DslEntity ;
+    aex:entityOf glx:AshGraphLawGraphlawSection ;
+    aex:entityOrder 3 ; aex:entityName "capability" ;
+    aex:entityStruct "AshGraphLaw.Dsl.Capability" ;
+    aex:entityIdentifier "name" .
+
+glx:AshGraphLawCapabilityArgName a aex:EntityArg ;
+    aex:argOf glx:AshGraphLawCapabilityEntity ; aex:argOrder 1 ; aex:argName "name" .
+
+glx:AshGraphLawCapabilityName a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawCapabilityEntity ;
+    aex:fieldOrder 1 ; aex:fieldName "name" ; aex:fieldType "atom" ;
+    aex:fieldRequired true ;
+    aex:fieldDoc "Registry op name this resource declares (for example :sparql or :shacl). Must be a name in AshGraphLaw.Capability.Registry.names/0." .
+
+glx:AshGraphLawCapabilityCeiling a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawCapabilityEntity ;
+    aex:fieldOrder 2 ; aex:fieldName "ceiling" ; aex:fieldType "one_of" ;
+    aex:fieldRequired false ; aex:fieldDefault ":observe" ;
+    aex:fieldDoc "Authority ceiling declared for this capability. Must not be below the ceiling the op needs (observe for read-only ops, construct for n3, entail, datalog, hooks, law). Declaring a ceiling never grants authority." .
+
+glx:AshGraphLawCapabilityCeilingObserve a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawCapabilityCeiling ; aex:oneOfValueOrder 1 ; aex:oneOfValueName "observe" .
+glx:AshGraphLawCapabilityCeilingSelect a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawCapabilityCeiling ; aex:oneOfValueOrder 2 ; aex:oneOfValueName "select" .
+glx:AshGraphLawCapabilityCeilingConstruct a aex:FieldOneOfValue ; aex:oneOfValueOf glx:AshGraphLawCapabilityCeiling ; aex:oneOfValueOrder 3 ; aex:oneOfValueName "construct" .
+
+glx:AshGraphLawCapabilityDoc a aex:EntitySchemaField ;
+    aex:fieldOf glx:AshGraphLawCapabilityEntity ;
+    aex:fieldOrder 3 ; aex:fieldName "doc" ; aex:fieldType "string" ;
+    aex:fieldRequired false ;
+    aex:fieldDoc "Free-text note on why the resource declares this capability." .
+
 #################################################################
 # Package license (pack templates/LICENSE.tmpl; gate 070)
 #################################################################
@@ -214,7 +302,7 @@ glx:AshGraphLawLicense a aex:PackageLicenseFile ;
     aex:licenseCopyrightLine "Copyright (c) 2026 ash_graphlaw contributors" .
 
 #################################################################
-# Typed refusal codes (closed table, 35 codes)
+# Typed refusal codes (closed table, 40 codes)
 #################################################################
 
 glx:CodeNotAdmitted a glx:RefusalCode ;
@@ -392,6 +480,31 @@ glx:CodeUnsupportedStep a glx:RefusalCode ;
     glx:codeDoc "The admission step is not supported by this library version or by the pinned engine release." ;
     glx:brokenTerm "admission_vacuous" ; glx:codeOrder 35 .
 
+glx:CodeInvalidCapabilityRequest a glx:RefusalCode ;
+    glx:codeName "invalid_capability_request" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "A typed capability request failed client-side validation before the engine was called: unknown top-level keys, missing required fields, or a value whose type does not match the registry field type." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 36 .
+
+glx:CodeUnknownCapability a glx:RefusalCode ;
+    glx:codeName "unknown_capability" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "The named capability is not in the vendored GraphLaw capability registry, so no typed request can be built for it." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 37 .
+
+glx:CodeCapabilityNotDeclared a glx:RefusalCode ;
+    glx:codeName "capability_not_declared" ; glx:codeClass "refused_authority" ; glx:codeSource "ash" ;
+    glx:codeDoc "The resource declares at least one capability in its graphlaw section but not this one, so the op is refused before the engine is called." ;
+    glx:brokenTerm "R_missing_authority" ; glx:codeOrder 38 .
+
+glx:CodeCapabilityParityDrift a glx:RefusalCode ;
+    glx:codeName "capability_parity_drift" ; glx:codeClass "refused_identity" ; glx:codeSource "ash" ;
+    glx:codeDoc "The live engine, the vendored capability registry, the typed module set or the admission DSL disagree about the supported capability set; the parity court refuses." ;
+    glx:brokenTerm "R_missing_identity" ; glx:codeOrder 39 .
+
+glx:CodeCapabilityResponseUndecodable a glx:RefusalCode ;
+    glx:codeName "capability_response_undecodable" ; glx:codeClass "refused_structure" ; glx:codeSource "ash" ;
+    glx:codeDoc "The engine returned a capability response that is not a JSON object, so it cannot be decoded into a typed result; the raw value is preserved on the refusal." ;
+    glx:brokenTerm "mu_on_O" ; glx:codeOrder 40 .
+
 #################################################################
 # Standing atoms (derived from results, never stored on the DSL)
 #################################################################
@@ -413,3 +526,219 @@ glx:StandingBuildBroken a glx:Standing ;
 
 glx:StandingUnsupported a glx:Standing ;
     glx:standingName "UNSUPPORTED" ; glx:standingDoc "The requested step or engine variant is outside what this library version supports." ; glx:standingOrder 6 .
+
+#################################################################
+# UNSUPPORTED(generator-capability) ledger
+#
+# Every hand-written element no pack capability emits. Mirrors HANDWRITTEN.md (owned by
+# L23), row format 'path | element | capability | owner pack | date'. gates/060 refuses a
+# row missing a field or a duplicate path; scripts/ggen_sync.sh --check-ledger refuses a
+# row with no HANDWRITTEN.md entry. When a pack gains the capability, delete the row and
+# the hand-written file in the same change.
+#################################################################
+
+glx:ResidueAshGraphlawAuthority a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/authority.ex" ; glx:residueElement "AshGraphLaw.Authority" ;
+    glx:residueCapability "no ash-extension-pack template emits an authority policy module (lease verification, ceilings, trusted keys)" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawEvidence a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/evidence.ex" ; glx:residueElement "AshGraphLaw.Evidence" ;
+    glx:residueCapability "no ash-extension-pack template emits an admission-evidence module" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawAdmissions a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/admissions.ex" ; glx:residueElement "AshGraphLaw.Admissions" ;
+    glx:residueCapability "no ash-extension-pack template emits a reader for the DSL admission entities beyond Info accessors" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawContract a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/contract.ex" ; glx:residueElement "AshGraphLaw.Contract" ;
+    glx:residueCapability "no ash-extension-pack template emits a legality contract over the DSL section" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawLaw a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/law.ex" ; glx:residueElement "AshGraphLaw.Law" ;
+    glx:residueCapability "no ash-extension-pack template emits a behaviour for modules that supply the GraphLaw payload" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawProjection a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/projection.ex" ; glx:residueElement "AshGraphLaw.Projection" ;
+    glx:residueCapability "no ash-extension-pack template emits a subject-to-RDF projection behaviour" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawProjectionDefault a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/projection/default.ex" ; glx:residueElement "AshGraphLaw.Projection.Default" ;
+    glx:residueCapability "no ash-extension-pack template emits a default subject-to-RDF projection" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawChangeAdmit a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/change/admit.ex" ; glx:residueElement "AshGraphLaw.Change.Admit" ;
+    glx:residueCapability "no ash-extension-pack template emits an Ash change" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawValidationAdmissible a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/validation/admissible.ex" ; glx:residueElement "AshGraphLaw.Validation.Admissible" ;
+    glx:residueCapability "Ash validations are outside every listed pack" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawPreparationAdmit a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/preparation/admit.ex" ; glx:residueElement "AshGraphLaw.Preparation.Admit" ;
+    glx:residueCapability "Ash preparations are outside every listed pack" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawHost a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/host.ex" ; glx:residueElement "AshGraphLaw.Host" ;
+    glx:residueCapability "no ash-extension-pack template emits a WASM host" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawPool a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/pool.ex" ; glx:residueElement "AshGraphLaw.Pool" ;
+    glx:residueCapability "no ash-extension-pack template emits a WASM host pool" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawEngineLoad a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/engine_load.ex" ; glx:residueElement "AshGraphLaw.EngineLoad" ;
+    glx:residueCapability "no ash-extension-pack template emits an engine loader with digest and import-surface verification" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawWasmConfig a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/wasm_config.ex" ; glx:residueElement "AshGraphLaw.WasmConfig" ;
+    glx:residueCapability "no ash-extension-pack template emits a WASM path resolution module" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawApplication a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/application.ex" ; glx:residueElement "AshGraphLaw.Application" ;
+    glx:residueCapability "no ash-extension-pack template emits an OTP application callback" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawError a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/error.ex" ; glx:residueElement "AshGraphLaw.Error" ;
+    glx:residueCapability "no ash-extension-pack template emits a Splode error namespace" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawErrorRefused a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/error/refused.ex" ; glx:residueElement "AshGraphLaw.Error.Refused" ;
+    glx:residueCapability "no ash-extension-pack template emits a Splode error module" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawFormatter a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/formatter.ex" ; glx:residueElement "AshGraphLaw.Formatter" ;
+    glx:residueCapability "no ash-extension-pack template emits a Spark.Formatter plugin helper for the DSL section" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawCheatSheet a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/cheat_sheet.ex" ; glx:residueElement "AshGraphLaw.CheatSheet" ;
+    glx:residueCapability "no ash-extension-pack template emits a DSL cheat-sheet generator" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawMutation a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/mutation.ex" ; glx:residueElement "AshGraphLaw.Mutation" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation court" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawMutationCatalog a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/mutation/catalog.ex" ; glx:residueElement "AshGraphLaw.Mutation.Catalog" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation catalog" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawMutationCollector a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/mutation/collector.ex" ; glx:residueElement "AshGraphLaw.Mutation.Collector" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation collector" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawMutationRunner a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/mutation/runner.ex" ; glx:residueElement "AshGraphLaw.Mutation.Runner" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation runner" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawMutationVerdict a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/mutation/verdict.ex" ; glx:residueElement "AshGraphLaw.Mutation.Verdict" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation verdict type" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawRefusal a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/refusal.ex" ; glx:residueElement "AshGraphLaw.Refusal.from_engine/2" ;
+    glx:residueCapability "no ash-extension-pack template emits an engine error payload to refusal-code policy (the code table itself is generated)" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawVendor a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.vendor.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.Vendor" ;
+    glx:residueCapability "no ash-extension-pack template emits a wasm vendoring task" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawVerify a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.verify.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.Verify" ;
+    glx:residueCapability "no ash-extension-pack template emits a wasm verification task" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawMutate a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.mutate.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.Mutate" ;
+    glx:residueCapability "no ash-extension-pack template emits a mutation task" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawTestLivebooks a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.test_livebooks.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.TestLivebooks" ;
+    glx:residueCapability "no ash-extension-pack template emits a Livebook cell-evaluation task" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawInstall a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.install.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.Install.add_extension/1" ;
+    glx:residueCapability "ash-extension-pack install.ex.tmpl add_extension/1 inserts the bare text 'extensions: [AshGraphLaw.Resource]' with Igniter.Code.Common.add_code/3, which parses a statement; --target raises SyntaxError (pack defect, observed at pack sha caa4fe61)" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueAshGraphlawResourceInfo a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/info.ex" ; glx:residueElement "AshGraphLaw.Resource.Info" ;
+    glx:residueCapability "pack info.ex.tmpl output is generated and cannot be improved here; residue (missing typespecs/docs beyond the pack template) is recorded, not hand-edited" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCapabilityCanonicalJson a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/capability/canonical_json.ex" ; glx:residueElement "AshGraphLaw.Capability.CanonicalJSON" ;
+    glx:residueCapability "no pack template emits a canonical-JSON encoder/digest helper implementing the registry DIGEST RULE" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCapabilityCoerce a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/capability/coerce.ex" ; glx:residueElement "AshGraphLaw.Capability.Coerce" ;
+    glx:residueCapability "no pack template emits typed request argument normalization against registry field types" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCapabilityDecode a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/capability/decode.ex" ; glx:residueElement "AshGraphLaw.Capability.Decode" ;
+    glx:residueCapability "no pack template emits tolerant, lossless response value decoding helpers" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueTelemetry a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/telemetry.ex" ; glx:residueElement "AshGraphLaw.Telemetry" ;
+    glx:residueCapability "no pack template emits :telemetry span wrappers for capability calls" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueReactor a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/reactor.ex" ; glx:residueElement "AshGraphLaw.Reactor" ;
+    glx:residueCapability "no pack template emits Reactor step integration guarded by Code.ensure_loaded?(Reactor.Step)" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueReactorHooks a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/reactor/hooks.ex" ; glx:residueElement "AshGraphLaw.Reactor.Hooks" ;
+    glx:residueCapability "no pack template emits a Reactor step for the hooks op" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueReactorCapability a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/reactor/capability.ex" ; glx:residueElement "AshGraphLaw.Reactor.Capability" ;
+    glx:residueCapability "no pack template emits a generic Reactor step over registry capabilities" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueLifecycle a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/lifecycle.ex" ; glx:residueElement "AshGraphLaw.Lifecycle" ;
+    glx:residueCapability "no pack template emits Ash lifecycle capability-declaration enforcement" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCalculationConforms a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/calculation/conforms.ex" ; glx:residueElement "AshGraphLaw.Calculation.Conforms" ;
+    glx:residueCapability "no pack template emits Ash calculations" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCalculationCanonicalId a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/calculation/canonical_id.ex" ; glx:residueElement "AshGraphLaw.Calculation.CanonicalId" ;
+    glx:residueCapability "no pack template emits Ash calculations" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueCalculationSparql a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/calculation/sparql.ex" ; glx:residueElement "AshGraphLaw.Calculation.Sparql" ;
+    glx:residueCapability "no pack template emits Ash calculations" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueValidationShacl a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/validation/shacl.ex" ; glx:residueElement "AshGraphLaw.Validation.Shacl" ;
+    glx:residueCapability "Ash validations are outside every listed pack" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueChangeCanonicalize a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/change/canonicalize.ex" ; glx:residueElement "AshGraphLaw.Change.Canonicalize" ;
+    glx:residueCapability "no pack template emits an Ash change" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueProjectionOrigin a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/projection/origin.ex" ; glx:residueElement "AshGraphLaw.Projection.Origin" ;
+    glx:residueCapability "no pack template emits a subject-to-RDF projection" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueParity a glx:UnsupportedResidue ;
+    glx:residuePath "lib/ash_graphlaw/parity.ex" ; glx:residueElement "AshGraphLaw.Parity" ;
+    glx:residueCapability "no pack template emits a capability parity court" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+glx:ResidueMixTasksAshGraphlawParity a glx:UnsupportedResidue ;
+    glx:residuePath "lib/mix/tasks/ash_graphlaw.parity.ex" ; glx:residueElement "Mix.Tasks.AshGraphlaw.Parity" ;
+    glx:residueCapability "no pack template emits a parity court task" ;
+    glx:residueOwnerPack "ash-extension-pack" ; glx:residueDate "2026-09-29" ; glx:residueLedger "HANDWRITTEN.md" .
+
+#################################################################
+# Version literal bindings (drift tripwire, gates/070)
+#
+# Each file below carries a literal copy of a version. gates/070 refuses a binding whose
+# value differs from glx:packageVersion (kind package) or glx:graphLawVersion / the
+# engineReleaseTag (kind engine). scripts/ggen_sync.sh --check-versions verifies the real
+# files on disk.
+#################################################################
+
+glx:BindingMixExsPackage a glx:VersionBinding ; glx:bindingPath "mix.exs" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingReadmeMdPackage a glx:VersionBinding ; glx:bindingPath "README.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingSa2AManifestJsonPackage a glx:VersionBinding ; glx:bindingPath ".sa2a/manifest.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.9.28" .

@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+name: Feature request
+description: Propose an additive capability.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What cannot be expressed today, with a concrete resource or call.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Additive only; public API, DSL options and the refusal code table are stable.
+    validations:
+      required: true
+  - type: textarea
+    id: falsifier
+    attributes:
+      label: Falsifier
+      description: What observation would show the proposal does not work.
+    validations:
+      required: true
+  - type: dropdown
+    id: ontology
+    attributes:
+      label: Does it touch generated files?
+      options:
+        - "No"
+        - "Yes, via ontology/templates/queries"
+        - "Unsure"
+    validations:
+      required: true

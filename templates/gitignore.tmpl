@@ -9,6 +9,7 @@ sparql:
     PREFIX glx: <https://graphlaw.dev/ash#>
 
     SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+           ?docs_url ?repository_url ?maintainer ?date_released ?coverage_threshold ?engine_release_tag
     WHERE {
       ?project a glx:Project ;
         glx:packageVersion ?package_version ;
@@ -18,7 +19,13 @@ sparql:
         glx:wasmAsset ?wasm_asset ;
         glx:wasmUrl ?wasm_url ;
         glx:marketplaceSha ?marketplace_sha ;
-        glx:ggenSha ?ggen_sha .
+        glx:ggenSha ?ggen_sha ;
+        glx:docsUrl ?docs_url ;
+        glx:repositoryUrl ?repository_url ;
+        glx:maintainer ?maintainer ;
+        glx:dateReleased ?date_released ;
+        glx:coverageThreshold ?coverage_threshold ;
+        glx:engineReleaseTag ?engine_release_tag .
     }
     ORDER BY ?package_version
 for_each: project
@@ -28,19 +35,28 @@ force: true
 #
 # SPDX-License-Identifier: MIT
 {% set p = results | first %}{# UNSUPPORTED(generator-capability): no marketplace pack emits a consumer .gitignore; package {{ p.package_version }} #}
+# Build outputs (per-lane build roots included: MIX_BUILD_ROOT=_build-lane<NN>)
 /_build/
 /_build-lane*/
 /deps/
 /doc/
 /cover/
 /tmp/
+erl_crash.dump
+*.ez
+/ash_graphlaw-*.tar
+
+# ggen scratch and generator state (projections themselves are committed)
 /.ggen-v2/
 /.ggen/
 /.clap-noun-verb/
-/vendor/
-/priv/graphlaw/*.wasm
-/priv/graphlaw/*.wasm.partial-*
-/priv/plts/
 /marketplace-src/
-/ash_graphlaw-*.tar
-erl_crash.dump
+/vendor/
+
+# The pinned engine is vendored and digest-verified, never committed or shipped.
+# priv/graphlaw/MANIFEST.json (url + SHA-256 pin) is the tracked artifact.
+*.wasm
+/priv/graphlaw/*.wasm.partial-*
+
+# Dialyzer PLTs are a local cache (plt_local_path / plt_core_path); dialyxir creates the directory.
+/priv/plts/

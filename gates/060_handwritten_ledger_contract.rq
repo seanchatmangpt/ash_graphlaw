@@ -1,0 +1,77 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Handwritten-residue ledger contract. Every glx:UnsupportedResidue row must carry all six fields
+# exactly once, name a repository-relative path, cite the closed generator-capability wording
+# and a dated observation, and appear once (unique path). The row set is the machine copy of
+# HANDWRITTEN.md; scripts/ggen_sync.sh --check-ledger proves each row has a ledger entry on disk.
+PREFIX glx: <https://graphlaw.dev/ash#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    VALUES ?prop { glx:residuePath glx:residueElement glx:residueCapability
+                   glx:residueOwnerPack glx:residueDate glx:residueLedger }
+    ?focus a glx:UnsupportedResidue .
+    FILTER NOT EXISTS { ?focus ?prop ?any }
+    BIND("missing_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    VALUES ?prop { glx:residuePath glx:residueElement glx:residueCapability
+                   glx:residueOwnerPack glx:residueDate glx:residueLedger }
+    ?focus a glx:UnsupportedResidue ; ?prop ?v1 , ?v2 .
+    FILTER (STR(?v1) < STR(?v2))
+    BIND("duplicate_property" AS ?problem)
+    BIND(STR(?prop) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residuePath ?v .
+    FILTER (!REGEX(STR(?v), "^(lib|test|scripts|templates|priv)/[A-Za-z0-9_./-]+$"))
+    BIND("path_not_repository_relative" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residuePath ?v .
+    ?other a glx:UnsupportedResidue ; glx:residuePath ?v2 .
+    FILTER (?focus != ?other && STR(?v) = STR(?v2) && STR(?focus) < STR(?other))
+    BIND("duplicate_path" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residueDate ?v .
+    FILTER (!REGEX(STR(?v), "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))
+    BIND("bad_date" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residueLedger ?v .
+    FILTER (STR(?v) != "HANDWRITTEN.md")
+    BIND("unknown_ledger" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residueOwnerPack ?v .
+    FILTER (STR(?v) != "ash-extension-pack")
+    BIND("unknown_owner_pack" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residueCapability ?v .
+    FILTER (STRLEN(STR(?v)) < 12)
+    BIND("capability_wording_too_short" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:UnsupportedResidue ; glx:residueElement ?v .
+    FILTER (STRLEN(STR(?v)) = 0)
+    BIND("empty_element" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    BIND(<urn:ash-graphlaw:ledger-set> AS ?focus)
+    { SELECT (COUNT(DISTINCT ?r) AS ?n) WHERE { ?r a glx:UnsupportedResidue } }
+    FILTER (?n = 0)
+    BIND("empty_ledger" AS ?problem)
+    BIND("no glx:UnsupportedResidue rows declared" AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

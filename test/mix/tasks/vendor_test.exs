@@ -113,4 +113,169 @@ defmodule Mix.Tasks.AshGraphlaw.VendorTest do
       quietly(fn -> Vendor.run(["--from", Path.join(ctx.dir, "missing.wasm")]) end)
     end
   end
+
+  describe "reporting and idempotence" do
+    test "a successful vendoring reports source, size and pin", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+
+      quietly(fn -> Vendor.run(["--from", good]) end)
+
+      assert_received {:mix_shell, :info, [report]}
+      assert report =~ "vendored #{ctx.target}"
+      assert report =~ "source=#{good}"
+      assert report =~ "bytes=#{byte_size(@good)}"
+      assert report =~ "sha256=#{WasmFixtures.sha256(@good)}"
+    end
+
+    test "--check on a verified engine reports OK with the pin and writes nothing", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+      quietly(fn -> Vendor.run(["--from", good]) end)
+      before = File.stat!(ctx.target).mtime
+
+      quietly(fn -> Vendor.run(["--check"]) end)
+
+      assert_received {:mix_shell, :info, ["graphlaw.wasm OK sha256=" <> pin]}
+      assert pin == WasmFixtures.sha256(@good)
+      assert File.stat!(ctx.target).mtime == before
+      assert Path.wildcard(Path.join(ctx.priv, "*.partial-*")) == []
+    end
+
+    test "vendoring twice is idempotent and leaves no partial file", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+
+      quietly(fn ->
+        Vendor.run(["--from", good])
+        Vendor.run(["--from", good])
+      end)
+
+      assert File.read!(ctx.target) == @good
+      assert Path.wildcard(Path.join(ctx.priv, "*.partial-*")) == []
+      assert File.ls!(ctx.priv) |> Enum.sort() == ["MANIFEST.json", "graphlaw.wasm"]
+    end
+
+    test "a drifted engine is replaced by a candidate that meets the pin", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+      File.write!(ctx.target, @bad)
+      assert_raise Mix.Error, ~r/wasm_digest_mismatch/, fn -> quietly(fn -> Vendor.run(["--check"]) end) end
+
+      quietly(fn -> Vendor.run(["--from", good]) end)
+
+      assert File.read!(ctx.target) == @good
+      quietly(fn -> Vendor.run(["--check"]) end)
+    end
+
+    test "the target's parent directory is created when the manifest names a nested file", ctx do
+      manifest = %{
+        "schema" => "ash_graphlaw.graphlaw.manifest/v1",
+        "artifact" => %{
+          "file" => "engine/v1/graphlaw.wasm",
+          "sha256" => WasmFixtures.sha256(@good),
+          "url" => "https://example.invalid/x"
+        }
+      }
+
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), Jason.encode!(manifest))
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+      refute File.dir?(Path.join(ctx.priv, "engine"))
+
+      quietly(fn -> Vendor.run(["--from", good]) end)
+      assert File.read!(Path.join(ctx.priv, "engine/v1/graphlaw.wasm")) == @good
+    end
+
+    test "an uppercase pin in the manifest is compared case-insensitively", ctx do
+      manifest = %{
+        "schema" => "ash_graphlaw.graphlaw.manifest/v1",
+        "artifact" => %{
+          "file" => "graphlaw.wasm",
+          "sha256" => String.upcase(WasmFixtures.sha256(@good)),
+          "url" => "https://example.invalid/x"
+        }
+      }
+
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), Jason.encode!(manifest))
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+
+      quietly(fn -> Vendor.run(["--from", good]) end)
+      assert File.read!(ctx.target) == @good
+    end
+
+    test "the manifest may name a different target file", ctx do
+      manifest = %{
+        "schema" => "ash_graphlaw.graphlaw.manifest/v1",
+        "artifact" => %{
+          "file" => "engine.bin",
+          "sha256" => WasmFixtures.sha256(@good),
+          "url" => "https://example.invalid/x"
+        }
+      }
+
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), Jason.encode!(manifest))
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+
+      quietly(fn -> Vendor.run(["--from", good]) end)
+      assert File.read!(Path.join(ctx.priv, "engine.bin")) == @good
+      refute File.exists?(ctx.target)
+    end
+
+    test "--check wins over --from: it verifies and writes nothing", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+
+      assert_raise Mix.Error, ~r/wasm_not_vendored/, fn ->
+        quietly(fn -> Vendor.run(["--check", "--from", good]) end)
+      end
+
+      refute File.exists?(ctx.target)
+    end
+  end
+
+  describe "manifest refusals" do
+    test "positive control: the scratch manifest is accepted", ctx do
+      good = write_candidate!(ctx.dir, "good.wasm", @good)
+      quietly(fn -> Vendor.run(["--from", good]) end)
+      assert File.regular?(ctx.target)
+    end
+
+    test "an absent manifest is wasm_unreadable", ctx do
+      File.rm!(Path.join(ctx.priv, "MANIFEST.json"))
+      assert_raise Mix.Error, ~r/\[wasm_unreadable\] cannot read manifest.*enoent/s, fn -> Vendor.run(["--check"]) end
+    end
+
+    test "a manifest with another schema is wasm_invalid", ctx do
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), ~s({"schema":"other/v9","artifact":{}}))
+
+      assert_raise Mix.Error, ~r/\[wasm_invalid\].*ash_graphlaw.graphlaw.manifest\/v1/s, fn ->
+        Vendor.run(["--check"])
+      end
+    end
+
+    test "a manifest that is not JSON is refused as wasm_unreadable with the decode error", ctx do
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), "not json {")
+      assert_raise Mix.Error, ~r/\[wasm_unreadable\].*DecodeError/s, fn -> Vendor.run(["--check"]) end
+    end
+
+    test "a manifest whose artifact fields are not strings is wasm_invalid", ctx do
+      manifest = %{
+        "schema" => "ash_graphlaw.graphlaw.manifest/v1",
+        "artifact" => %{"file" => "graphlaw.wasm", "sha256" => 7, "url" => "https://example.invalid/x"}
+      }
+
+      File.write!(Path.join(ctx.priv, "MANIFEST.json"), Jason.encode!(manifest))
+      assert_raise Mix.Error, ~r/\[wasm_invalid\]/, fn -> Vendor.run(["--check"]) end
+    end
+
+    test "an unknown option is refused before anything is read" do
+      assert_raise OptionParser.ParseError, ~r/--bogus/, fn -> Vendor.run(["--bogus"]) end
+    end
+  end
+
+  describe "sha256_hex/1" do
+    test "matches the published SHA-256 test vectors" do
+      assert Vendor.sha256_hex("") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      assert Vendor.sha256_hex("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    end
+
+    test "agrees with the fixture helper on real wasm bytes" do
+      assert Vendor.sha256_hex(@good) == WasmFixtures.sha256(@good)
+    end
+  end
 end

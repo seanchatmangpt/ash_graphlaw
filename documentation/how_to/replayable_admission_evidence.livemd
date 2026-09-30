@@ -1,0 +1,232 @@
+<!--
+SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+
+SPDX-License-Identifier: MIT
+-->
+
+# Replayable admission evidence
+
+Evidence is an observation bound to one exact input digest. This notebook builds evidence,
+proves its digest is a pure function of its content, breaks it on purpose, and replays an
+admission to check that identical input yields identical digests.
+
+```elixir
+Mix.install(
+  [
+    {:ash, "~> 3.0"},
+    {:ash_graphlaw, path: Path.expand("../..", __DIR__)}
+  ],
+  consolidate_protocols: false
+)
+```
+
+## Evidence from an admitted transition
+
+`AshGraphLaw.Admitted` is what the engine's `law` op answers on success. Build one from a
+response-shaped map (the shape the wire format defines) and bind evidence to a projected input.
+
+```elixir
+input_text = "<urn:example:s> <urn:example:p> \"o\" .\n"
+input_digest = :crypto.hash(:sha256, input_text) |> Base.encode16(case: :lower)
+
+admitted =
+  AshGraphLaw.Admitted.from_map(%{
+    "states" => ["state-0"],
+    "receipts" => [%{"step" => "shacl"}],
+    "nquads" => ""
+  })
+
+evidence =
+  AshGraphLaw.Evidence.new(:demo_admission, admitted, input_digest,
+    wasm_sha256: String.duplicate("0", 64)
+  )
+
+%{
+  admission: evidence.admission,
+  standing: evidence.standing,
+  input_digest_matches?: evidence.input_digest == input_digest,
+  digest: evidence.digest
+}
+```
+
+This evidence is constructed here, not produced by an engine run: its `wasm_sha256` is a
+placeholder. It demonstrates the digest algebra, not an admission.
+
+## The digest is recomputable
+
+`digest/1` is the SHA-256 of a canonical, sorted-key JSON encoding that excludes the `digest`
+field itself. Anyone holding the evidence can recompute it:
+
+```elixir
+recomputed = AshGraphLaw.Evidence.digest(evidence)
+{recomputed == evidence.digest, byte_size(evidence.digest)}
+```
+
+Map ordering never changes it. Canonical JSON sorts keys recursively:
+
+```elixir
+a = AshGraphLaw.Evidence.canonical_json(%{b: 1, a: %{d: 2, c: 3}})
+b = AshGraphLaw.Evidence.canonical_json(%{a: %{c: 3, d: 2}, b: 1})
+{a, a == b}
+```
+
+## Tamper and detect
+
+Change one bound fact, keep the old digest, and the recomputation disagrees. Evidence that
+fails this check names no admission at all:
+
+```elixir
+tampered = %{evidence | input_digest: String.duplicate("f", 64)}
+
+%{
+  stored_digest_still_claims: tampered.digest == evidence.digest,
+  recomputed_matches_stored?: AshGraphLaw.Evidence.digest(tampered) == tampered.digest,
+  recomputed_differs_from_original?: AshGraphLaw.Evidence.digest(tampered) != evidence.digest
+}
+```
+
+The engine identity is part of the digest too, so evidence cannot be re-attributed to another
+engine build without changing the digest:
+
+```elixir
+other_engine = %{evidence | wasm_sha256: String.duplicate("1", 64)}
+AshGraphLaw.Evidence.digest(other_engine) != evidence.digest
+```
+
+## Evidence data, as data
+
+`to_map/1` yields a string-keyed map ready for JSON, which is how evidence leaves the process:
+
+```elixir
+map = AshGraphLaw.Evidence.to_map(evidence)
+json = Jason.encode!(map)
+decoded = Jason.decode!(json)
+{Map.keys(decoded) |> Enum.sort(), decoded["digest"] == evidence.digest}
+```
+
+## Replay a real admission
+
+Define a resource and admit the same input twice. The projection is deterministic, so the input
+digest is identical across runs; the evidence digest is identical too when the engine answers
+identically.
+
+```elixir
+defmodule Demo.Claim do
+  use Ash.Resource,
+    domain: Demo.Domain,
+    data_layer: Ash.DataLayer.Ets,
+    extensions: [AshGraphLaw.Resource]
+
+  ets do
+    private? true
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :statement, :string, public?: true
+  end
+
+  actions do
+    defaults [:read]
+
+    create :assert do
+      accept [:statement]
+      change {AshGraphLaw.Change.Admit, admission: :claim_closure}
+    end
+  end
+
+  graphlaw do
+    admission :claim_closure do
+      step(:rdfs)
+    end
+  end
+end
+
+defmodule Demo.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
+
+  resources do
+    resource Demo.Claim
+  end
+end
+```
+
+The input digest is decided before the engine: project the changeset and hash it. Two
+changesets over the same input agree, and a different input disagrees:
+
+```elixir
+{:ok, admission} = AshGraphLaw.Admissions.fetch(Demo.Claim, :claim_closure)
+
+project_digest = fn statement ->
+  changeset = Ash.Changeset.for_create(Demo.Claim, :assert, %{statement: statement})
+  {:ok, %{text: text}} = AshGraphLaw.Projection.Default.data(changeset, admission: admission)
+  :crypto.hash(:sha256, text) |> Base.encode16(case: :lower)
+end
+
+%{
+  same_input_same_digest?: project_digest.("water is wet") == project_digest.("water is wet"),
+  different_input_different_digest?: project_digest.("water is wet") != project_digest.("fire is hot")
+}
+```
+
+Now admit for real, twice, and compare whatever evidence the engine produced:
+
+```elixir
+case AshGraphLaw.Pool.start_link(size: 1) do
+  {:ok, _pool} -> :started
+  {:error, {:already_started, _pool}} -> :already_running
+end
+
+admit_once = fn ->
+  parent = self()
+
+  result =
+    Demo.Claim
+    |> Ash.Changeset.for_create(:assert, %{statement: "water is wet"})
+    |> Ash.Changeset.after_action(fn changeset, record ->
+      send(parent, {:evidence, changeset.context[:graphlaw]})
+      {:ok, record}
+    end)
+    |> Ash.create()
+
+  case result do
+    {:ok, _record} ->
+      receive do
+        {:evidence, %AshGraphLaw.Evidence{} = ev} -> {:evidence, ev}
+      after
+        0 -> {:no_evidence}
+      end
+
+    {:error, error} ->
+      {:refused, AshGraphLaw.Error.codes(error)}
+  end
+end
+
+first = admit_once.()
+second = admit_once.()
+
+case {first, second} do
+  {{:evidence, one}, {:evidence, two}} ->
+    %{
+      replayed?: true,
+      input_digest_equal?: one.input_digest == two.input_digest,
+      evidence_digest_equal?: one.digest == two.digest,
+      recomputes?: AshGraphLaw.Evidence.digest(one) == one.digest,
+      standing: one.standing
+    }
+
+  other ->
+    %{replayed?: false, observed: other}
+end
+```
+
+With the engine vendored, `replayed?` is `true` and both digest comparisons are `true`. Without
+it, `replayed?` is `false` and `observed` shows the typed refusal for each attempt: there is no
+evidence to replay, and the notebook says so instead of inventing any.
+
+## What replay does and does not establish
+
+Equal digests show the same input was observed by the same engine build and answered the same
+way. They grant nothing: GraphLaw derives and validates, it never authorizes. Standing
+`:PARTIAL_ALIVE` means the admission was observed; only an exact-SHA receipt raises a claim
+further.

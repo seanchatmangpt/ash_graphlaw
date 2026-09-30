@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 #
 # SPDX-License-Identifier: MIT
+# UNSUPPORTED(generator-capability): hand-written residue; no pack emits this module.
+# Recorded in HANDWRITTEN.md. Do not regenerate over it.
 
 defmodule AshGraphLaw.Pool do
   @moduledoc """
@@ -29,6 +31,30 @@ defmodule AshGraphLaw.Pool do
   member registers from `init/1`. A registry crash drops all registrations, so
   the members started after it restart and re-register.
 
+  ## Usage
+
+      {:ok, _pid} = AshGraphLaw.Pool.start_link(size: 2)
+      {:ok, response} = AshGraphLaw.Pool.request(%{"op" => "capabilities"})
+
+  ## Options
+
+  See `t:opts/0`: `:name`, `:size`, and every `AshGraphLaw.Host` option.
+
+  ## Telemetry
+
+  The pool emits none. Members emit the `AshGraphLaw.Host` events
+  (`[:ash_graphlaw, :host, :call, :stop]`, `[:ash_graphlaw, :host, :recycle]`).
+
+  ## Failure modes
+
+  `:host_not_started` when no member is registered (live or unavailable);
+  otherwise the chosen member's own typed `AshGraphLaw.Refusal`
+  (for example `:saturated`, `:wasm_not_vendored`, `:call_timeout`).
+
+  ## See Also
+
+  `AshGraphLaw.Host`, `AshGraphLaw.Application`, `AshGraphLaw.WasmConfig`.
+
   GraphLaw derives and validates; nothing here authorizes or actuates.
   """
 
@@ -39,6 +65,16 @@ defmodule AshGraphLaw.Pool do
   @registry AshGraphLaw.Pool.Registry
   @host AshGraphLaw.Host
 
+  @typedoc "Pool options: `:name`, `:size`, plus any `AshGraphLaw.Host` option."
+  @type opts :: [
+          {:name, atom()}
+          | {:size, pos_integer()}
+          | {:wasm_path, String.t()}
+          | {:bytes, binary()}
+          | {:expected_sha256, String.t() | :unpinned}
+          | {atom(), term()}
+        ]
+
   @doc "The registry the pool's members join (under the key `:members`)."
   @spec registry() :: atom()
   def registry, do: @registry
@@ -48,13 +84,15 @@ defmodule AshGraphLaw.Pool do
   `:size` (default `System.schedulers_online/0`), and any `AshGraphLaw.Host`
   option, passed to every member.
   """
-  @spec start_link(keyword()) :: Supervisor.on_start()
+  @spec start_link(opts()) :: Supervisor.on_start()
   def start_link(opts \\ []) do
     {name, opts} = Keyword.pop(opts, :name, __MODULE__)
     Supervisor.start_link(__MODULE__, opts, name: name)
   end
 
+  @doc false
   @impl Supervisor
+  @spec init(opts()) :: {:ok, {Supervisor.sup_flags(), [Supervisor.child_spec()]}}
   def init(opts) do
     n = size(opts)
     host_opts = Keyword.drop(opts, [:size, :registry, :name])
@@ -73,7 +111,7 @@ defmodule AshGraphLaw.Pool do
   end
 
   @doc "Pool size resolved from `opts[:size]`, then the scheduler count."
-  @spec size(keyword()) :: pos_integer()
+  @spec size(opts()) :: pos_integer()
   def size(opts \\ []) do
     case Keyword.get(opts, :size) do
       n when is_integer(n) and n > 0 -> n

@@ -38,8 +38,10 @@ defmodule AshGraphLaw.Mutation.Verdict do
     killed_by: []
   ]
 
+  @typedoc "The closed set of mutation verdicts."
   @type verdict :: :mutant_killed | :mutant_survived | :blocked | :unknown
 
+  @typedoc "A verdict record for one mutation."
   @type t :: %__MODULE__{
           mutation_id: String.t(),
           target: String.t(),

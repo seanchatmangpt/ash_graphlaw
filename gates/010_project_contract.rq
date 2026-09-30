@@ -17,7 +17,9 @@ SELECT ?problem ?focus ?detail WHERE {
   }
   UNION {
     VALUES ?prop { glx:packageVersion glx:graphLawVersion glx:abiVersion glx:wasmSha256
-                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha }
+                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha
+                   glx:docsUrl glx:repositoryUrl glx:maintainer glx:dateReleased
+                   glx:coverageThreshold glx:engineReleaseTag }
     ?focus a glx:Project .
     FILTER NOT EXISTS { ?focus ?prop ?any }
     BIND("missing_pin" AS ?problem)
@@ -25,7 +27,9 @@ SELECT ?problem ?focus ?detail WHERE {
   }
   UNION {
     VALUES ?prop { glx:packageVersion glx:graphLawVersion glx:abiVersion glx:wasmSha256
-                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha }
+                   glx:wasmAsset glx:wasmUrl glx:marketplaceSha glx:ggenSha
+                   glx:docsUrl glx:repositoryUrl glx:maintainer glx:dateReleased
+                   glx:coverageThreshold glx:engineReleaseTag }
     ?focus a glx:Project ; ?prop ?v1 , ?v2 .
     FILTER (STR(?v1) < STR(?v2))
     BIND("duplicate_pin" AS ?problem)

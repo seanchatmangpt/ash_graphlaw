@@ -3,10 +3,13 @@
 # SPDX-License-Identifier: MIT
 
 # Release to Hex. Re-runs EVERY CI gate (supply-chain, quality incl. credo --strict and dialyzer,
-# test, mutation court) on the exact tag subject, then publishes ONLY when a HEX_API_KEY secret is
-# configured. The release gate is never weaker than the CI gate.
+# test incl. wasm/slow tags and the 80% coverage gate, mutation court) on the exact tag subject, then
+# builds a CycloneDX SBOM, attests provenance and SBOM for the exact tarball, and publishes ONLY when
+# a HEX_API_KEY secret is configured. The release gate is never weaker than the CI gate.
+# Exit codes: 2 = REFUSED or BLOCKED(authority) at admission, 3 = BLOCKED(evidence) post-publish.
 # workflow_dispatch is admitted only from main or a v* tag, runs `mix hex.publish --dry-run` and
 # never publishes. The tag/version identity is refused in the job that publishes, not only earlier.
+# Permissions beyond contents: read are granted to the publish job only.
 # No credential value appears in this file.
 name: Release
 
@@ -43,7 +46,7 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -65,16 +68,61 @@ jobs:
         run: mix deps.audit
       - name: Verify mix.lock unchanged
         run: git diff --exit-code -- mix.lock
-      - name: Package closure ships MANIFEST.json and no wasm binary
+      - name: Package closure (MANIFEST, licenses, docs, usage-rules shipped; no wasm, build dirs, cover, tmp)
         run: |
           set -euo pipefail
           pkg="$RUNNER_TEMP/pkg"
           rm -rf "$pkg"
           mix hex.build --unpack -o "$pkg"
-          test -f "$pkg/priv/graphlaw/MANIFEST.json" || { echo "REFUSED(package:missing priv/graphlaw/MANIFEST.json)" >&2; exit 2; }
+          for p in priv/graphlaw/MANIFEST.json LICENSES REUSE.toml CITATION.cff REPRODUCE.md documentation usage-rules; do
+            test -e "$pkg/$p" || { echo "REFUSED(package:missing $p)" >&2; exit 2; }
+          done
           if find "$pkg" -name '*.wasm' | grep -q .; then
             echo "REFUSED(package:ships a wasm binary)" >&2
             find "$pkg" -name '*.wasm' >&2
+            exit 2
+          fi
+          for bad in '_build*' cover tmp; do
+            if find "$pkg" -name "$bad" | grep -q .; then
+              echo "REFUSED(package:ships $bad)" >&2
+              find "$pkg" -name "$bad" >&2
+              exit 2
+            fi
+          done
+      - name: Version sync (mix.exs, CITATION.cff, CHANGELOG, README, .sa2a manifest)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, re, sys
+          def read(p):
+              return open(p, encoding="utf-8").read()
+          m = re.search(r'@version\s+"([^"]+)"', read("mix.exs"))
+          if not m:
+              print("REFUSED(version:no @version in mix.exs)", file=sys.stderr); sys.exit(2)
+          v = m.group(1)
+          seen = {"mix.exs": v}
+          c = re.search(r'^version:\s*["\']?([0-9][^"\'\s]*)', read("CITATION.cff"), re.M)
+          seen["CITATION.cff"] = c.group(1) if c else None
+          ch = re.search(r'^## \[(?!Unreleased)([^\]]+)\]', read("CHANGELOG.md"), re.M)
+          seen["CHANGELOG.md top entry"] = ch.group(1) if ch else None
+          r = re.search(r'\{:ash_graphlaw,\s*"~>\s*([^"]+)"\}', read("README.md"))
+          seen["README dependency snippet"] = r.group(1) if r else None
+          man = json.loads(read(".sa2a/manifest.json"))
+          if "version" in man:
+              seen[".sa2a/manifest.json"] = man["version"]
+          bad = {k: x for k, x in seen.items() if x != v}
+          for k, x in seen.items():
+              print(f"{k}: {x}")
+          if bad:
+              print(f"REFUSED(version:mismatch against mix.exs {v}: {bad})", file=sys.stderr); sys.exit(2)
+          PY
+      - name: Mock ban (Chicago tests only; zero non-comment hits)
+        run: |
+          set -euo pipefail
+          hits="$(grep -rnE 'Mox|meck|Mock|patch\(|expect\(' test/ | grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' || true)"
+          if [ -n "$hits" ]; then
+            echo "REFUSED(tests:mocking construct found)" >&2
+            printf '%s\n' "$hits" >&2
             exit 2
           fi
 
@@ -85,7 +133,7 @@ jobs:
     env:
       MIX_ENV: dev
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -99,7 +147,7 @@ jobs:
           version-type: strict
       - run: mix local.hex --force
       - run: mix local.rebar --force
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             deps
@@ -112,7 +160,7 @@ jobs:
       - run: mix format --check-formatted
       - id: compile
         run: mix compile --warnings-as-errors
-      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         with:
           path: |
@@ -121,7 +169,7 @@ jobs:
           key: ash-graphlaw-v1-${{ runner.os }}-quality-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
       - run: mix credo --strict
       - run: mix sobelow --skip
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: priv/plts
           key: ash-graphlaw-plt-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}
@@ -130,7 +178,7 @@ jobs:
       - id: plt
         name: Build dialyzer PLT
         run: mix dialyzer --plt
-      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         if: ${{ !cancelled() && steps.plt.outcome == 'success' }}
         with:
           path: priv/plts
@@ -145,7 +193,7 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -166,8 +214,27 @@ jobs:
           project_version="$(sed -n 's/.*@version "\([^"]*\)".*/\1/p' mix.exs | head -n 1)"
           test -n "$project_version"
           test "$GITHUB_REF_NAME" = "v$project_version"
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}
+          restore-keys: |
+            ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}-
+            ash-graphlaw-v1-${{ runner.os }}-test-
       - run: mix deps.get --check-locked
-      - run: mix compile --force --warnings-as-errors
+      - name: Verify mix.lock unchanged
+        run: git diff --exit-code -- mix.lock
+      - id: compile
+        run: mix compile --warnings-as-errors
+      - uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-v1-${{ runner.os }}-test-${{ hashFiles('.tool-versions', 'mix.lock') }}-${{ github.run_id }}
       - name: Vendor pinned graphlaw.wasm and verify its digest
         run: |
           set -euo pipefail
@@ -177,8 +244,17 @@ jobs:
           curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
             --output priv/graphlaw/graphlaw.wasm "$url"
           echo "$sha  priv/graphlaw/graphlaw.wasm" | sha256sum --check --strict -
-      - run: mix test --cover
-      - run: mix ash_graphlaw.verify
+      - name: Coverage threshold declared in mix.exs is at least 80
+        run: |
+          set -euo pipefail
+          t="$(sed -n 's/.*summary: \[threshold: \([0-9]*\)\].*/\1/p' mix.exs | head -n 1)"
+          echo "mix.exs coverage threshold: ${t:-none}"
+          test -n "$t" && test "$t" -ge 80 || { echo "REFUSED(coverage:threshold below 80 or unreadable)" >&2; exit 2; }
+      - name: Verify pinned engine artifact
+        run: mix ash_graphlaw.verify
+      # Plain --cover: the threshold in mix.exs test_coverage/0 is only evaluated by a direct cover run.
+      - name: Tests including wasm and slow tags, with coverage gate
+        run: mix test --include wasm --include slow --cover
 
   mutation:
     needs: test
@@ -188,7 +264,7 @@ jobs:
     env:
       MIX_ENV: test
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -202,7 +278,7 @@ jobs:
           version-type: strict
       - run: mix local.hex --force
       - run: mix local.rebar --force
-      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             deps
@@ -227,7 +303,7 @@ jobs:
         run: mix ash_graphlaw.mutate --require-killed --evidence-dir mutation
       - name: Preserve mutation report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-mutation-${{ github.sha }}
           path: mutation/
@@ -236,14 +312,18 @@ jobs:
   publish:
     needs: [ref-court, supply-chain, quality, test, mutation]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    environment: hex-release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     env:
       MIX_ENV: dev
-      # The secrets context is unavailable in step `if:`; expose it via env and
-      # gate on env.HEX_API_KEY != '' (equivalent to secrets.HEX_API_KEY != '').
+      # The secrets context is unavailable in step `if:`; exposed via env and gated on env.HEX_API_KEY != ''.
       HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
@@ -264,11 +344,109 @@ jobs:
           project_version="$(sed -n 's/.*@version "\([^"]*\)".*/\1/p' mix.exs | head -n 1)"
           test -n "$project_version"
           test "$GITHUB_REF_NAME" = "v$project_version"
+      - name: Admit HEX_API_KEY authority
+        run: |
+          set -euo pipefail
+          if [ -z "${HEX_API_KEY:-}" ]; then
+            if [ "$GITHUB_EVENT_NAME" = "push" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+              echo "BLOCKED(authority:HEX_API_KEY absent on a tag push)" >&2
+              exit 2
+            fi
+            echo "HEX_API_KEY absent; tolerated on workflow_dispatch (dry run only)"
+          else
+            echo "HEX_API_KEY present (value never printed)"
+          fi
+      - name: Prod dependency lock check and prod compile
+        run: |
+          set -euo pipefail
+          MIX_ENV=prod mix deps.get --only prod --check-locked
+          MIX_ENV=prod mix compile --warnings-as-errors
       - run: mix deps.get
-      - run: mix hex.build
+      - name: Build the release tarball and record its sha256
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release"
+          mix hex.build -o "$RUNNER_TEMP/release/"
+          tarball="$(find "$RUNNER_TEMP/release" -maxdepth 1 -name 'ash_graphlaw-*.tar' | head -n 1)"
+          test -f "$tarball"
+          sha="$(sha256sum "$tarball" | cut -d' ' -f1)"
+          echo "TARBALL=$tarball" >> "$GITHUB_ENV"
+          echo "TARBALL_SHA256=$sha" >> "$GITHUB_ENV"
+          echo "tarball $tarball sha256 $sha"
+      - name: CycloneDX SBOM (prod dependencies)
+        run: |
+          set -euo pipefail
+          mix escript.install hex sbom 0.11.0 --force
+          export PATH="$HOME/.mix/escripts:$PATH"
+          MIX_ENV=prod sbom cyclonedx --only prod --format json --output "$RUNNER_TEMP/release/ash_graphlaw-sbom.cdx.json"
+          test -s "$RUNNER_TEMP/release/ash_graphlaw-sbom.cdx.json"
+          echo "SBOM=$RUNNER_TEMP/release/ash_graphlaw-sbom.cdx.json" >> "$GITHUB_ENV"
+      - name: Attest build provenance of the tarball
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-path: ${{ env.TARBALL }}
+      - name: Attest SBOM against the tarball
+        uses: actions/attest-sbom@bd218ad0dbcb3e146bd073d1d9c6d78e08aa8a0b # v2.4.0
+        with:
+          subject-path: ${{ env.TARBALL }}
+          sbom-path: ${{ env.SBOM }}
+      - name: Verify attestations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh attestation verify "$TARBALL" --repo "$GITHUB_REPOSITORY"
+          gh attestation verify "$TARBALL" --repo "$GITHUB_REPOSITORY" \
+            --predicate-type https://cyclonedx.org/bom
       - name: Hex publish dry run
         if: github.event_name == 'workflow_dispatch'
         run: mix hex.publish --dry-run
+      - name: Observe registry before publishing
+        id: registry
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/.*@version "\([^"]*\)".*/\1/p' mix.exs | head -n 1)"
+          code="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            "https://hex.pm/api/packages/ash_graphlaw/releases/$version" || true)"
+          echo "registry status for ash_graphlaw $version: $code"
+          if [ "$code" = "200" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
       - name: Publish to Hex.pm
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && env.HEX_API_KEY != ''
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && env.HEX_API_KEY != '' && steps.registry.outputs.exists != 'true'
         run: mix hex.publish --yes
+      - name: Post-publish checksum equality against the attested tarball
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && env.HEX_API_KEY != ''
+        run: |
+          set -euo pipefail
+          published=""
+          for i in $(seq 1 10); do
+            published="$(curl --silent --fail "https://hex.pm/api/packages/ash_graphlaw/releases/$VERSION" \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin).get("checksum") or "")' || true)"
+            [ -n "$published" ] && break
+            echo "registry has no checksum yet (attempt $i/10)"; sleep 15
+          done
+          if [ -z "$published" ]; then
+            echo "BLOCKED(evidence:no registry checksum for $VERSION after 10 attempts)" >&2
+            exit 3
+          fi
+          echo "registry checksum: $published"
+          echo "attested sha256:   $TARBALL_SHA256"
+          if [ "$(printf '%s' "$published" | tr 'A-F' 'a-f')" != "$TARBALL_SHA256" ]; then
+            echo "REFUSED(checksum:published tarball differs from the attested tarball)" >&2
+            exit 2
+          fi
+      - name: GitHub release with tarball and SBOM
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && env.HEX_API_KEY != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$TARBALL" "$SBOM" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes "$TARBALL" "$SBOM"
+          fi

@@ -37,6 +37,25 @@ defmodule AshGraphLaw.Standing do
       carries REFUSED)
 
   Nothing here authorizes anything.
+
+  ## Vocabulary
+{% for r in results | sort(attribute="standing_order") %}
+    * `:{{ r.standing_name }}` - {{ r.standing_doc | safe }}
+{%- endfor %}
+
+  ## Examples
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:resource_limit)})
+      :BLOCKED
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:unsupported_step)})
+      :UNSUPPORTED
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:not_admitted)})
+      :UNKNOWN
+
+      iex> AshGraphLaw.Standing.of(:anything_else)
+      :UNKNOWN
   """
 
   alias AshGraphLaw.{Admitted, Refusal}
@@ -47,6 +66,7 @@ defmodule AshGraphLaw.Standing do
 {%- endfor %}
   ]
 
+  @typedoc "Closed standing vocabulary; never `:ALIVE` without an exact-SHA receipt."
   @type t ::
 {%- for r in results | sort(attribute="standing_order") %}
           :{{ r.standing_name }}{% if not loop.last %} |{% endif %}
@@ -58,15 +78,33 @@ defmodule AshGraphLaw.Standing do
     end
   end
 
-  @doc "All standings, in ontology order."
+  @doc """
+  All standings, in ontology order.
+
+      iex> :UNKNOWN in AshGraphLaw.Standing.all()
+      true
+  """
   @spec all() :: [t()]
   def all, do: @standings
 
-  @doc "True when `value` is a member of the closed vocabulary."
+  @doc """
+  True when `value` is a member of the closed vocabulary.
+
+      iex> AshGraphLaw.Standing.valid?(:PARTIAL_ALIVE)
+      true
+
+      iex> AshGraphLaw.Standing.valid?(:MAYBE)
+      false
+  """
   @spec valid?(term()) :: boolean()
   def valid?(value), do: value in @standings
 
-  @doc "Ontology definition of a standing (string)."
+  @doc """
+  Ontology definition of a standing (string).
+
+      iex> is_binary(AshGraphLaw.Standing.describe(:UNKNOWN))
+      true
+  """
   @spec describe(t()) :: String.t()
 {%- for r in results | sort(attribute="standing_order") %}
   def describe(:{{ r.standing_name }}), do: ~S"""
@@ -74,7 +112,12 @@ defmodule AshGraphLaw.Standing do
 """
 {%- endfor %}
 
-  @doc "Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`."
+  @doc """
+  Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`.
+
+  An admitted result yields `:PARTIAL_ALIVE` (never `:ALIVE`); `:blocked_resource` refusals
+  yield `:BLOCKED`, `:unsupported` refusals `:UNSUPPORTED`, everything else `:UNKNOWN`.
+  """
   @spec of(term()) :: t()
   def of({:ok, %Admitted{}}), do: :PARTIAL_ALIVE
   def of({:error, %Refusal{class: :blocked_resource}}), do: :BLOCKED

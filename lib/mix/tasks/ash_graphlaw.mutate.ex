@@ -28,6 +28,29 @@ defmodule Mix.Tasks.AshGraphlaw.Mutate do
     * `--list` - print `id`, target and `resolvable | BLOCKED code` per entry; loads nothing
     * `--require-killed` - exit non-zero unless every selected verdict is `mutant_killed`
 
+  ## Exit codes
+
+    * `0` - the run completed (and, with `--require-killed`, every selected verdict was
+      `mutant_killed`); also `--list`.
+    * `1` - `Mix.Error`: invalid options, unknown ids, a module left mutated after the run, or
+      (`--require-killed`) any verdict other than `mutant_killed`.
+
+  Without `--require-killed` a surviving mutant is reported, not failed: read the tally.
+
+  ## Anti-vacuity
+
+  A killer test that still passes after the guard it attacks is deleted proves nothing. Reverting
+  a guard and requiring the killers to fail is what makes the `test/negative/**` and
+  `test/adversarial/**` suites falsifiable. See `AshGraphLaw.Mutation`.
+
+  ## Examples
+
+      # qualify the whole catalog and fail the build on any survivor
+      MIX_ENV=test mix ash_graphlaw.mutate --require-killed
+
+      # one mutant, evidence written to a chosen directory
+      MIX_ENV=test mix ash_graphlaw.mutate --only AGL-MUT-004 --evidence-dir tmp/mutations
+
   The report is canonical JSON (sorted keys). After the run the task asserts that no catalog
   module is left mutated and raises otherwise. A baseline that is not green (killer tests failing
   before any mutation) yields `unknown`, never a pass. `:wasm`-tagged killers are excluded, with a
@@ -42,7 +65,11 @@ defmodule Mix.Tasks.AshGraphlaw.Mutate do
   @preferred_cli_env :test
   @switches [only: :keep, evidence_dir: :string, list: :boolean, require_killed: :boolean]
 
+  @doc """
+  Runs the task with raw `argv`. Returns `:ok`; raises `Mix.Error` on refusal.
+  """
   @impl Mix.Task
+  @spec run([String.t()]) :: :ok
   def run(argv) do
     {opts, _rest, invalid} = OptionParser.parse(argv, strict: @switches)
     if invalid != [], do: Mix.raise("invalid options: #{inspect(invalid)}")
@@ -56,6 +83,7 @@ defmodule Mix.Tasks.AshGraphlaw.Mutate do
       do: Mix.raise("unknown mutation ids #{inspect(unknown)}; known: #{inspect(Catalog.ids())}")
 
     if opts[:list], do: list(only), else: execute(only, opts)
+    :ok
   end
 
   defp selected(only), do: Enum.filter(Catalog.entries(), &(only == [] or &1.id in only))

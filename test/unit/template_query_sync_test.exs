@@ -82,4 +82,45 @@ defmodule AshGraphLaw.TemplateQuerySyncTest do
       assert body =~ "SPDX-License-Identifier: MIT", "#{template} lacks the SPDX header"
     end
   end
+
+  # S3 variables every consumer may rely on, exposed by queries/project.rq.
+  @s3_variables ~w(package_version graphlaw_version abi_version wasm_sha256 wasm_asset wasm_url
+                   docs_url repository_url maintainer date_released coverage_threshold engine_release_tag)
+
+  defp select_variables(query) do
+    [select] = Regex.run(~r/SELECT\s+(.*?)\s+WHERE/s, query, capture: :all_but_first)
+    ~r/\?(\w+)/ |> Regex.scan(select, capture: :all_but_first) |> List.flatten()
+  end
+
+  defp template_body(template), do: template |> File.read!() |> String.split(~r/^---\n/m, parts: 3) |> List.last()
+
+  test "positive control: the SELECT parser reads a known projection" do
+    assert select_variables("SELECT ?a ?b\n ?c WHERE { }") == ~w(a b c)
+  end
+
+  test "queries/project.rq projects every S3 variable" do
+    projected = "queries/project.rq" |> File.read!() |> select_variables()
+
+    for var <- @s3_variables do
+      assert var in projected, "queries/project.rq does not project ?#{var}"
+    end
+  end
+
+  test "every projected variable is bound by a triple pattern in the WHERE clause" do
+    query = File.read!("queries/project.rq")
+    [_, where] = String.split(query, "WHERE", parts: 2)
+
+    for var <- select_variables(query) do
+      assert where =~ "?#{var}", "?#{var} is projected but never bound in WHERE"
+    end
+  end
+
+  test "every project variable a template reads (p.<var>) is projected by queries/project.rq" do
+    projected = "queries/project.rq" |> File.read!() |> select_variables() |> MapSet.new()
+
+    for template <- @templates,
+        [_, var] <- Regex.scan(~r/\bp\.(\w+)/, template_body(template)) do
+      assert var in projected, "#{template} reads p.#{var}, which queries/project.rq does not project"
+    end
+  end
 end

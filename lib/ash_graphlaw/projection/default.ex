@@ -25,12 +25,23 @@ defmodule AshGraphLaw.Projection.Default do
 
   @behaviour AshGraphLaw.Projection
 
+  alias AshGraphLaw.Projection.Origin
   alias AshGraphLaw.Refusal
 
   @ag "urn:ash-graphlaw:"
   @xsd "http://www.w3.org/2001/XMLSchema#"
 
+  @doc """
+  Projects a changeset, query or action input into deterministic N-Triples.
+
+  Returns `{:ok, %{text: text, dialect: "ntriples"}}`, or
+  `{:error, %AshGraphLaw.Refusal{code: :projection_failed}}` for any other subject type
+  (or an action input without a resource). `opts` is accepted for behaviour compatibility and
+  ignored. Sensitive attributes and arguments are omitted, never redacted in place.
+  """
   @impl true
+  @spec data(AshGraphLaw.Projection.subject() | term(), keyword()) ::
+          {:ok, AshGraphLaw.Projection.data()} | {:error, Refusal.t()}
   def data(subject, opts \\ [])
 
   def data(%Ash.Changeset{} = changeset, _opts) do
@@ -80,6 +91,59 @@ defmodule AshGraphLaw.Projection.Default do
        subject: subject_kind(other)
      })}
   end
+
+  @doc """
+  Deterministic origin of `subject`.
+
+  `opts`: `:data` (already projected `%{text:, dialect:}`; projected here when absent),
+  `:projection` (defaults to `#{inspect(__MODULE__)}`). The primary key is taken from the
+  changeset's record (empty for queries and action inputs). A subject that cannot be projected
+  yields an origin whose `:data_sha256` is the digest of the empty text and whose resource is
+  the subject's struct module (falling back to this module).
+  """
+  @impl true
+  @spec origin(term(), keyword()) :: Origin.t()
+  def origin(subject, opts \\ []) do
+    data =
+      case Keyword.fetch(opts, :data) do
+        {:ok, %{text: _} = given} ->
+          given
+
+        _ ->
+          case data(subject, opts) do
+            {:ok, projected} -> projected
+            {:error, _} -> %{text: "", dialect: nil}
+          end
+      end
+
+    resource = origin_resource(subject)
+
+    Origin.new(
+      resource: resource,
+      action: origin_action(subject),
+      primary_key: origin_pk(resource, subject),
+      projection: Keyword.get(opts, :projection, __MODULE__),
+      data_sha256: AshGraphLaw.Projection.input_digest(data),
+      dialect: Map.get(data, :dialect)
+    )
+  end
+
+  defp origin_resource(%{resource: resource}) when is_atom(resource) and not is_nil(resource), do: resource
+  defp origin_resource(resource) when is_atom(resource) and not is_nil(resource), do: resource
+  defp origin_resource(%{__struct__: mod}), do: mod
+  defp origin_resource(_other), do: __MODULE__
+
+  defp origin_action(%{action: %{name: name}}) when is_atom(name), do: name
+  defp origin_action(_other), do: nil
+
+  defp origin_pk(resource, %Ash.Changeset{data: record}) do
+    resource |> Ash.Resource.Info.primary_key() |> Map.new(&{&1, Map.get(record || %{}, &1)}) |> drop_nil_pk()
+  end
+
+  defp origin_pk(_resource, _subject), do: %{}
+
+  # A create changeset has no key yet: the origin records `%{}` rather than nil-valued keys.
+  defp drop_nil_pk(pk), do: if(Enum.any?(pk, fn {_k, v} -> is_nil(v) end), do: %{}, else: pk)
 
   defp subject_kind(%{__struct__: mod}), do: mod
   defp subject_kind(other), do: other |> :erlang.term_to_binary() |> byte_size() |> then(&{:term, &1})

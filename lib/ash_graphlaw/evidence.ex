@@ -24,6 +24,36 @@ defmodule AshGraphLaw.Evidence do
   """
 
   alias AshGraphLaw.{Admitted, Receipt, Standing}
+  alias AshGraphLaw.Projection.Origin
+
+  @typedoc """
+  Field meanings:
+
+    * `:admission` - name of the admission that ran.
+    * `:standing` - `t:AshGraphLaw.Standing.t/0` derived from the admitted result.
+    * `:input_digest` - SHA-256 (hex) of the projected text the engine observed, or `nil`.
+    * `:graph_ids` - graph state ids the engine reported.
+    * `:receipts` - engine receipts as string-keyed maps.
+    * `:digest` - SHA-256 (hex) of the canonical evidence excluding this field.
+    * `:wasm_sha256` - digest of the engine binary that answered, or `nil` when unknown.
+    * `:graphlaw_release` - engine release tag, for example `"v26.9.28"`.
+    * `:lease` - `t:AshGraphLaw.Authority.identity/0` of the signed lease, or `nil`.
+    * `:origin` - `t:AshGraphLaw.Projection.Origin.t/0` of the projected input, or `nil`. Only
+      present in `to_map/1`, `canonical_json` and `digest/1` when set, so evidence without an
+      origin keeps its exact pre-origin encoding and digest.
+  """
+  @type t :: %__MODULE__{
+          admission: atom() | String.t(),
+          standing: Standing.t(),
+          input_digest: String.t() | nil,
+          graph_ids: list(),
+          receipts: [map()],
+          digest: String.t(),
+          wasm_sha256: String.t() | nil,
+          graphlaw_release: String.t(),
+          lease: AshGraphLaw.Authority.identity() | nil,
+          origin: AshGraphLaw.Projection.Origin.t() | nil
+        }
 
   defstruct [
     :admission,
@@ -34,28 +64,25 @@ defmodule AshGraphLaw.Evidence do
     :digest,
     :wasm_sha256,
     :graphlaw_release,
-    :lease
+    :lease,
+    :origin
   ]
-
-  @type t :: %__MODULE__{
-          admission: atom() | String.t(),
-          standing: Standing.t(),
-          input_digest: String.t() | nil,
-          graph_ids: list(),
-          receipts: [map()],
-          digest: String.t(),
-          wasm_sha256: String.t() | nil,
-          graphlaw_release: String.t(),
-          lease: AshGraphLaw.Authority.identity() | nil
-        }
 
   @doc """
   Builds evidence for a successful admission.
 
-  `opts`: `:wasm_sha256` (engine identity, default `nil`), `:graphlaw_release`
-  (default `AshGraphLaw.graphlaw_release/0`), `:lease` (lease identity from
-  `AshGraphLaw.Authority.identity/1`, default `nil`; any other shape raises `ArgumentError`). Unknown options raise
-  `ArgumentError`, so an option that would be silently dropped is caught.
+  `opts`:
+
+    * `:wasm_sha256` - engine binary identity (default `nil`).
+    * `:graphlaw_release` - engine release tag (default `AshGraphLaw.graphlaw_release/0`).
+    * `:lease` - lease identity from `AshGraphLaw.Authority.identity/1` (default `nil`). Any
+      other shape raises `ArgumentError`.
+    * `:origin` - `AshGraphLaw.Projection.Origin` of the projected input (default `nil`). When
+      set, its map joins the evidence encoding and digest; when `nil`, the encoding is unchanged.
+      Any other shape raises `ArgumentError`.
+
+  Unknown options raise `ArgumentError`, so an option that would be silently dropped is caught.
+  The `:digest` of the returned struct is already computed and equals `digest/1` of it.
   """
   @spec new(atom() | String.t(), Admitted.t(), String.t() | nil, keyword()) :: t()
   def new(admission_name, %Admitted{} = admitted, input_digest, opts \\ []) do
@@ -69,16 +96,30 @@ defmodule AshGraphLaw.Evidence do
       receipts: Enum.map(admitted.receipts, &receipt_map/1),
       wasm_sha256: Keyword.get(opts, :wasm_sha256),
       graphlaw_release: Keyword.get_lazy(opts, :graphlaw_release, &AshGraphLaw.graphlaw_release/0),
-      lease: Keyword.get(opts, :lease)
+      lease: Keyword.get(opts, :lease),
+      origin: Keyword.get(opts, :origin)
     }
 
     %{base | digest: digest(base)}
   end
 
-  @doc "Plain map with string keys (`digest` included), suitable for canonical encoding."
+  @doc """
+  Plain map with string keys (`digest` included), suitable for canonical encoding.
+
+  Atoms become strings and nested maps are string-keyed; `nil` and booleans are preserved.
+  """
   # Accepts any evidence struct, including one whose digest is not yet computed (see new/4).
   @spec to_map(%__MODULE__{}) :: map()
   def to_map(%__MODULE__{} = ev) do
+    base = base_map(ev)
+
+    case ev.origin do
+      nil -> base
+      %Origin{} = origin -> Map.put(base, "origin", Origin.to_map(origin))
+    end
+  end
+
+  defp base_map(%__MODULE__{} = ev) do
     %{
       "admission" => to_string(ev.admission),
       "standing" => to_string(ev.standing),
@@ -92,7 +133,11 @@ defmodule AshGraphLaw.Evidence do
     }
   end
 
-  @doc "SHA-256 (lowercase hex) of the canonical sorted-key JSON of the evidence, excluding `digest`."
+  @doc """
+  SHA-256 (lowercase hex) of the canonical sorted-key JSON of the evidence, excluding `digest`.
+
+  Deterministic: equal evidence yields byte-identical digests regardless of map ordering.
+  """
   # Takes any evidence struct, including one whose own digest is not yet computed.
   @spec digest(%__MODULE__{}) :: String.t()
   def digest(%__MODULE__{} = ev) do
@@ -104,19 +149,36 @@ defmodule AshGraphLaw.Evidence do
     |> Base.encode16(case: :lower)
   end
 
-  @doc "Canonical JSON: recursively sorted map keys, compact encoding."
+  @doc """
+  Canonical JSON: recursively sorted map keys, compact encoding.
+
+  ## Examples
+
+      iex> AshGraphLaw.Evidence.canonical_json(%{b: 1, a: %{d: 2, c: 3}})
+      ~s({"a":{"c":3,"d":2},"b":1})
+  """
   @spec canonical_json(term()) :: binary()
   def canonical_json(term), do: term |> sorted() |> Jason.encode!()
 
-  @known_opts [:wasm_sha256, :graphlaw_release, :lease]
+  @known_opts [:wasm_sha256, :graphlaw_release, :lease, :origin]
   @lease_keys [:ceiling, :lease_id, :key_id, :lease_digest]
 
   defp check_opts(opts) do
     case Keyword.keys(opts) -- @known_opts do
-      [] -> check_lease(Keyword.get(opts, :lease))
-      unknown -> raise ArgumentError, "unknown AshGraphLaw.Evidence.new/4 options: #{inspect(unknown)}"
+      [] ->
+        check_lease(Keyword.get(opts, :lease))
+        check_origin(Keyword.get(opts, :origin))
+
+      unknown ->
+        raise ArgumentError, "unknown AshGraphLaw.Evidence.new/4 options: #{inspect(unknown)}"
     end
   end
+
+  defp check_origin(nil), do: :ok
+  defp check_origin(%Origin{}), do: :ok
+
+  defp check_origin(other),
+    do: raise(ArgumentError, "Evidence :origin must be an AshGraphLaw.Projection.Origin or nil, got: #{inspect(other)}")
 
   # A lease is recorded only as the identity `Authority.identity/1` builds, never as free-form data.
   defp check_lease(nil), do: :ok

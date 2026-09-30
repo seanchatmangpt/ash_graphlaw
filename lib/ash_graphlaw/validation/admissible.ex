@@ -8,14 +8,59 @@ defmodule AshGraphLaw.Validation.Admissible do
 
   UNSUPPORTED(generator-capability): hand-written; Ash validations are outside every listed pack.
 
-  Options: `admission` (atom, required), `projection` (module or `nil`), `server`, `timeout`,
-  `lease_key` (default `:graphlaw_lease`). No evidence is recorded; use
+  ## Usage
+
+      validations do
+        validate {AshGraphLaw.Validation.Admissible, admission: :ticket_shape}
+      end
+
+  Supports `Ash.Changeset` and `Ash.ActionInput`. No evidence is recorded; use
   `AshGraphLaw.Change.Admit` to keep an `AshGraphLaw.Evidence` in the changeset context.
 
-  GraphLaw derives and validates; it never authorizes. A passing validation is an observation of
-  one projected input, not a grant of authority.
+  ## Options
 
-  Failures are `AshGraphLaw.Error.Refused` errors that carry the typed `AshGraphLaw.Refusal`.
+  See `t:opts/0`.
+
+  | Option        | Type            | Default                                | Meaning |
+  |---------------|-----------------|----------------------------------------|---------|
+  | `:admission`  | atom (required) | none                                   | Declared admission name. |
+  | `:projection` | module or `nil` | admission's `projection`, then `AshGraphLaw.Projection.Default` | Projection override. |
+  | `:server`     | atom            | `AshGraphLaw.Pool`                     | Pool/host server name. |
+  | `:timeout`    | positive integer (ms) | runtime `timeout_ms`             | Per-call timeout. |
+  | `:lease_key`  | atom            | `:graphlaw_lease`                      | Context key holding the lease. |
+
+  `init/1` normalizes `:lease_key` to `:graphlaw_lease` and `:projection` to `nil` when absent.
+
+  ## Lease context key
+
+  The lease is read from the subject's `context[lease_key]`. Only a `:signed_lease` entry can raise
+  the ceiling above `:observe`; the engine verifies it against `runtime.trusted_keys`. See
+  `AshGraphLaw.Authority`.
+
+  ## Refusals
+
+  Failures are `AshGraphLaw.Error.Refused` errors that carry the typed `AshGraphLaw.Refusal`:
+  `:unknown_admission`, `:ceiling_unmet` (raised before the engine is called),
+  `:projection_failed` (also for a subject without a resource), `:missing_law_module`,
+  `:law_module_failed` (a law module that raises is converted, never propagated) or an engine code.
+
+  ## Atomic behavior
+
+  `atomic/3` returns `{:not_atomic, "GraphLaw admission requires a WASM call"}`. An admission needs
+  an engine round trip, which cannot be compiled into a data-layer expression, so Ash falls back to
+  the non-atomic path (for example `Ash.bulk_update/4` with `strategy: :stream`) and refuses
+  `strategy: :atomic`.
+
+  ## Telemetry
+
+  `admit/2` emits `[:ash_graphlaw, :admission, :stop]` with measurements
+  `%{duration: native_time}` and metadata
+  `%{admission: atom, outcome: :admitted | :refused, code: atom | nil, standing: atom}`.
+
+  ## Authority
+
+  GraphLaw derives and validates; it never authorizes. A passing validation is an observation of
+  one projected input, not a grant of authority, and its standing is at most `:PARTIAL_ALIVE`.
   """
 
   use Ash.Resource.Validation
@@ -29,10 +74,30 @@ defmodule AshGraphLaw.Validation.Admissible do
 
   @default_lease_key :graphlaw_lease
 
+  @typedoc "What an admission can be run against: a changeset, query or action input."
   @type subject :: Projection.subject()
 
-  @doc false
+  @typedoc """
+  Validation options: `:admission` (required), `:projection`, `:server`, `:timeout` (ms) and
+  `:lease_key` (default `:graphlaw_lease`).
+  """
+  @type opts :: [
+          admission: atom(),
+          projection: module() | nil,
+          server: GenServer.server(),
+          timeout: pos_integer(),
+          lease_key: atom()
+        ]
+
+  @doc """
+  Validates and normalizes the options.
+
+  Returns `{:ok, opts}` with `:admission`, `:projection` and `:lease_key` populated, or
+  `{:error, message}` when `:admission` is missing or not an atom, `:projection` is not a module,
+  `:lease_key` is not an atom or `:timeout` is not a positive integer.
+  """
   @impl Ash.Resource.Validation
+  @spec init(keyword()) :: {:ok, opts()} | {:error, String.t()}
   def init(opts) do
     with {:ok, admission} <- fetch_atom(opts, :admission, true),
          {:ok, projection} <- fetch_module(opts, :projection),
@@ -46,12 +111,17 @@ defmodule AshGraphLaw.Validation.Admissible do
     end
   end
 
-  @doc false
+  @doc "Returns the subjects this validation supports: `Ash.Changeset` and `Ash.ActionInput`."
   @impl Ash.Resource.Validation
+  @spec supports(opts()) :: [module()]
   def supports(_opts), do: [Ash.Changeset, Ash.ActionInput]
 
-  @doc false
+  @doc """
+  Returns `:ok` when the engine admits the projected input, otherwise
+  `{:error, %AshGraphLaw.Error.Refused{}}` carrying the typed refusal.
+  """
   @impl Ash.Resource.Validation
+  @spec validate(subject(), opts(), Ash.Resource.Validation.context()) :: :ok | {:error, Exception.t()}
   def validate(subject, opts, _context) do
     case admit(subject, opts) do
       :ok -> :ok
@@ -59,12 +129,16 @@ defmodule AshGraphLaw.Validation.Admissible do
     end
   end
 
-  @doc false
+  @doc """
+  Declares the validation non-atomic: `{:not_atomic, "GraphLaw admission requires a WASM call"}`.
+  """
   @impl Ash.Resource.Validation
+  @spec atomic(subject(), opts(), Ash.Resource.Validation.context()) :: {:not_atomic, String.t()}
   def atomic(_subject, _opts, _context), do: {:not_atomic, "GraphLaw admission requires a WASM call"}
 
-  @doc false
+  @doc "Describes the validation for error messages (`message` and `vars`)."
   @impl Ash.Resource.Validation
+  @spec describe(opts()) :: [message: String.t(), vars: list()]
   def describe(opts) do
     [message: "must be admitted by GraphLaw admission #{inspect(opts[:admission])}", vars: []]
   end

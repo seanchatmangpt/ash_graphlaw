@@ -1,0 +1,127 @@
+# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+#
+# SPDX-License-Identifier: MIT
+
+# Nightly flake hunt. Runs the full suite (including :wasm and :slow) under a
+# fixed seed matrix, then repeats the concurrency-sensitive files until first
+# failure. Failing seed logs are kept as artifacts so a failure is replayable
+# with `mix test --include wasm --include slow --seed <SEED>`.
+# Every job admits the exact subject (git HEAD == expected SHA) first.
+# GraphLaw derives and validates; this workflow never authorizes anything.
+name: Flake Hunt
+
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: flake-hunt-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  seeds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [0, 1, 42, 1337, 99991]
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-flake-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}
+      - run: mix deps.get
+      - name: Vendor pinned graphlaw.wasm and verify its digest
+        run: |
+          set -euo pipefail
+          url="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["url"])')"
+          sha="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["sha256"])')"
+          mkdir -p priv/graphlaw
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output priv/graphlaw/graphlaw.wasm "$url"
+          echo "$sha  priv/graphlaw/graphlaw.wasm" | sha256sum --check --strict -
+      - name: Full suite under seed ${{ matrix.seed }}
+        env:
+          SEED: ${{ matrix.seed }}
+        run: |
+          set -o pipefail
+          mix test --include wasm --include slow --seed "$SEED" --max-cases 64 --slowest 20 \
+            2>&1 | tee "flake-seed-$SEED.log"
+      - name: Keep failing seed log
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: flake-seed-${{ matrix.seed }}
+          path: flake-seed-${{ matrix.seed }}.log
+          if-no-files-found: warn
+
+  repeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Admit exact subject
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
+        with:
+          version-file: .tool-versions
+          version-type: strict
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            deps
+            _build
+          key: ash-graphlaw-flake-v1-${{ runner.os }}-${{ hashFiles('.tool-versions', 'mix.lock') }}
+      - run: mix deps.get
+      - name: Vendor pinned graphlaw.wasm and verify its digest
+        run: |
+          set -euo pipefail
+          url="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["url"])')"
+          sha="$(python3 -c 'import json; print(json.load(open("priv/graphlaw/MANIFEST.json"))["artifact"]["sha256"])')"
+          mkdir -p priv/graphlaw
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            --output priv/graphlaw/graphlaw.wasm "$url"
+          echo "$sha  priv/graphlaw/graphlaw.wasm" | sha256sum --check --strict -
+      - name: Repeat concurrency-sensitive files until failure
+        run: |
+          set -o pipefail
+          mix test --include wasm --include slow --repeat-until-failure 50 \
+            test/unit/host_lifecycle_test.exs test/integration/host_test.exs \
+            test/integration/pool_test.exs 2>&1 | tee flake-repeat.log
+      - name: Keep repeat log
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: flake-repeat
+          path: flake-repeat.log
+          if-no-files-found: warn

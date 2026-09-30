@@ -37,6 +37,17 @@ refusal witnesses. A refusal is an observation about one exact input. GraphLaw
 derives and validates; it never authorizes, so a refusal neither grants nor
 withdraws authority.
 
+Every refusal also carries `:raw`: the whole engine error map exactly as decoded, so
+fields this library does not know survive unchanged. It is `nil` for client-side refusals
+built with `AshGraphLaw.Refusal.new/3`, `AshGraphLaw.Refusal.build/3` or a per-code
+constructor. `build/3` takes a required message and raises `ArgumentError` for a code
+outside the closed table.
+
+The capability codes `invalid_capability_request`, `unknown_capability`,
+`capability_not_declared`, `capability_parity_drift` and `capability_response_undecodable`
+(orders 36 to 40) are client-side: they are raised by the typed capability surface, never
+by the engine.
+
 There are {{ results | length }} codes, grouped below by where the refusal originates.
 {% set by_source = results | group_by(attribute="code_source") %}
 {%- for source in ["engine", "host", "ash"] %}
@@ -55,10 +66,10 @@ The WASM host could not load, instantiate or call the engine.
 The Ash integration rejected the declaration or the request before or around the engine call.
 {%- endif %}
 
-| Code | Class | Broken term | Meaning |
-| --- | --- | --- | --- |
+| Code | Class | Broken term | Meaning | What to do |
+| --- | --- | --- | --- | --- |
 {%- for row in by_source[source] %}
-| `{{ row.code_name }}` | `{{ row.code_class }}` | `{{ row.broken_term }}` | {{ row.code_doc | replace(from="|", to="\|") }} |
+| `{{ row.code_name }}` | `{{ row.code_class }}` | `{{ row.broken_term }}` | {{ row.code_doc | replace(from="|", to="\|") }} | {% if source == "engine" %}Read `broken_term`, fix the input or the law, resubmit.{% elif source == "host" %}Vendor and verify the engine, then check the pool.{% else %}Correct the resource declaration or the request context.{% endif %} |
 {%- endfor %}
 {%- endif %}
 {%- endfor %}
@@ -66,13 +77,16 @@ The Ash integration rejected the declaration or the request before or around the
 ## Classes
 
 {% set by_class = results | group_by(attribute="code_class") %}
+| Class | Codes |
+| --- | --- |
 {%- for class_name, rows in by_class %}
-- `{{ class_name }}`: {{ rows | length }} code(s)
+| `{{ class_name }}` | {{ rows | length }} |
 {%- endfor %}
 
 ## See Also
 
 - [Handle refusals](../how_to/handle_refusals.md)
+- [Refusal usage rules](../../usage-rules/refusals.md)
 - [Claims and evidence](claims_and_evidence.md)
 - [Authority boundary](../topics/authority_boundary.md)
 - `AshGraphLaw.Refusal`

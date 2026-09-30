@@ -21,7 +21,7 @@ use Ash.Resource,
 ```
 
 The extension declares one section, `:graphlaw`. The section is optional: a resource that omits
-it gets the struct defaults of `runtime` (see below) and no admissions.
+it gets the struct defaults of `runtime` (see below), no admissions and no declared capabilities.
 
 ## Section `graphlaw`
 
@@ -29,6 +29,7 @@ it gets the struct defaults of `runtime` (see below) and no admissions.
 |---|---|---|---|
 | `runtime` | entity | singleton (at most one) | `AshGraphLaw.Dsl.Runtime` |
 | `admission` | entity | zero or more, unique by `name` | `AshGraphLaw.Dsl.Admission` |
+| `capability` | entity | zero or more, unique by `name` | `AshGraphLaw.Dsl.Capability` |
 
 ```elixir
 graphlaw do
@@ -89,6 +90,34 @@ The ceiling is checked against the lease in `changeset.context[lease_key]` befor
 call; a shortfall is refused as `:ceiling_unmet`. `:observe` covers gates, `:select` covers
 `plan`, `:construct` covers derivation steps.
 
+## Entity `capability`
+
+Declares that the resource may run a typed GraphLaw op through the lifecycle modules
+(`Validation.Shacl`, `Change.Canonicalize`, the calculations). The single positional argument is
+`name`, also the entity identifier.
+
+| Field | Type | Default | Required | Meaning |
+|---|---|---|---|---|
+| `name` | `atom` | none | yes | An op name in `AshGraphLaw.Capability.Registry.names/0`, for example `:sparql`. |
+| `ceiling` | `atom`, one of `:observe`, `:select`, `:construct` | `:observe` | no | Ceiling this declaration carries. It must be at least `AshGraphLaw.Authority.op_ceiling/1` for the op: `:observe` for `capabilities sniff parse convert canonical sparql shacl shex policy`, `:construct` for `n3 entail datalog hooks law`. |
+| `doc` | `String.t()` | `nil` | no | Description. |
+
+```elixir
+graphlaw do
+  capability :shacl
+  capability :hooks, ceiling: :construct
+end
+```
+
+Semantics: a resource declaring at least one `capability` refuses any undeclared op in the
+lifecycle modules with `:capability_not_declared`; a resource declaring none allows all (back
+compatibility). When a lease is presented, its claimed ceiling must meet the declared ceiling, else
+`:ceiling_unmet`. This check is a presentation check; the engine still verifies the lease.
+`AshGraphLaw.Admissions.capabilities/1` and `capability/2` read the entities.
+
+Whether the generated cheat sheet already lists this entity is UNKNOWN until
+`mix spark.cheat_sheets` is re-run.
+
 ## Compile-time verification
 
 `AshGraphLaw.Contract.validate/1` runs as the extension verifier and reports:
@@ -99,6 +128,9 @@ call; a shortfall is refused as `:ceiling_unmet`. `:observe` covers gates, `:sel
 | `:missing_law_module` | a payload-bearing step has no `law` module |
 | `:invalid_trusted_key` | a `trusted_keys` entry is not 64 hex characters |
 | `:invalid_runtime_option` | `timeout_ms` is not above 0, or `max_skew_secs` is negative |
+| `:duplicate_capability` | two `capability` entities share a `name` (raised by `Contract`; no `duplicate_capability` row exists in `ontology.ttl`, so it is not in the closed refusal table) |
+| `:unknown_capability` | a `capability` name is not in `Registry.names/0`, or the registry module is unavailable |
+| `:ceiling_unmet` | a `capability` ceiling is below the op's minimum |
 
 ## Reading the DSL
 

@@ -1,0 +1,535 @@
+<!--
+SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+
+SPDX-License-Identifier: MIT
+-->
+
+# AshGraphLaw: admission as an Ash extension
+
+```elixir
+Mix.install(
+  [
+    {:ash, "~> 3.0"},
+    {:ash_graphlaw, path: __DIR__}
+  ],
+  consolidate_protocols: false
+)
+```
+
+## The idea
+
+AshGraphLaw is the Ash/BEAM membrane over the GraphLaw WASI engine (library 26.9.29, engine
+release v26.9.28). An Ash action declares an *admission*; the engine derives and validates over
+the projected RDF; the outcome is either evidence or a typed refusal.
+
+```text
+Ash action
+    |
+    v
+graphlaw admission ---> projection (N-Triples) ---> GraphLaw engine (wasm, digest-pinned)
+    |                                                    |
+    v                                                    v
+AshGraphLaw.Evidence  <--- admitted                 AshGraphLaw.Refusal (closed code table)
+```
+
+GraphLaw derives and validates. It never authorizes. Evidence is an observation bound to one
+exact input digest, and a refusal is an observation about one exact input. Neither grants
+authority.
+
+This notebook installs the checkout you opened it from (`path: __DIR__`). Every output below is
+produced when you evaluate the cell; none is pre-filled.
+
+## Vendor the engine
+
+The engine is a pinned artifact, not a dependency. Fetch it once, from a shell in this checkout;
+it is kept only if its SHA-256 equals the pin in `priv/graphlaw/MANIFEST.json`:
+
+```bash
+mix ash_graphlaw.vendor
+```
+
+Then admit whatever is vendored, through the library. This cell never downloads anything. It
+returns the engine identity when the bytes pass the import, export and digest gate, and a typed
+refusal otherwise, including `:wasm_not_vendored` when step one has not been done.
+
+```elixir
+wasm_path = AshGraphLaw.WasmConfig.wasm_path([])
+
+engine =
+  case File.read(wasm_path) do
+    {:ok, bytes} ->
+      AshGraphLaw.EngineLoad.admit(bytes, [])
+
+    {:error, reason} ->
+      {:error,
+       AshGraphLaw.Refusal.new(
+         :wasm_not_vendored,
+         "no engine at #{wasm_path} (#{inspect(reason)}); run mix ash_graphlaw.vendor"
+       )}
+  end
+
+case engine do
+  {:ok, admitted} -> {:engine_admitted, admitted.wasm_sha256}
+  {:error, refusal} -> {:engine_refused, refusal.code, refusal.class, refusal.broken_term}
+end
+```
+
+## Start the pool
+
+The application starts no engine by default, so depending on the library never instantiates
+wasm implicitly. Start the pool yourself (or set `config :ash_graphlaw, start_pool: true`). A
+missing engine leaves the pool members supervised and unavailable; every call then answers with
+a typed refusal.
+
+```elixir
+case AshGraphLaw.Pool.start_link(size: 1) do
+  {:ok, _pool} -> :started
+  {:error, {:already_started, _pool}} -> :already_running
+end
+```
+
+Ask the engine what it supports. This is the first real round trip: an `{:ok, map}` when the
+engine is vendored, a refusal when it is not.
+
+```elixir
+capabilities = AshGraphLaw.capabilities()
+
+case capabilities do
+  {:ok, response} -> {:capabilities, response["abi_version"], AshGraphLaw.abi_version()}
+  {:error, refusal} -> {:refused, refusal.code, AshGraphLaw.Standing.of(capabilities)}
+end
+```
+
+## Write a law module
+
+A law module supplies the engine steps and, optionally, the exact graph the steps run over.
+This one requires every ticket to carry a non-empty `xsd:string` title.
+
+```elixir
+defmodule Demo.TitleLaw do
+  @behaviour AshGraphLaw.Law
+
+  @ns "urn:example:demo:"
+  @xsd_string "http://www.w3.org/2001/XMLSchema#string"
+  @rdf_type "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+
+  @shapes """
+  @prefix sh: <http://www.w3.org/ns/shacl#> .
+  @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+  @prefix d: <#{@ns}> .
+
+  d:TicketShape a sh:NodeShape ;
+    sh:targetClass d:Ticket ;
+    sh:property [
+      sh:path d:title ;
+      sh:minCount 1 ;
+      sh:datatype xsd:string ;
+      sh:minLength 1
+    ] .
+  """
+
+  @impl true
+  def steps(_subject, _admission), do: [%{"step" => "shacl", "shapes" => @shapes}]
+
+  @impl true
+  def data(%Ash.Changeset{} = changeset, _admission) do
+    id = changeset.data |> Map.get(:id) |> Kernel.||("new")
+    subject = "<#{@ns}ticket:#{id}>"
+    lines = ["#{subject} <#{@rdf_type}> <#{@ns}Ticket> .\n"]
+
+    lines =
+      case Ash.Changeset.get_attribute(changeset, :title) do
+        nil -> lines
+        title -> lines ++ ["#{subject} <#{@ns}title> #{literal(title)} .\n"]
+      end
+
+    {:ok, %{text: IO.iodata_to_binary(lines), dialect: "ntriples"}}
+  end
+
+  defp literal(text) do
+    escaped =
+      text
+      |> String.replace("\\", "\\\\")
+      |> String.replace("\"", "\\\"")
+      |> String.replace("\n", "\\n")
+
+    "\"#{escaped}\"^^<#{@xsd_string}>"
+  end
+end
+```
+
+## Define a resource with the graphlaw DSL
+
+`:open` creates a ticket only if the `:title_shape` admission holds. `:seed` is ungated, so the
+notebook can build a stored record. `:publish` needs the `:select` authority ceiling, which a
+signed lease would grant; this notebook presents none, so it demonstrates the refusal.
+
+```elixir
+defmodule Demo.Ticket do
+  use Ash.Resource,
+    domain: Demo.Domain,
+    data_layer: Ash.DataLayer.Ets,
+    extensions: [AshGraphLaw.Resource]
+
+  ets do
+    private? true
+  end
+
+  attributes do
+    uuid_primary_key :id
+    attribute :title, :string, public?: true
+    attribute :state, :atom, default: :draft, public?: true, constraints: [one_of: [:draft, :published]]
+  end
+
+  actions do
+    defaults [:read]
+
+    create :open do
+      accept [:title]
+      change {AshGraphLaw.Change.Admit, admission: :title_shape}
+    end
+
+    create :seed do
+      accept [:title, :state]
+    end
+
+    update :publish do
+      require_atomic? false
+      change set_attribute(:state, :published)
+      change {AshGraphLaw.Change.Admit, admission: :publish_gate}
+    end
+  end
+
+  graphlaw do
+    runtime do
+      timeout_ms(5000)
+    end
+
+    admission :title_shape do
+      step(:shacl)
+      law(Demo.TitleLaw)
+    end
+
+    admission :publish_gate do
+      step(:shacl)
+      ceiling(:select)
+      law(Demo.TitleLaw)
+    end
+  end
+end
+
+defmodule Demo.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
+
+  resources do
+    resource Demo.Ticket
+  end
+end
+```
+
+The DSL is introspectable without the engine. The compiled admissions are data:
+
+```elixir
+for admission <- AshGraphLaw.Admissions.all(Demo.Ticket) do
+  {admission.name, admission.step, admission.ceiling}
+end
+```
+
+## Admit
+
+A helper runs an action and keeps the evidence the admission wrote into the changeset context.
+Evidence is captured in an `after_action` hook, so it is only ever what the engine reported for
+this exact input.
+
+```elixir
+create_with_evidence = fn params ->
+  parent = self()
+
+  result =
+    Demo.Ticket
+    |> Ash.Changeset.for_create(:open, params)
+    |> Ash.Changeset.after_action(fn changeset, record ->
+      send(parent, {:evidence, changeset.context[:graphlaw]})
+      {:ok, record}
+    end)
+    |> Ash.create()
+
+  evidence =
+    receive do
+      {:evidence, evidence} -> evidence
+    after
+      0 -> nil
+    end
+
+  {result, evidence}
+end
+
+{admitted_result, evidence} = create_with_evidence.(%{title: "Fix the build"})
+
+case admitted_result do
+  {:ok, ticket} -> {:admitted, ticket.title, evidence.standing}
+  {:error, error} -> {:refused, AshGraphLaw.Error.codes(error)}
+end
+```
+
+With the engine vendored the ticket is created and its standing is `:PARTIAL_ALIVE`: the
+admission was observed on this exact input and no consequence was executed by the engine.
+Without the engine the same call is refused with a typed code and nothing is persisted.
+
+## Refuse
+
+An empty title violates the shape (`sh:minLength 1`), so the engine refuses. Every refusal is a
+closed, typed value. Read its code, class and Chatman broken term:
+
+```elixir
+{refused_result, _no_evidence} = create_with_evidence.(%{title: ""})
+
+case refused_result do
+  {:ok, _ticket} ->
+    {:unexpected, :admitted}
+
+  {:error, error} ->
+    for refusal <- AshGraphLaw.Error.refusals(error) do
+      {refusal.code, refusal.class, refusal.broken_term, AshGraphLaw.Standing.of({:error, refusal})}
+    end
+end
+```
+
+## Refuse on authority
+
+`:publish_gate` requires ceiling `:select`. No lease is presented, so the claim is `:observe` and
+the change refuses with `:ceiling_unmet` before the engine is called. This refusal is decided in
+Elixir and is identical whether or not the engine is vendored.
+
+```elixir
+seeded = Ash.create!(Demo.Ticket, %{title: "Ship it"}, action: :seed)
+
+publish_result =
+  seeded
+  |> Ash.Changeset.for_update(:publish, %{})
+  |> Ash.update()
+
+case publish_result do
+  {:ok, _} ->
+    {:unexpected, :published}
+
+  {:error, error} ->
+    [refusal] = AshGraphLaw.Error.refusals(error)
+    {refusal.code, refusal.class, refusal.broken_term, refusal.details}
+end
+```
+
+## Read Evidence and Standing
+
+Evidence is data bound to a digest. Its `digest` is recomputable from its own content, and it
+names the input, the admission and the engine that answered.
+
+```elixir
+case evidence do
+  %AshGraphLaw.Evidence{} = ev ->
+    %{
+      admission: ev.admission,
+      standing: ev.standing,
+      describe: AshGraphLaw.Standing.describe(ev.standing),
+      input_digest: ev.input_digest,
+      wasm_sha256: ev.wasm_sha256,
+      graphlaw_release: ev.graphlaw_release,
+      digest_recomputes?: ev.digest == AshGraphLaw.Evidence.digest(ev)
+    }
+
+  nil ->
+    {:no_evidence, "the engine did not admit, so there is nothing to bind a digest to"}
+end
+```
+
+The standing vocabulary is closed and `:ALIVE` is never produced by an admission alone.
+
+```elixir
+Enum.map(AshGraphLaw.Standing.all(), fn standing -> {standing, AshGraphLaw.Standing.describe(standing)} end)
+```
+
+## Typed capabilities
+
+Every operation of the engine has a typed function, so no supported op needs `AshGraphLaw.call/2`.
+The modules are generated from the GraphLaw capability registry; this notebook only calls them.
+Each cell prints what the call returned for this run: a result struct name when the engine is
+vendored, or a typed refusal code when it is not. A result is an observation, at most
+`PARTIAL_ALIVE`, and grants nothing.
+
+```elixir
+outcome = fn
+  {:ok, %module{}} -> {:ok, module |> Module.split() |> List.last()}
+  {:error, %AshGraphLaw.Refusal{code: code}} -> {:refused, code}
+end
+
+registry = AshGraphLaw.Capability.Registry
+
+%{
+  schema: registry.schema(),
+  ops: registry.names(),
+  registry_digest: registry.digest(),
+  surface_digest: registry.surface_digest()
+}
+```
+
+Routing and syntax: `sniff`, `parse`, `convert` and `canonical`.
+
+```elixir
+ttl = "@prefix ex: <https://e/> . ex:s ex:p ex:o, 42 ; a ex:T ."
+
+%{
+  sniff: outcome.(AshGraphLaw.Capability.API.sniff(text: ttl)),
+  parse: outcome.(AshGraphLaw.Capability.API.parse(text: ttl, dialect: "turtle")),
+  convert: outcome.(AshGraphLaw.Capability.API.convert(text: ttl, dialect: "turtle", to: "ntriples")),
+  canonical: outcome.(AshGraphLaw.Capability.API.canonical(data: ttl))
+}
+```
+
+Queries and validation: `sparql` (three result kinds), `shacl` and `shex`. The engine evaluates
+them; AshGraphLaw builds the request and decodes the answer.
+
+```elixir
+data = "@prefix ex: <https://e/> . ex:s a ex:T ; ex:p 1 ."
+
+shapes = """
+@prefix sh: <http://www.w3.org/ns/shacl#> . @prefix ex: <https://e/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ex:S a sh:NodeShape ; sh:targetClass ex:T ;
+  sh:property [ sh:path ex:p ; sh:datatype xsd:integer ] .
+"""
+
+%{
+  select: outcome.(AshGraphLaw.Capability.API.sparql(data: data, query: "SELECT ?o WHERE { <https://e/s> <https://e/p> ?o }")),
+  construct: outcome.(AshGraphLaw.Capability.API.sparql(data: data, query: "CONSTRUCT { ?s a <https://e/U> } WHERE { ?s a <https://e/T> }")),
+  ask: outcome.(AshGraphLaw.Capability.API.sparql(data: data, query: "ASK { <https://e/s> a <https://e/T> }")),
+  shacl: outcome.(AshGraphLaw.Capability.API.shacl(data: data, shapes: shapes)),
+  shex:
+    outcome.(
+      AshGraphLaw.Capability.API.shex(
+        data: "@prefix ex: <https://e/> . ex:cat ex:says \"meow\" .",
+        schema: "PREFIX ex: <https://e/>\nex:Cat { ex:says . }",
+        map: "<https://e/cat>@<https://e/Cat>"
+      )
+    )
+}
+```
+
+Derivation: `n3`, `entail` and `datalog`.
+
+```elixir
+%{
+  n3:
+    outcome.(
+      AshGraphLaw.Capability.API.n3(
+        text: "@prefix : <https://e/> . :s a :Human . { ?x a :Human } => { ?x a :Mortal } ."
+      )
+    ),
+  entail:
+    outcome.(
+      AshGraphLaw.Capability.API.entail(
+        data: "@prefix ex: <https://e/> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> . ex:Cat rdfs:subClassOf ex:Animal . ex:tom a ex:Cat .",
+        regime: "rdfs"
+      )
+    ),
+  datalog:
+    outcome.(
+      AshGraphLaw.Capability.API.datalog(
+        facts: [["https://e/a", "https://e/par", "https://e/b"]],
+        rules: [%{"head" => ["?x", "https://e/anc", "?y"], "body" => [["?x", "https://e/par", "?y"]]}]
+      )
+    )
+}
+```
+
+Composition: `hooks`, `law` and `policy`. `law` decodes to `AshGraphLaw.Admitted`.
+
+```elixir
+pack = """
+@prefix kh: <http://seanchatmangpt.github.io/praxis/kh#> . @prefix ex: <https://e/> .
+ex:h a kh:Hook ; kh:kind "sparql" ; kh:effect "emit-delta" ; kh:action ex:a ;
+  kh:query "SELECT ?x WHERE { ?x a <https://e/A> }" .
+ex:a a kh:Action ; kh:handler <http://seanchatmangpt.github.io/praxis/handler#sparql-construct> ;
+  kh:query "CONSTRUCT { ?x a <https://e/B> } WHERE { ?x a <https://e/A> }" .
+"""
+
+problem = ~s({"states": [{"id": "s0"}, {"id": "g", "facts": ["done"]}], "initial_states": ["s0"], "goal": {"facts": ["done"]}, "transitions": [{"action": "flip", "from": "s0", "to": "g", "probability_ppm": 500000}, {"action": "flip", "from": "s0", "to": "s0", "probability_ppm": 500000}]})
+policy = ~s({"policy": [{"state": "s0", "action": "flip", "outcomes": [{"state": "g", "probability_ppm": 500000}, {"state": "s0", "probability_ppm": 500000}]}]})
+
+%{
+  hooks: outcome.(AshGraphLaw.Capability.API.hooks(pack: pack, data: "@prefix ex: <https://e/> . ex:x a ex:A .")),
+  law:
+    outcome.(
+      AshGraphLaw.Capability.API.law(
+        data: %{"text" => "<urn:a:C> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <urn:a:D> .\n<urn:a:x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:a:C> .\n", "dialect" => "ntriples"},
+        steps: [%{"step" => "rdfs"}]
+      )
+    ),
+  policy: outcome.(AshGraphLaw.Capability.API.policy(problem: problem, policy: policy))
+}
+```
+
+A malformed request is refused by the client before any engine call, with the reason in
+`details`. This cell gives the same answer with or without the engine.
+
+```elixir
+{:error, refusal} = AshGraphLaw.Capability.API.shacl(data: "@prefix ex: <https://e/> . ex:s a ex:T .")
+
+{refusal.code, refusal.class, refusal.details["missing"]}
+```
+
+Decoding is forward-compatible: `from_map/1` never raises, and `raw` keeps the whole response,
+including keys this version has no field for.
+
+```elixir
+response = %{"ok" => true, "id" => "sha256:0", "nquads" => "", "quads" => 0, "a_newer_field" => 1}
+decoded = AshGraphLaw.Result.Canonical.from_map(response)
+
+%{lossless?: decoded.raw == response, newer_field: decoded.raw["a_newer_field"], id: decoded.id}
+```
+
+Every capability call emits a telemetry span. Attach a handler, make one call, and read what the
+span reported.
+
+```elixir
+parent = self()
+handler_id = "livebook-capability-#{System.unique_integer([:positive])}"
+
+:telemetry.attach(
+  handler_id,
+  [:ash_graphlaw, :capability, :stop],
+  fn _event, _measurements, metadata, _config -> send(parent, {:span, metadata.op, metadata.outcome, metadata.refusal_code}) end,
+  nil
+)
+
+_ = AshGraphLaw.Capability.API.sniff(text: "SELECT * WHERE { ?s ?p ?o }")
+:telemetry.detach(handler_id)
+
+receive do
+  {:span, op, outcome, code} -> {op, outcome, code}
+after
+  1_000 -> :no_span_received
+end
+```
+
+The parity court compares the typed surface with the engine's `capabilities` answer. The engine pin
+(`v26.9.28`) predates the registry (`26.9.29`), so a drift verdict is a valid outcome here and is
+reported as it is. This cell skips the op-example replay (`examples: false`); run
+`mix ash_graphlaw.parity` for the full court.
+
+```elixir
+case AshGraphLaw.Parity.run(examples: false) do
+  {:ok, report} ->
+    {:parity_holds, for(check <- report["checks"], do: {check["id"], check["status"]})}
+
+  {:error, %{refusal: refusal, report: report}} ->
+    {:parity_refused, refusal.code, for(check <- report["checks"], do: {check["id"], check["status"]})}
+end
+```
+
+## Where to go next
+
+  * `documentation/how_to/ash_first.livemd` starts from ordinary Ash resources.
+  * `documentation/how_to/handle_refusals_interactively.livemd` walks the closed refusal table.
+  * `documentation/how_to/replayable_admission_evidence.livemd` replays digest-bound evidence.
+  * `documentation/how_to/use_typed_capabilities.md` covers the typed capability API.
+  * `documentation/README.md` is the documentation hub.

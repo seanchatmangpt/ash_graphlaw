@@ -9,6 +9,7 @@ sparql:
     PREFIX glx: <https://graphlaw.dev/ash#>
 
     SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+           ?docs_url ?repository_url ?maintainer ?date_released ?coverage_threshold ?engine_release_tag
     WHERE {
       ?project a glx:Project ;
         glx:packageVersion ?package_version ;
@@ -18,7 +19,13 @@ sparql:
         glx:wasmAsset ?wasm_asset ;
         glx:wasmUrl ?wasm_url ;
         glx:marketplaceSha ?marketplace_sha ;
-        glx:ggenSha ?ggen_sha .
+        glx:ggenSha ?ggen_sha ;
+        glx:docsUrl ?docs_url ;
+        glx:repositoryUrl ?repository_url ;
+        glx:maintainer ?maintainer ;
+        glx:dateReleased ?date_released ;
+        glx:coverageThreshold ?coverage_threshold ;
+        glx:engineReleaseTag ?engine_release_tag .
     }
     ORDER BY ?package_version
 for_each: project
@@ -28,6 +35,22 @@ force: true
 #
 # SPDX-License-Identifier: MIT
 {% set p = results | first %}{# UNSUPPORTED(generator-capability): no marketplace pack emits a consumer .formatter.exs; package {{ p.package_version }} #}
+# DSL entity and option calls of the `graphlaw` section format without parentheses, in this project and
+# (through `export`) in every project that `import_deps: [:ash_graphlaw]`.
+spark_locals_without_parens = [
+  admission: 1,
+  admission: 2,
+  ceiling: 1,
+  law: 1,
+  max_skew_secs: 1,
+  projection: 1,
+  runtime: 1,
+  step: 1,
+  timeout_ms: 1,
+  trusted_keys: 1,
+  wasm_path: 1
+]
+
 [
   import_deps: [:ash, :spark],
   plugins: [AshGraphLaw.Formatter, Spark.Formatter],
@@ -38,5 +61,12 @@ force: true
   trailing_comma: true,
   local_pipe_with_parens: true,
   single_clause_on_do: true,
-  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
+  locals_without_parens: spark_locals_without_parens,
+  export: [
+    locals_without_parens: spark_locals_without_parens
+  ],
+  inputs: [
+    "{mix,.formatter}.exs",
+    "{config,lib,test,scripts}/**/*.{ex,exs}"
+  ]
 ]

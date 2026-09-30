@@ -11,6 +11,21 @@ Standing vocabulary: `UNKNOWN`, `PARTIAL_ALIVE`, `ALIVE`, `BLOCKED`, `BUILD_BROK
 `UNSUPPORTED`. `ALIVE` means observed execution on an exact admitted subject (a commit SHA plus the
 pinned engine identity).
 
+## Subject identity and versions
+
+| Item | Value |
+|---|---|
+| Library version | `26.9.29` |
+| Engine pin (`MANIFEST.json`, `ontology.ttl`) | GraphLaw `v26.9.28`, ABI version 1 |
+| Capability registry vendored or vendorable | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` (`../graphlaw/registry/`) |
+| Parity court (`mix ash_graphlaw.parity`) | UNKNOWN: not run for this page. Against the `v26.9.28` pin it may legitimately report drift until the pin is bumped to a release that carries the registry |
+| Exact-SHA receipt | none |
+
+No claim on this page is `ALIVE`: `ALIVE` needs observed execution on an exact commit SHA plus the
+engine identity, and no such receipt exists yet. Rows added for `26.9.29` (36 to 44) name test files
+that exist in the tree; they were not executed while this page was written, so their status is
+`UNKNOWN`, not `PARTIAL_ALIVE`.
+
 ## How the statuses were produced
 
 `PARTIAL_ALIVE` below means: the named test file exists, and was executed by `mix test` on the
@@ -79,6 +94,33 @@ demonstration is a `:wasm` test stay `UNKNOWN` for the pinned engine.
 | 34 | `mix ash_graphlaw.verify` admits the vendored engine, checks its ABI version against the manifest and refuses each failure with a typed code | `test/mix/tasks/verify_and_mutate_test.exs` | PARTIAL_ALIVE | Scripted engines in a scratch project; the pinned engine was not verified |
 | 35 | `Validation.Admissible` and `Preparation.Admit` refuse before the engine on authority, on an unknown admission, and with `:host_not_started` when no host runs | `test/ash/refusals_without_engine_test.exs` | PARTIAL_ALIVE | Their engine-backed paths are `:wasm` (`validation_test.exs`, `preparation_test.exs`), UNKNOWN |
 
+## Typed capability claims (26.9.29)
+
+| # | Claim | Test files | Status | Limits |
+|---|---|---|---|---|
+| 36 | Every registry op has a typed capability module, an API function and (except `law`) a result struct; no supported op needs `AshGraphLaw.call/2` | `test/generated/capability_surface_test.exs` (generated), `test/unit/root_capability_delegates_test.exs`, `test/unit/parity_test.exs` | UNKNOWN | Not run for this page; the generated test appears only after `scripts/ggen_sync.sh` |
+| 37 | Result decoding is lossless: `from_map(m).raw == m` including injected extra keys; `from_map/1` never raises | `test/unit/capability_decode_test.exs`, `test/property/capability_helpers_property_test.exs` | UNKNOWN | Not run |
+| 38 | Request coercion refuses unknown keys, missing required fields and type mismatches with typed details, and never enforces `enum` | `test/unit/capability_coerce_test.exs`, `test/unit/capability_canonical_json_test.exs` | UNKNOWN | Not run |
+| 39 | The `capability` DSL entity is verified against the registry and the op ceiling; a resource declaring capabilities refuses undeclared ops with `:capability_not_declared` | `test/unit/contract_capability_test.exs`, `test/unit/admissions_capability_test.exs`, `test/ash/capability_dsl_test.exs`, `test/negative/dsl_capability_negative_test.exs` | UNKNOWN | Not run |
+| 40 | The five capability refusal codes (`:invalid_capability_request`, `:unknown_capability`, `:capability_not_declared`, `:capability_parity_drift`, `:capability_response_undecodable`) exist in the closed table; `:raw` keeps the engine error | `test/negative/refusal_capability_codes_test.exs`, `test/unit/refusal_raw_test.exs`, `test/property/refusal_forward_compat_property_test.exs` | UNKNOWN | Not run |
+| 41 | A capability call emits start and stop (or exception) telemetry with op, outcome and refusal code | `test/unit/telemetry_test.exs`, `test/ash/telemetry_test.exs` | UNKNOWN | Not run |
+| 42 | The parity court compares the live engine with the registry (P1 to P9, R1), never skips, and reports drift as `:capability_parity_drift` | `test/unit/parity_test.exs`, `test/negative/parity_court_test.exs`, `test/integration/parity_pinned_engine_test.exs` | UNKNOWN | The pinned-engine test is `:wasm`; outcome against `v26.9.28` is not known |
+| 43 | Reactor steps run hooks and any op through the typed API | `test/integration/reactor_capability_test.exs` | UNKNOWN | Needs the optional `:reactor` dependency and the engine |
+| 44 | Projection origin is recorded in evidence without changing the digest of evidence that has none | `test/unit/projection_origin_test.exs`, `test/unit/evidence_origin_test.exs` | UNKNOWN | Not run |
+
+## Receipt markers
+
+Pages that state a standing not yet backed by a receipt carry a `<<RECEIPT:claim-N>>` token. The
+release receipt replaces each token with its receipt identity.
+
+| Token | Where | Standing until replaced |
+|---|---|---|
+| `<<RECEIPT:claim-1>>` | [getting started](../tutorials/getting_started.md) | UNKNOWN |
+| `<<RECEIPT:claim-2>>` | [first admitted action](../tutorials/first_admitted_action.md) | UNKNOWN |
+| `<<RECEIPT:claim-3>>` | [end-to-end tutorial](../tutorials/admit_your_first_resource_end_to_end.md) | UNKNOWN |
+| `<<RECEIPT:claim-4>>` | [conformance claim](conformance_claim.md), release subject | UNKNOWN |
+| `<<RECEIPT:claim-5>>` | [capability registry and parity](../topics/capability_registry_and_parity.md), parity court run | UNKNOWN |
+
 ## Reading the table
 
 - A claim is only as strong as the exact subject it ran on. A test that passes on a sibling
@@ -98,3 +140,4 @@ demonstration is a `:wasm` test stay `UNKNOWN` for the pinned engine.
 - [Support matrix](support_matrix.md)
 - [Authority boundary](../topics/authority_boundary.md)
 - [Typed refusals](typed_refusals.md) (generated)
+- [Conformance claim](conformance_claim.md)

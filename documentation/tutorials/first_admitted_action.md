@@ -8,9 +8,11 @@ SPDX-License-Identifier: MIT
 
 By the end you will have an Ash resource whose `:open` action is admitted by a SHACL shape run in
 GraphLaw, an `AshGraphLaw.Evidence` value from an admitted call, and a typed refusal from a
-rejected one. Complete [Getting Started](getting_started.md) first: the engine must be vendored
-and the pool started. Outputs shown are what the code is designed to return; observed output is
-UNKNOWN until the `:wasm` tests run them.
+rejected one. Complete [Getting Started](getting_started.md) first: the engine (release `v26.9.28`)
+must be vendored and verified, and the pool started. The results named below are what the
+documented API returns for these inputs; run each snippet and compare. The repository's `:wasm`
+tests exercise the same paths against the vendored engine (standing of this tutorial's own run in
+this release: `UNKNOWN` `<<RECEIPT:claim-2>>`).
 
 ## 1. Write a law module
 
@@ -104,6 +106,10 @@ lease map signed by a key listed in `trusted_keys`, see
   |> Ash.create()
 ```
 
+`signed` is a signed-lease map; [Mint and Verify a Signed Lease](../how_to/mint_and_verify_a_signed_lease.md)
+shows how to produce one, and the [end-to-end tutorial](admit_your_first_resource_end_to_end.md)
+builds one in full.
+
 On success `AshGraphLaw.Change.Admit` stores an `AshGraphLaw.Evidence` at
 `changeset.context.graphlaw` during the action. `Ash.create/1` returns the record, not the
 changeset, so read Evidence inside your own `after_action` hook, or call `AshGraphLaw.law/3`
@@ -125,7 +131,7 @@ Omit the title. The shape requires `ex:title` with `sh:minCount 1`, so the engin
 
 [%AshGraphLaw.Refusal{code: code, class: class}] = AshGraphLaw.Error.refusals(error)
 {code, class}
-#=> {:not_admitted, :refused_admission}
+# expected: {:not_admitted, :refused_admission}
 ```
 
 Omit the lease and the ceiling check refuses before the engine runs:
@@ -137,7 +143,7 @@ Omit the lease and the ceiling check refuses before the engine runs:
   |> Ash.create()
 
 AshGraphLaw.Error.codes(error)
-#=> [:ceiling_unmet]
+# expected: [:ceiling_unmet]
 ```
 
 ## See Also
@@ -147,3 +153,5 @@ AshGraphLaw.Error.codes(error)
 - [Write a Law Module](../how_to/write_a_law_module.md)
 - [Handle Refusals](../how_to/handle_refusals.md)
 - [Claims and Evidence](../reference/claims_and_evidence.md)
+- [Admit Your First Resource End to End](admit_your_first_resource_end_to_end.md)
+- [Troubleshooting](../topics/troubleshooting.md)

@@ -21,6 +21,29 @@ sparql:
         glx:ggenSha ?ggen_sha .
     }
     ORDER BY ?package_version
+  capabilities: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # GraphLaw capability table for the root API: op name, order, summary, legacy flag.
+    # A missing consumer OpBinding means legacy=false. Legacy ops keep their hand-shaped root API.
+    PREFIX gac: <http://seanchatmangpt.github.io/packs/graphlaw-ash-capability#>
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+    SELECT ?opName ?opOrder ?opSummary ?legacy
+    WHERE {
+      ?cap a gac:Capability ;
+        gac:opName ?opName ;
+        gac:opOrder ?opOrder .
+      OPTIONAL { ?cap gac:opSummary ?summary }
+      OPTIONAL {
+        ?binding a gac:OpBinding ;
+          gac:bindingOp ?opName ;
+          gac:bindingLegacy ?bindingLegacy .
+      }
+      BIND(COALESCE(?summary, "") AS ?opSummary)
+      BIND(COALESCE(?bindingLegacy, false) AS ?legacy)
+    }
+    ORDER BY ?opOrder
 for_each: project
 force: true
 ---
@@ -144,6 +167,22 @@ defmodule AshGraphLaw do
   def hooks(data, pack, opts \\ []) when is_list(opts) do
     call(%{"op" => "hooks", "data" => data_spec(data), "pack" => data_spec(pack)}, opts)
   end
+
+{%- for cap in capabilities %}{% if cap.legacy != true and cap.legacy != "true" %}
+
+  @doc """
+  Typed `{{ cap.opName }}` capability: {{ cap.opSummary }}
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.{{ cap.opName | capitalize }}`.
+  """
+  @spec {{ cap.opName }}(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate {{ cap.opName }}(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `{{ cap.opName }}/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec {{ cap.opName }}!(keyword() | map(), opts()) :: term()
+  defdelegate {{ cap.opName }}!(args, opts \\ []), to: AshGraphLaw.Capability.API
+{%- endif %}{% endfor %}
 
   defp dispatch(request, opts) do
     case Keyword.get(opts, :server, Pool) do

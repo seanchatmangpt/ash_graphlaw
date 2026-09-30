@@ -6,9 +6,14 @@
 # gates/. Every file named in output_file below is a projection; never hand-edit it.
 # Schema: ggen frontmatter (ggen_engine::config::GgenConfig). Each templates/*.tmpl carries its own
 # `to:` target and inline `sparql:` (copied verbatim from queries/*.rq; test/unit/template_query_sync_test.exs
-# refuses drift). Pack templates (extension/persist/verify/info/install/composition_test) render from [packs].
+# refuses drift). Pack templates (extension/persist/verify/info/install/composition_test from ash-extension-pack;
+# capability behaviour/registry/api/op modules/result structs/docs/surface test from
+# graphlaw-ash-capability-pack) render from [packs].
+# scripts/ggen_sync.sh --check proves determinism (two syncs, sha256 of every projection);
+# --check-ledger and --check-versions prove the gates/060 and gates/070 rows against real files;
+# gates/080 and gates/090 bind the imported capability registry block (scripts/import_registry.sh).
 # vendor/ is gitignored scratch, materialized by `git archive` of the pinned marketplace
-# sha (ontology.ttl glx:marketplaceSha); it is not a clone or worktree.
+# sha (ontology.ttl glx:marketplaceSha) for both packs; it is not a clone or worktree.
 
 [project]
 name = "ash_graphlaw"
@@ -18,6 +23,7 @@ source = "ontology.ttl"
 
 [packs]
 ash-extension-pack = { path = "vendor/ggen-marketplace/packs/ash-extension-pack" }
+graphlaw-ash-capability-pack = { path = "vendor/ggen-marketplace/packs/graphlaw-ash-capability-pack" }
 
 [templates]
 dir = "templates"
@@ -29,4 +35,8 @@ gates = [
   "gates/030_standing_contract.rq",
   "gates/040_admission_vocab_contract.rq",
   "gates/050_wasi_import_contract.rq",
+  "gates/060_handwritten_ledger_contract.rq",
+  "gates/070_version_sync_contract.rq",
+  "gates/080_capability_contract.rq",
+  "gates/090_registry_sync_contract.rq",
 ]

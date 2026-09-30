@@ -2,4 +2,18 @@
 #
 # SPDX-License-Identifier: MIT
 
+# Every path below is a trust boundary: workflows, dependency pins, the
+# ontology/template/query/gate sources projections are generated from, the
+# engine pin, agent usage rules, and docs. Projections are never hand-edited.
 * @seanchatmangpt
+/.github/ @seanchatmangpt
+/mix.exs @seanchatmangpt
+/mix.lock @seanchatmangpt
+/ontology.ttl @seanchatmangpt
+/templates/ @seanchatmangpt
+/queries/ @seanchatmangpt
+/gates/ @seanchatmangpt
+/scripts/ @seanchatmangpt
+/priv/graphlaw/ @seanchatmangpt
+/usage-rules/ @seanchatmangpt
+/documentation/ @seanchatmangpt

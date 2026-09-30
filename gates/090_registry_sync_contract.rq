@@ -1,0 +1,64 @@
+# Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+# SPDX-License-Identifier: MIT
+# Registry sync contract. The imported registry block (scripts/import_registry.sh) is the only
+# source of gac:registrySha256 and gac:opCount; glx:registrySha256 (the consumer pin) must equal
+# the imported digest, both are "sha256:" + 64 lowercase hex, exactly one gac:Registry exists,
+# and gac:opCount equals the number of gac:Capability individuals. Nothing here names 14.
+PREFIX glx: <https://graphlaw.dev/ash#>
+PREFIX gac: <http://seanchatmangpt.github.io/packs/graphlaw-ash-capability#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?problem ?focus ?detail WHERE {
+  {
+    ?focus a glx:Project .
+    FILTER NOT EXISTS { ?focus glx:registrySha256 ?v }
+    BIND("consumer_registry_pin_missing" AS ?problem)
+    BIND("glx:registrySha256" AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:registrySha256 ?v .
+    FILTER (!REGEX(STR(?v), "^sha256:[0-9a-f]{64}$"))
+    BIND("consumer_registry_pin_malformed" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Registry .
+    FILTER NOT EXISTS { ?focus gac:registrySha256 ?v }
+    BIND("imported_registry_digest_missing" AS ?problem)
+    BIND("gac:registrySha256" AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Registry ; gac:registrySha256 ?v .
+    FILTER (!REGEX(STR(?v), "^sha256:[0-9a-f]{64}$"))
+    BIND("imported_registry_digest_malformed" AS ?problem)
+    BIND(STR(?v) AS ?detail)
+  }
+  UNION {
+    ?focus a glx:Project ; glx:registrySha256 ?pin .
+    ?reg a gac:Registry ; gac:registrySha256 ?imp .
+    FILTER (STR(?pin) != STR(?imp))
+    BIND("registry_digest_drift" AS ?problem)
+    BIND(CONCAT("glx:registrySha256 ", STR(?pin), " != gac:registrySha256 ", STR(?imp)) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Registry ; gac:opCount ?n .
+    { SELECT (COUNT(DISTINCT ?c) AS ?actual) WHERE { ?c a gac:Capability } }
+    FILTER (xsd:integer(?n) != ?actual)
+    BIND("op_count_drift" AS ?problem)
+    BIND(CONCAT("gac:opCount ", STR(?n), " != capabilities ", STR(?actual)) AS ?detail)
+  }
+  UNION {
+    ?focus a gac:Registry .
+    FILTER NOT EXISTS { ?focus gac:opCount ?n }
+    BIND("op_count_missing" AS ?problem)
+    BIND("gac:opCount" AS ?detail)
+  }
+  UNION {
+    BIND(<urn:ash-graphlaw:registry-set> AS ?focus)
+    { SELECT (COUNT(DISTINCT ?r) AS ?n) WHERE { ?r a gac:Registry } }
+    FILTER (?n != 1)
+    BIND("registry_count_not_one" AS ?problem)
+    BIND(CONCAT("gac:Registry individuals: ", STR(?n)) AS ?detail)
+  }
+}
+ORDER BY ?problem ?focus ?detail

@@ -7,7 +7,8 @@ SPDX-License-Identifier: MIT
 # abi_reference
 
 The wire contract between `AshGraphLaw.Host` and `graphlaw.wasm`. Source of truth is the GraphLaw
-repository (`wasm/src/lib.rs`, `src/abi.rs`, `docs/refusals.md`).
+repository (`wasm/src/lib.rs`, `src/abi.rs`, `docs/refusals.md`) and the capability registry
+generated from it (`registry/capability-registry.json`).
 
 ## Versions
 
@@ -16,7 +17,7 @@ repository (`wasm/src/lib.rs`, `src/abi.rs`, `docs/refusals.md`).
 | `ABI_VERSION` | `1` |
 | Pinned GraphLaw release | `v26.9.28` |
 | Pinned asset | `graphlaw.wasm`, sha256 `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645` |
-| GraphLaw `main` | `26.9.29`, unreleased; not what this library pins |
+| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; not what this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
 `abi_version` field of the `capabilities` response with its own expectation and refuse a mismatch
@@ -106,9 +107,22 @@ Without `dialect` the router sniffs the content by content, not by extension.
 | `law` | Ordered admission steps over `data`; returns states, receipts, N-Quads |
 | `policy` | Admit a FOND policy against a planning problem |
 
-`policy` is present in `src/abi.rs` at the time of writing; the `capabilities` response lists it
-alongside the others. `AshGraphLaw` exposes `capabilities`, `sniff`, `law` and `hooks`
-directly and `call/2` for any op; see [support matrix](support_matrix.md).
+The ABI has 14 ops, in this order: `capabilities sniff parse convert canonical sparql shacl shex
+n3 entail datalog hooks law policy`. Each has a typed module, API function and (except `law`) a
+result struct in AshGraphLaw; `call/2` stays available for raw requests. See the
+[support matrix](support_matrix.md) for the per-op table and
+[capabilities.md](capabilities.md) (generated) for request and response fields.
+
+### `capabilities` response
+
+| Field | Since | Meaning |
+|---|---|---|
+| `abi`, `abi_version`, `crate`, `authorities`, `rdf_dialects`, `other_dialects`, `ops` | v26.9.28 | as before |
+| `registry_schema`, `registry_sha256`, `surface_sha256` | v26.9.29 | registry identity; absent on older engines |
+
+For an engine older than v26.9.29 the host computes `surface_sha256` from the live response and
+treats `registry_sha256` as UNKNOWN. The digest rule is canonical JSON (sorted keys, compact,
+integers only); `AshGraphLaw.Capability.CanonicalJSON` implements it.
 
 ### `law` op
 
@@ -140,6 +154,19 @@ Leases on a `law` request: `signed_lease` (`{"lease": {...}, "attestation": {...
 `unverified_lease: true` and the caller supplies `now_unix`. For a signed lease the module uses
 its own clock and ignores `now_unix`. Required ceilings: `Observe` for gates, `Select` for
 `plan`, `Construct` for `derive:*`.
+
+## Law steps
+
+Wire names, each with its ceiling: `shacl` (observe), `n3` (construct), `rdfs` (construct),
+`owl-rl` (construct), `hooks` (construct), `plan` (select), `record-receipts` (none),
+`require-receipt` (observe), `require-signed-receipt` (observe). The admission DSL exposes these
+with hyphens as underscores, except `record-receipts`.
+
+## Regimes and vocabularies
+
+`entail` regimes: `simple`, `rdf`, `rdfs`, `owl-rl`, `d`. Lease ceilings: `observe`, `select`,
+`construct`. Engines: `PurRdf`, `Eyeron`. Enum values in the registry are informational; clients
+never enforce them.
 
 ## Limits
 

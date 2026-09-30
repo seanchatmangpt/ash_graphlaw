@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 #
 # SPDX-License-Identifier: MIT
+# UNSUPPORTED(generator-capability): hand-written residue; no pack emits this module.
+# Recorded in HANDWRITTEN.md. Do not regenerate over it.
 
 defmodule AshGraphLaw.WasmConfig do
   @moduledoc """
@@ -44,6 +46,36 @@ defmodule AshGraphLaw.WasmConfig do
   `AshGraphLaw.ABI`). `table_elements`, `instances`, `tables` and `memories` are wasmtime store
   limits next to `memory_limit_bytes`.
 
+  ## Usage
+
+      AshGraphLaw.WasmConfig.wasm_path()
+      AshGraphLaw.WasmConfig.expected_sha256(wasm_path: "/tmp/other.wasm")
+      #=> :unpinned
+      AshGraphLaw.WasmConfig.limits(timeout_ms: 1_000).fuel
+      #=> 1_000_000_000
+
+  ## Options
+
+  Every function taking `opts` reads `:wasm_path`, `:expected_sha256` and the
+  limit keys named in `t:limits/0` (plus `:fuel`). Non-positive or non-integer
+  limit values are ignored and the next source (application config, then the
+  default) is used.
+
+  ## Telemetry
+
+  None emitted here.
+
+  ## Failure modes
+
+  `manifest/0` returns `:wasm_unreadable` when `MANIFEST.json` cannot be read
+  and `:invalid_json` when it is not a JSON object. `pinned_sha256/0` collapses
+  every manifest defect to `nil`; `import_allowlist/0` collapses them to
+  `:unavailable`. Both are fail-closed for `AshGraphLaw.EngineLoad`.
+
+  ## See Also
+
+  `AshGraphLaw.EngineLoad`, `AshGraphLaw.Host`, `AshGraphLaw.Refusal`.
+
   GraphLaw derives and validates; nothing here authorizes.
   """
 
@@ -83,6 +115,24 @@ defmodule AshGraphLaw.WasmConfig do
           timeout_ms: pos_integer()
         }
 
+  @typedoc "Options accepted by the resolvers in this module (all optional)."
+  @type opts :: [
+          wasm_path: String.t(),
+          expected_sha256: String.t() | :unpinned,
+          fuel: pos_integer(),
+          timeout_ms: pos_integer(),
+          fuel_per_ms: pos_integer(),
+          instantiate_fuel: pos_integer(),
+          memory_limit_bytes: pos_integer(),
+          recycle_bytes: pos_integer(),
+          max_queue: pos_integer(),
+          max_response_bytes: pos_integer(),
+          table_elements: pos_integer(),
+          instances: pos_integer(),
+          tables: pos_integer(),
+          memories: pos_integer()
+        ]
+
   @typedoc "One allowed WASI import: `{name, {:fn, params, results}}` with wasm value-type atoms."
   @type import_allow :: {String.t(), {:fn, [atom()], [atom()]}}
 
@@ -91,7 +141,7 @@ defmodule AshGraphLaw.WasmConfig do
   def vendored_path, do: app_path(@wasm_rel)
 
   @doc "Resolves the engine path; see the module doc for the order."
-  @spec wasm_path(keyword()) :: String.t()
+  @spec wasm_path(opts()) :: String.t()
   def wasm_path(opts \\ []) do
     present(Keyword.get(opts, :wasm_path)) ||
       present(System.get_env(@env)) ||
@@ -125,7 +175,7 @@ defmodule AshGraphLaw.WasmConfig do
   The digest a load must match: a hex string, `:unpinned`, or `nil` when the
   pin is unavailable (fail closed).
   """
-  @spec expected_sha256(keyword()) :: String.t() | :unpinned | nil
+  @spec expected_sha256(opts()) :: String.t() | :unpinned | nil
   def expected_sha256(opts \\ []) do
     case Keyword.fetch(opts, :expected_sha256) do
       {:ok, value} -> value
@@ -137,7 +187,7 @@ defmodule AshGraphLaw.WasmConfig do
   Resource limits: `opts` over `config :ash_graphlaw` over the defaults. `fuel` is
   `opts[:fuel]` (or config) when given, else `timeout_ms * fuel_per_ms`.
   """
-  @spec limits(keyword()) :: limits()
+  @spec limits(opts()) :: limits()
   def limits(opts \\ []) do
     base = Map.new(@defaults, fn {key, default} -> {key, limit(opts, key, default)} end)
     Map.put(base, :fuel, limit(opts, :fuel, base.timeout_ms * base.fuel_per_ms))

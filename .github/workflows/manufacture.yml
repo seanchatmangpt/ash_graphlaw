@@ -87,12 +87,14 @@ jobs:
           path: marketplace-src
           persist-credentials: false
 
-      - name: Materialize the pack with git archive at the pinned sha
+      - name: Materialize both packs with git archive at the pinned sha
         shell: bash
         run: |
           set -euo pipefail
           GGEN_MARKETPLACE_REPO="${PWD}/marketplace-src" scripts/vendor_marketplace.sh
           test "$(cat vendor/ggen-marketplace/.pin)" = "${MARKETPLACE_SHA}"
+          test -d vendor/ggen-marketplace/packs/ash-extension-pack
+          test -d vendor/ggen-marketplace/packs/graphlaw-ash-capability-pack
 
       - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
@@ -124,7 +126,9 @@ jobs:
           set -euo pipefail
           for gate in gates/010_project_contract.rq gates/020_refusal_code_contract.rq \
                       gates/030_standing_contract.rq gates/040_admission_vocab_contract.rq \
-                      gates/050_wasi_import_contract.rq; do
+                      gates/050_wasi_import_contract.rq gates/060_handwritten_ledger_contract.rq \
+                      gates/070_version_sync_contract.rq gates/080_capability_contract.rq \
+                      gates/090_registry_sync_contract.rq; do
             test -s "${gate}"
           done
           # strict_mode + [validation] gates in ggen.toml run inside the dry-run.
@@ -136,18 +140,18 @@ jobs:
         run: |
           set -euo pipefail
           manifest() {
-            # ggen-projected file set (local template rules + ash-extension-pack outputs)
-            for f in mix.exs .formatter.exs .gitignore README.md LICENSE \
-                     lib/ash_graphlaw.ex lib/ash_graphlaw/abi.ex lib/ash_graphlaw/receipt.ex \
-                     lib/ash_graphlaw/admitted.ex lib/ash_graphlaw/standing.ex lib/ash_graphlaw/refusal.ex \
-                     lib/ash_graphlaw/resource.ex lib/ash_graphlaw/persist.ex lib/ash_graphlaw/verify.ex \
-                     lib/ash_graphlaw/info.ex lib/mix/tasks/ash_graphlaw.install.ex \
-                     documentation/reference/typed_refusals.md priv/graphlaw/MANIFEST.json \
-                     test/test_helper.exs test/ash_graphlaw_composition_test.exs; do
+            # ggen-projected file set: the single source is PROJECTIONS in scripts/ggen_sync.sh
+            # (local template rules + ash-extension-pack + graphlaw-ash-capability-pack outputs).
+            scripts/ggen_sync.sh --list-projections | while IFS= read -r f; do
               test -f "${f}" || { echo "missing generated file: ${f}" >&2; exit 1; }
               sha256sum "${f}"
             done
+            # documentation/dsls/** is a projection too (spark cheat sheets); when present it must be stable.
+            if [ -d documentation/dsls ]; then
+              find documentation/dsls -type f | LC_ALL=C sort | while read -r f; do sha256sum "${f}"; done
+            fi
           }
+          test "$(scripts/ggen_sync.sh --list-projections | wc -l)" -gt 0
           scripts/ggen_sync.sh
           manifest > tmp/receipts/generated.run1.sha256
           scripts/ggen_sync.sh

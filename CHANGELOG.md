@@ -11,6 +11,52 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added (typed capability surface, v26.9.29 target)
+
+- Typed capability surface: `AshGraphLaw.Capability.<Op>` for all 14 GraphLaw ops (capabilities,
+  sniff, parse, convert, canonical, sparql, shacl, shex, n3, entail, datalog, hooks, law, policy),
+  `AshGraphLaw.Capability.API` (`<op>/2` and `<op>!/2`), `AshGraphLaw.Capability.Registry` and
+  lossless `AshGraphLaw.Result.*` structs plus `AshGraphLaw.Result.Term`. Generated from the
+  GraphLaw capability registry (`graphlaw.capability-registry/1`) through the
+  `graphlaw-ash-capability-pack`; no supported op needs `AshGraphLaw.call/2`. Root delegates
+  `parse/2 convert/2 canonical/2 sparql/2 shacl/2 shex/2 n3/2 entail/2 datalog/2 policy/2` and bang
+  forms; `call/2`, `capabilities/1`, `sniff/3`, `law/3` and `hooks/3` are unchanged.
+- Registry import: `scripts/vendor_registry.sh` and `scripts/import_registry.sh` (both with
+  `--check`), and `priv/graphlaw/capability-registry.{json,ttl}` plus `op-examples.json`.
+- DSL: new `capability` entity in the `graphlaw` section (`name`, `ceiling`, `doc`). A resource
+  declaring at least one capability refuses undeclared ops in lifecycle modules with
+  `:capability_not_declared`; a resource declaring none allows all. The `admission` entity, its
+  steps and `Change.Admit`, `Validation.Admissible`, `Preparation.Admit` are unchanged.
+- Parity court: `mix ash_graphlaw.parity [--evidence-dir DIR]` (checks P1-P9) and
+  `AshGraphLaw.Parity.run/1`; CI runs it in a `parity` job that gates `test`.
+- Lifecycle modules: `AshGraphLaw.Lifecycle`,
+  `AshGraphLaw.Calculation.{Conforms,CanonicalId,Sparql}`, `AshGraphLaw.Validation.Shacl`, `AshGraphLaw.Change.Canonicalize`.
+- Reactor: `AshGraphLaw.Reactor`, `AshGraphLaw.Reactor.Hooks`, `AshGraphLaw.Reactor.Capability`,
+  compiled only when `Reactor.Step` is loadable; `reactor` is an optional dependency.
+- Telemetry: `[:ash_graphlaw, :capability, :start | :stop | :exception]` with `op`, `outcome`,
+  `refusal_code` and `server` metadata; `[:ash_graphlaw, :admission, :stop]` is unchanged.
+- Projection origins: `AshGraphLaw.Projection.Origin`.
+- `AshGraphLaw.Refusal` gains `:raw` (the whole engine error map, `nil` for client-side refusals)
+  and `AshGraphLaw.Refusal.build/3`; `from_engine/2` keeps its signature and mapping.
+- Five new typed refusal codes (36-40): `:invalid_capability_request`, `:unknown_capability`,
+  `:capability_not_declared`, `:capability_parity_drift`, `:capability_response_undecodable`. The 35
+  existing codes are unchanged.
+- Docs: `documentation/reference/capabilities.md` and per-op pages; hexdocs groups `Typed
+  capabilities`, `Lifecycle`, `Reactor`, `Telemetry`, `Parity`.
+
+### Changed (build and CI)
+
+- CI vendors the engine with one `mix ash_graphlaw.vendor` step per job, adds the `parity` job
+  (evidence uploaded, gates `test`), and runs `scripts/vendor_registry.sh --check` and
+  `scripts/import_registry.sh --check` in the `quality` job.
+- The coverage gate now requires the mix.exs threshold to equal ontology `glx:coverageThreshold`
+  (80) and to be at least 80.
+
+### Engine pin
+
+- The engine pin is unchanged at v26.9.28. Parity against that pin may legitimately report drift
+  until the pin is bumped to a v26.9.29 release asset; the drift is reported, never masked.
+
 ### Changed (authority)
 
 - A ceiling above `:observe` is met only by a SIGNED lease (`%{signed_lease: %{"lease" => ...,

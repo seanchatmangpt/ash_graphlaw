@@ -42,6 +42,13 @@ defmodule AshGraphLaw.Error do
   @spec codes(term()) :: [atom()]
   def codes(error), do: error |> refusals() |> Enum.map(& &1.code)
 
+  @doc """
+  Returns the lossless raw engine error map of every refusal reachable inside `error`, in
+  order. Client-side refusals (no engine payload) are skipped.
+  """
+  @spec raws(term()) :: [map()]
+  def raws(error), do: error |> refusals() |> Enum.map(&Map.get(&1, :raw)) |> Enum.filter(&is_map/1)
+
   @doc "Returns true when `error` contains at least one `AshGraphLaw.Refusal`."
   @spec refused?(term()) :: boolean()
   def refused?(error), do: refusals(error) != []
