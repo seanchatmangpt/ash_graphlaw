@@ -1,8 +1,8 @@
 {
   "qme_profile": "QME-1/EcosystemReference",
   "version": "26.9.29",
-  "canonical_spec_subject": "seanchatmangpt/chatman-ecosystem@32c47032a9cefd0ab4f0980efc32fa84505031b2",
-  "local_subject": "seanchatmangpt/ash_graphlaw@3030d4b16fbb2c329920dede4f0f78c1b5d50034",
+  "canonical_spec_subject": "seanchatmangpt/chatman-ecosystem@88b276f71e2c8e606553942cb721bceb6836a87e",
+  "local_subject": "seanchatmangpt/ash_graphlaw@53242c3154f9f966aa33f7cae7593bfcbcaa2784",
   "role": "application projection of GraphLaw semantics",
   "normative": false,
   "weakens_core": false,
