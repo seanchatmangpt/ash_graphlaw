@@ -65,16 +65,16 @@ defmodule AshGraphLaw.Ash.ChangeTest do
       assert third.input_digest != first.input_digest
     end
 
-    test "a violating input is refused with :not_admitted and nothing is persisted" do
+    test "a violating input is refused by the engine (:engine_refused) and nothing is persisted" do
       # positive control: the same action admits a conformant title in this test's own state
       assert {:ok, _} = create_capturing(%{title: "Control"})
       assert [%{title: "Control"}] = Ash.read!(Ticket)
 
       assert {:error, %Ash.Error.Invalid{} = error} = create_capturing(%{})
-      assert Error.codes(error) == [:not_admitted]
+      # pinned v26.9.28 reports a SHACL violation as kind EngineRejected without an engine code
+      assert Error.codes(error) == [:engine_refused]
       assert [refusal] = Error.refusals(error)
-      assert refusal.class == :refused_admission
-      assert refusal.broken_term == :mu_on_O
+      assert refusal.class == :refused_structure
 
       # only the control record exists: the refused create wrote nothing
       assert [%{title: "Control"}] = Ash.read!(Ticket)
@@ -87,11 +87,17 @@ defmodule AshGraphLaw.Ash.ChangeTest do
       %{ticket: ticket}
     end
 
-    test "positive control: with a :select lease the update is admitted", %{ticket: ticket} do
-      assert {:ok, _} =
+    # positive control for the :ticket_shape create is the setup itself ({:ok, ticket}).
+    test "UNSUPPORTED(engine-capability): with a :select lease the ceiling passes but the pinned engine refuses the plan step",
+         %{ticket: ticket} do
+      assert {:error, error} =
                ticket
                |> Ash.Changeset.for_update(:close, %{}, context: Lease.context(:select))
                |> Ash.update()
+
+      # past the ceiling (no :ceiling_unmet), refused by the engine: v26.9.28 has no `plan` step
+      assert Error.codes(error) == [:engine_refused]
+      assert [%{kind: "Unsupported", class: :refused_structure}] = Error.refusals(error)
     end
 
     test "without a lease the ceiling is unmet and the engine is never called", %{ticket: ticket} do

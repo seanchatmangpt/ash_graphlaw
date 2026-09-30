@@ -81,6 +81,11 @@ The single positional argument is `name`, which is also the entity identifier.
 | `:require_receipt` | `require-receipt` | yes |
 | `:require_signed_receipt` | `require-signed-receipt` | yes |
 
+`UNSUPPORTED(engine-capability)`: the pinned v26.9.28 engine refuses `:plan`, `:require_receipt`
+and `:require_signed_receipt` (and raw `record-receipts`) as `Unsupported` unknown steps. The DSL
+still accepts them because the ABI defines them; an admission using one is refused at run time
+with `engine_refused`, never admitted.
+
 The underscore atoms map to the hyphenated wire names. Step payload format is defined by the
 GraphLaw ABI; see [ABI reference](abi_reference.md).
 
@@ -88,7 +93,9 @@ GraphLaw ABI; see [ABI reference](abi_reference.md).
 
 The ceiling is checked against the lease in `changeset.context[lease_key]` before any engine
 call; a shortfall is refused as `:ceiling_unmet`. `:observe` covers gates, `:select` covers
-`plan`, `:construct` covers derivation steps.
+`plan`, `:construct` covers derivation steps. The ceiling is the only lease check enforced with
+the pinned v26.9.28 engine: it ignores lease keys, so signature, signer and expiry are not
+verified (`UNSUPPORTED(engine-capability)`).
 
 ## Entity `capability`
 

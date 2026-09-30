@@ -76,7 +76,9 @@ runs (see [claims and evidence](claims_and_evidence.md)). `call/2` remains for r
 ## Law steps supported in admissions
 
 `shacl`, `n3`, `rdfs`, `owl_rl`, `hooks`, `plan`, `require_receipt`, `require_signed_receipt`.
-`record-receipts` is an engine step available through raw `law` requests; the DSL does not
+`UNSUPPORTED(engine-capability)`: the pinned v26.9.28 engine refuses `plan`, `require_receipt`,
+`require_signed_receipt` and `record-receipts` as `Unsupported` unknown steps; only `shacl`, `n3`,
+`rdfs`, `owl_rl` and `hooks` are executed. `record-receipts` is an engine step available through raw `law` requests; the DSL does not
 expose it as an `admission` step.
 
 ## Capability lifecycle modules
@@ -103,6 +105,7 @@ expose it as an `admission` step.
 |---|---|---|
 | Reactor middleware | UNSUPPORTED | Steps exist (`AshGraphLaw.Reactor.Hooks`, `.Capability`), not middleware; pack spec sets `workflowReactor false` |
 | Atomic actions | UNSUPPORTED | Admission needs a WASM call; `atomic/3` returns `{:not_atomic, ...}` |
+| Engine-side lease verification (signature, signer, expiry) | UNSUPPORTED | `UNSUPPORTED(engine-capability)`: the pinned v26.9.28 engine ignores lease keys and stamps no `lease_id`; only the library's ceiling pre-check on the claimed ceiling is enforced |
 | Lease signing | UNSUPPORTED | The library verifies via the engine; it never issues or signs leases. Key custody is outside the library |
 | Installer `--target` patching | UNSUPPORTED | The pack's generated installer inserts unparsable code (SyntaxError); the formatter and `wasmex` wiring work |
 | Receipt persistence | UNSUPPORTED | Evidence lives in changeset context; no store is written |

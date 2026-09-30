@@ -149,7 +149,20 @@ Success members: `states` (state ids, start first), `receipts` (each with `step`
 `child`, `added`, `authority`, `revision`, and where applicable `lease_id`, `plan_sha256`,
 `index`), `nquads` (final state).
 
-Leases on a `law` request: `signed_lease` (`{"lease": {...}, "attestation": {...}}`) with
+> **Pinned engine gap (`UNSUPPORTED(engine-capability)`).** The pinned v26.9.28 engine
+> implements `shacl`, `n3`, `rdfs`, `owl-rl` and `hooks` only. `plan`, `record-receipts`,
+> `require-receipt` and `require-signed-receipt` are refused with kind `Unsupported`
+> ("unknown step `plan`", etc.), which the library projects as `engine_refused` /
+> `refused_structure` (standing `UNKNOWN`). The engine also ignores lease keys entirely: it
+> does not verify signature, signer or expiry, and receipts carry no `lease_id`. The
+> `PlanRefused`, `LeaseRefused`, `UnverifiedLeaseRefused`, `ReceiptRequired` and `ReceiptRefused`
+> codes below are therefore documented ABI shapes that v26.9.28 never emits. A SHACL violation
+> is reported as kind `EngineRejected` without a `details.code` (`engine_refused`, not
+> `not_admitted`), and JSON nested beyond the depth limit is reported as kind `Unsupported`
+> ("request is not JSON: recursion limit exceeded"), not `ResourceLimit`. The `policy` op is not
+> in the engine's capabilities.
+
+Leases on a `law` request (shape per the ABI; not enforced by v26.9.28, see above): `signed_lease` (`{"lease": {...}, "attestation": {...}}`) with
 `trusted_keys` and optional `max_skew_secs` (default 60); or an unsigned `lease` refused unless
 `unverified_lease: true` and the caller supplies `now_unix`. For a signed lease the module uses
 its own clock and ignores `now_unix`. Required ceilings: `Observe` for gates, `Select` for

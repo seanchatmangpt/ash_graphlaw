@@ -327,7 +327,7 @@ defmodule AshGraphLaw.Refusal do
 
   def from_engine(other, details_map) do
     details = if is_map(details_map), do: details_map, else: %{}
-    refusal = new(:engine_unclassified, nil, Map.put(details, "raw", inspect(other)))
+    refusal = new(:engine_unclassified, nil, Map.put(details, "raw", inspect(other, limit: 20, printable_limit: 256)))
     %{refusal | raw: if(is_map(other), do: other)}
   end
 

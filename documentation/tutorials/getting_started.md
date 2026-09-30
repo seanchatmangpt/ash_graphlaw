@@ -75,6 +75,20 @@ timeout come from `config :ash_graphlaw, pool: [size: 4, timeout_ms: 5_000]`. Se
 Start `iex -S mix` and run:
 
 ```elixir
+{:ok, caps} = AshGraphLaw.call(%{"op" => "capabilities"}, [])
+caps["abi"]
+#=> 1
+
+AshGraphLaw.abi_version()
+#=> 1
+
+AshGraphLaw.graphlaw_release()
+#=> "v26.9.28"
+```
+
+`AshGraphLaw.capabilities/1` wraps the same operation:
+
+```elixir
 {:ok, caps} = AshGraphLaw.capabilities([])
 caps["abi_version"]
 ```

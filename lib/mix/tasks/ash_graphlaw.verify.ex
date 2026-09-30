@@ -82,10 +82,10 @@ defmodule Mix.Tasks.AshGraphlaw.Verify do
 
     try do
       case Host.request(host, %{"op" => "capabilities"}) do
-        {:ok, %{"ok" => true, "abi_version" => ^expected}} ->
+        {:ok, %{"ok" => true, "abi" => ^expected}} ->
           :ok
 
-        {:ok, %{"ok" => true, "abi_version" => other}} ->
+        {:ok, %{"ok" => true, "abi" => other}} ->
           fail("abi_version_mismatch", "engine reports #{inspect(other)}, manifest pins #{expected}")
 
         {:ok, other} ->

@@ -27,7 +27,9 @@ defmodule AshGraphLaw.Adversarial.ConcurrencyTest do
   @n 100
 
   setup do
-    start_pool!(size: 4)
+    # The queue must hold every simultaneous caller (@n); at the default max_queue of 64 the
+    # library correctly sheds load with :saturated, which made these courts timing-dependent.
+    start_pool!(size: 4, max_queue: 4 * @n)
     Ash.DataLayer.Ets.stop(Ticket)
     on_exit(fn -> Ash.DataLayer.Ets.stop(Ticket) end)
     :ok
@@ -141,7 +143,9 @@ defmodule AshGraphLaw.Adversarial.ConcurrencyTest do
 
     for r <- bad do
       assert {:error, error} = r
-      assert AshGraphLaw.Error.codes(error) == [:not_admitted]
+      # The pinned engine reports a SHACL violation as `EngineRejected` with no code, which the
+      # library projects as :engine_refused (see documentation/reference/abi_reference.md).
+      assert AshGraphLaw.Error.codes(error) == [:engine_refused]
     end
   end
 
