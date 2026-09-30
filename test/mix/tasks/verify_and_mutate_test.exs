@@ -17,7 +17,7 @@ defmodule Mix.Tasks.AshGraphlaw.VerifyAndMutateTest do
   alias AshGraphLaw.Test.WasmFixtures
   alias Mix.Tasks.AshGraphlaw.{Mutate, Verify}
 
-  @capabilities_v1 Jason.encode!(%{"ok" => true, "abi_version" => 1})
+  @capabilities_v1 Jason.encode!(%{"ok" => true, "abi" => 1})
 
   setup do
     dir = Path.join(System.tmp_dir!(), "agl-verify-#{System.unique_integer([:positive])}")
@@ -86,9 +86,7 @@ defmodule Mix.Tasks.AshGraphlaw.VerifyAndMutateTest do
       install!(WasmFixtures.scripted_engine(call: {:json, ~s({"hello":"world"})}))
       assert_raise Mix.Error, ~r/\[malformed_response\]/, &verify/0
 
-      install!(
-        WasmFixtures.scripted_engine(call: {:json, Jason.encode!(%{"ok" => true, "abi_version" => 1, "x" => 1})})
-      )
+      install!(WasmFixtures.scripted_engine(call: {:json, Jason.encode!(%{"ok" => true, "abi" => 1, "x" => 1})}))
 
       verify()
     end

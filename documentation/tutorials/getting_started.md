@@ -56,7 +56,7 @@ See [Run the Pool](../how_to/run_the_pool.md).
 
 ```elixir
 {:ok, caps} = AshGraphLaw.call(%{"op" => "capabilities"}, [])
-caps["abi_version"]
+caps["abi"]
 #=> 1
 
 AshGraphLaw.abi_version()
