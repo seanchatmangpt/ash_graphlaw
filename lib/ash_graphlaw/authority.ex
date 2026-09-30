@@ -22,16 +22,18 @@ defmodule AshGraphLaw.Authority do
   A caller can therefore never self-grant `:select` or `:construct` by writing an atom into
   changeset context. The ceiling a signed lease *claims* is compared with the admission's
   required ceiling here, before the engine is called; the signature, the trusted signer and the
-  expiry are then verified by the engine on the same request. An admission whose lease the
-  engine does not verify is never `{:ok, _}`, so a forged claim passes this pre-check and is
-  refused by the engine (`:lease_refused`). Evidence records the lease identity
+  expiry are forwarded to the engine on the same request. The pinned GraphLaw v26.9.28 engine
+  ignores lease keys entirely (`UNSUPPORTED(engine-capability)`): it neither verifies the
+  signature, signer or expiry nor stamps a `lease_id`, so the ONLY lease check enforced today is
+  this ceiling pre-check on the *claimed* ceiling. A lease-verifying engine would refuse a forged
+  claim as `:lease_refused`; the pinned one does not. Evidence records the lease identity
   (`identity/1`) so the authority behind an admitted change can be replayed.
 
   ## Trust anchors and time
 
   `engine_opts/3` takes `trusted_keys` and `max_skew_secs` ONLY from the resource's `runtime`
-  section, and never forwards `now_unix`, `lease` or `unverified_lease`. The engine judges expiry
-  with its own module clock. Caller context cannot supply trust anchors or a clock.
+  section, and never forwards `now_unix`, `lease` or `unverified_lease`. A lease-verifying engine would
+  judge expiry with its own module clock (the pinned v26.9.28 engine does not). Caller context cannot supply trust anchors or a clock.
   """
 
   alias AshGraphLaw.Admissions

@@ -14,7 +14,9 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
   ceilings all refuse with `:ceiling_unmet` BEFORE the engine is called: the admission telemetry
   event is emitted and the host-call event never is. Non-`:wasm` controls show a signed lease
   passing the ceiling check (the failure moves on to the engine boundary); the `:wasm` controls
-  show the same lease admitted for real, and forged signed leases refused by the engine.
+  show the same lease reaching the real engine. Engine-side verification of forged leases is
+  UNSUPPORTED(engine-capability) in the pinned v26.9.28 engine (it ignores lease keys); those
+  tests are skipped with that reason.
   """
 
   use AshGraphLaw.Test.Case, async: false
@@ -182,14 +184,20 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
       assert_ceiling_refused(open(signed(:select)), :construct)
     end
 
-    test "a sufficient signed :select lease admits the close plan for real, :observe does not" do
-      assert {:ok, %{state: :closed}} = close(signed(:select), "closed probe")
+    test "UNSUPPORTED(engine-capability): a sufficient signed :select lease reaches the engine, which refuses the plan step; :observe never does" do
+      # v26.9.28 has no `plan` step, so the close plan cannot be admitted. The :select lease
+      # passes the ceiling (no :ceiling_unmet), the engine is called, and it refuses typed.
+      assert {:error, error} = close(signed(:select), "closed probe")
+      assert Error.codes(error) == [:engine_refused]
+      assert [%{kind: "Unsupported"}] = Error.refusals(error)
       assert_receive {:telemetry, @host_event, _, _}
       flush_telemetry()
 
       assert_ceiling_refused(close(signed(:observe)), :select)
     end
 
+    @tag skip:
+           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification); claim stays with the ceiling pre-check"
     test "a forged signed lease passes the claim pre-check and is refused by the engine, never admitted" do
       # positive control: the same claim, correctly signed by the trusted signer, is admitted
       assert {:ok, _} = open(signed(:construct), "admitted probe")
@@ -211,6 +219,8 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
       end
     end
 
+    @tag skip:
+           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification); claim stays with the ceiling pre-check"
     test "trust anchors and the clock in caller context are ignored: only runtime.trusted_keys counts" do
       untrusted = Lease.signed(:construct, signer: :untrusted)
       pub = Lease.public_key_hex(:untrusted)

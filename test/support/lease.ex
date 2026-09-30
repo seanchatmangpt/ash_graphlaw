@@ -8,8 +8,9 @@ defmodule AshGraphLaw.Test.Lease do
 
   Leases are signed with real Ed25519 (`:crypto`) over the canonical payload the engine verifies
   (graphlaw `attest.rs`): the sorted-key JSON of the lease, `payload_sha256` = sha256(payload),
-  `key_id` = sha256(raw public key). Nothing here is a stand-in for verification: the engine
-  verifies signature, signer and expiry itself.
+  `key_id` = sha256(raw public key). Nothing here is a stand-in for verification. UNSUPPORTED(engine-capability):
+  the pinned v26.9.28 engine does not verify signature, signer or expiry (it ignores lease keys);
+  the leases are well-formed so a verifying engine could check them.
 
   Two fixed keypairs (deterministic seeds) keep resources compilable: `:trusted` is listed in the
   `runtime` section of `AshGraphLaw.Test.Ticket` (`public_key_hex/0`), `:untrusted` is a valid
