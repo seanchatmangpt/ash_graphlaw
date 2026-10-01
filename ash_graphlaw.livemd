@@ -18,7 +18,7 @@ Mix.install(
 
 ## The idea
 
-AshGraphLaw is the Ash/BEAM membrane over the GraphLaw WASI engine (library 26.9.29, engine
+AshGraphLaw is the Ash/BEAM membrane over the GraphLaw WASI engine (library 26.9.30, engine
 release v26.9.28). An Ash action declares an *admission*; the engine derives and validates over
 the projected RDF; the outcome is either evidence or a typed refusal.
 

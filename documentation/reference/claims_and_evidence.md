@@ -15,7 +15,7 @@ pinned engine identity).
 
 | Item | Value |
 |---|---|
-| Library version | `26.9.29` |
+| Library version | `26.9.30` |
 | Engine pin (`MANIFEST.json`, `ontology.ttl`) | GraphLaw `v26.9.28`, ABI version 1 |
 | Capability registry vendored or vendorable | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` (`../graphlaw/registry/`) |
 | Parity court (`mix ash_graphlaw.parity`) | UNKNOWN: not run for this page. Against the `v26.9.28` pin it may legitimately report drift until the pin is bumped to a release that carries the registry |

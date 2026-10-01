@@ -1,6 +1,6 @@
 {
   "qme_profile": "QME-1/EcosystemReference",
-  "version": "26.9.29",
+  "version": "26.9.30",
   "canonical_spec_subject": "seanchatmangpt/chatman-ecosystem@88b276f71e2c8e606553942cb721bceb6836a87e",
   "local_subject": "seanchatmangpt/ash_graphlaw@53242c3154f9f966aa33f7cae7593bfcbcaa2784",
   "role": "application projection of GraphLaw semantics",

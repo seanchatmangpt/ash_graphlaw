@@ -42,12 +42,12 @@ an admission alone.
 ```elixir
 def deps do
   [
-    {:ash_graphlaw, "~> 26.9.29"}
+    {:ash_graphlaw, "~> 26.9.30"}
   ]
 end
 ```
 
-The package version is `26.9.29` (calendar versioning). The `graphlaw.wasm` binary
+The package version is `26.9.30` (calendar versioning). The `graphlaw.wasm` binary
 is not shipped in the Hex package; fetch the pinned release asset with the vendor task:
 
 ```bash
@@ -133,7 +133,7 @@ in [typed refusals](documentation/reference/typed_refusals.md).
 
 ## Manufactured provenance
 
-- ash_graphlaw: v26.9.29
+- ash_graphlaw: v26.9.30
 - GraphLaw court release: 26.9.28
 - GraphLaw ABI: 1
 - graphlaw.wasm SHA-256: `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645`

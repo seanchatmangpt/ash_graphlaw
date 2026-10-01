@@ -6,7 +6,7 @@ defmodule AshGraphLaw.MixProject do
   @moduledoc false
   use Mix.Project
 
-  @version "26.9.29"
+  @version "26.9.30"
   @name "AshGraphLaw"
   @description "GraphLaw WASM admission engine for Ash Framework: derives and validates, never authorizes"
   @github_url "https://github.com/seanchatmangpt/ash_graphlaw"

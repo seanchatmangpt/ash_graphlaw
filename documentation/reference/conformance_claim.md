@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # conformance_claim
 
-What release `26.9.29` claims, and what it does not.
+What release `26.9.30` claims, and what it does not.
 
 ## Claimed
 
@@ -33,7 +33,7 @@ What release `26.9.29` claims, and what it does not.
 
 | Item | Value |
 |---|---|
-| Library | `26.9.29` |
+| Library | `26.9.30` |
 | Engine pin | `v26.9.28`, ABI version 1 |
 | Registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` |
 | Exact-SHA receipt | none: `<<RECEIPT:claim-4>>` |

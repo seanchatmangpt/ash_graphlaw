@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # Getting Started
 
-By the end you will have added `:ash_graphlaw` `26.9.29`, vendored and verified the pinned
+By the end you will have added `:ash_graphlaw` `26.9.30`, vendored and verified the pinned
 GraphLaw engine (release `v26.9.28`), started the pool and made one `capabilities` call. Every
 step below is a command or snippet you run yourself; the tutorial states what to look for, not
 output it did not observe.
@@ -17,7 +17,7 @@ output it did not observe.
 def deps do
   [
     {:ash, "~> 3.33"},
-    {:ash_graphlaw, "~> 26.9.29"}
+    {:ash_graphlaw, "~> 26.9.30"}
   ]
 end
 ```

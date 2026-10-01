@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # AshGraphLaw Documentation Hub (Diataxis Framework)
 
-AshGraphLaw (library `26.9.29`, engine pin `v26.9.28`) lets an Ash action declare a named
+AshGraphLaw (library `26.9.30`, engine pin `v26.9.28`) lets an Ash action declare a named
 admission that a pinned GraphLaw WASM engine derives and validates against the action's projected
 data. A refusal is a typed value. An admission is an observation bound to one exact input digest
 and grants no authority.
@@ -141,7 +141,7 @@ Why the library is shaped as it is.
 
 ## Project Files
 
-- [Changelog](../CHANGELOG.md) - Keep-a-Changelog history; the `26.9.29` entry.
+- [Changelog](../CHANGELOG.md) - Keep-a-Changelog history; the `26.9.30` entry.
 - [Security Policy](../SECURITY.md) - Reporting and supported versions.
 - [Contributing](../CONTRIBUTING.md) - Gates a change must pass.
 - [Agent Instructions](../AGENTS.md) - Rules for automated contributors.

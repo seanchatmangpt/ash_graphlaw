@@ -81,13 +81,13 @@ glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "co
 #################################################################
 
 glx:AshGraphLawProject a glx:Project ;
-    glx:packageVersion "26.9.29" ;
+    glx:packageVersion "26.9.30" ;
     glx:graphLawVersion "26.9.29" ;
     glx:engineReleaseTag "v26.9.29" ;
     glx:maintainer "Sean Chatman" ;
     glx:repositoryUrl "https://github.com/seanchatmangpt/ash_graphlaw" ;
     glx:docsUrl "https://hexdocs.pm/ash_graphlaw" ;
-    glx:dateReleased "2026-09-29" ;
+    glx:dateReleased "2026-09-30" ;
     glx:coverageThreshold 80 ;
     glx:abiVersion 1 ;
     glx:wasmSha256 "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0" ;
@@ -735,12 +735,12 @@ glx:ResidueMixTasksAshGraphlawParity a glx:UnsupportedResidue ;
 # files on disk.
 #################################################################
 
-glx:BindingMixExsPackage a glx:VersionBinding ; glx:bindingPath "mix.exs" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingReadmeMdPackage a glx:VersionBinding ; glx:bindingPath "README.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingSa2AManifestJsonPackage a glx:VersionBinding ; glx:bindingPath ".sa2a/manifest.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
+glx:BindingMixExsPackage a glx:VersionBinding ; glx:bindingPath "mix.exs" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
+glx:BindingReadmeMdPackage a glx:VersionBinding ; glx:bindingPath "README.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
+glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.md" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
+glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
+glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
+glx:BindingSa2AManifestJsonPackage a glx:VersionBinding ; glx:bindingPath ".sa2a/manifest.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.30" .
 glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.9.29" .
 
 #################################################################
