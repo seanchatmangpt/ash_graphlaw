@@ -1,0 +1,83 @@
+{
+  "GENERATED": "chatman-ecosystem:scripts/release_train/project_cross_runtime_failure_immunity.py; do not hand-edit",
+  "schema": "https://chatman.dev/standing-court/cross-runtime-failure-immunity-consumer/v1",
+  "canonical_owner": "seanchatmangpt/chatman-ecosystem",
+  "canonical_source": "release/v26.9.30/cross-runtime-failure-immunity.json",
+  "canonical_commit": "96a4893280fb942b7ac8604478db12fabb191c17",
+  "consumer_subject": "seanchatmangpt/ash_graphlaw",
+  "consumer_base_sha": "6173840910c1cafc81dd2e88b16f36a9b0e558ff",
+  "inherited_failure_classes": [
+    {
+      "failure_class": "MUTATED_PROJECTION",
+      "canonical_guard": [
+        "GENERATED_SOURCE_DRIFT",
+        "MUTATION_REPORT_DRIFT"
+      ]
+    },
+    {
+      "failure_class": "ABI_INTERFACE_MISMATCH",
+      "canonical_guard": [
+        "RUNTIME_INTERFACE_MISMATCH",
+        "SUBJECT_TREE_MISMATCH"
+      ]
+    },
+    {
+      "failure_class": "CROSS_RUNTIME_DIVERGENCE",
+      "canonical_guard": [
+        "CROSS_RUNTIME_DIVERGED",
+        "REPLAY_DIVERGED"
+      ]
+    },
+    {
+      "failure_class": "AUTHORITY_SMUGGLING",
+      "canonical_guard": [
+        "AUTHORITY_ESCALATION",
+        "OWNER_SPLIT"
+      ]
+    },
+    {
+      "failure_class": "GENERATED_SOURCE_DRIFT",
+      "canonical_guard": [
+        "GENERATED_SOURCE_DRIFT",
+        "EVIDENCE_DELTA_UNBOUNDED"
+      ]
+    },
+    {
+      "failure_class": "NONDETERMINISTIC_PROJECTION",
+      "canonical_guard": [
+        "NONDETERMINISTIC_REPLAY",
+        "REPLAY_DIVERGED"
+      ]
+    },
+    {
+      "failure_class": "POST_RELEASE_MUTATION",
+      "canonical_guard": [
+        "STANDING_BINDING_MUTATED",
+        "REPLAY_DIVERGED"
+      ]
+    },
+    {
+      "failure_class": "PRE_DO_TOCTOU",
+      "canonical_guard": [
+        "CAPABILITY_RELEASE_REFUSED",
+        "STANDING_BINDING_MUTATED"
+      ]
+    }
+  ],
+  "inherited_guards": [
+    "AUTHORITY_ESCALATION",
+    "CAPABILITY_RELEASE_REFUSED",
+    "CROSS_RUNTIME_DIVERGED",
+    "EVIDENCE_DELTA_UNBOUNDED",
+    "GENERATED_SOURCE_DRIFT",
+    "MUTATION_REPORT_DRIFT",
+    "NONDETERMINISTIC_REPLAY",
+    "OWNER_SPLIT",
+    "REPLAY_DIVERGED",
+    "RUNTIME_INTERFACE_MISMATCH",
+    "STANDING_BINDING_MUTATED",
+    "SUBJECT_TREE_MISMATCH"
+  ],
+  "bespoke_consumer_tests": false,
+  "authority": "NONE"
+}
