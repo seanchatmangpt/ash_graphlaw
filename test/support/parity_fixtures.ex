@@ -16,6 +16,7 @@ defmodule AshGraphLaw.Test.ParityFixtures do
     * `:reordered` - the first two ops are swapped;
     * `:extra_dialect` - an rdf dialect the registry does not know;
     * `:bad_registry_sha` - a well-formed but wrong `registry_sha256`;
+    * `:bad_abi` - the runtime reports an ABI different from the pinned manifest;
     * `:legacy` - an engine older than v26.9.29: no registry fields at all.
   """
 
@@ -23,11 +24,11 @@ defmodule AshGraphLaw.Test.ParityFixtures do
 
   @registry AshGraphLaw.Capability.Registry
 
-  @type variant :: :exact | :dropped_op | :reordered | :extra_dialect | :bad_registry_sha | :legacy
+  @type variant :: :exact | :dropped_op | :reordered | :extra_dialect | :bad_registry_sha | :bad_abi | :legacy
 
   @doc "Every drift variant (everything except the positive control)."
   @spec drift_variants() :: [variant()]
-  def drift_variants, do: [:dropped_op, :reordered, :extra_dialect, :bad_registry_sha]
+  def drift_variants, do: [:dropped_op, :reordered, :extra_dialect, :bad_registry_sha, :bad_abi]
 
   @doc "The `capabilities` response body of `variant`, as a map."
   @spec capabilities(variant()) :: map()
@@ -87,6 +88,7 @@ defmodule AshGraphLaw.Test.ParityFixtures do
 
   defp apply_variant(:extra_dialect, base), do: Map.update!(base, "rdf_dialects", &(&1 ++ ["notarealdialect"]))
   defp apply_variant(:bad_registry_sha, base), do: %{base | "registry_sha256" => wrong_digest()}
+  defp apply_variant(:bad_abi, base), do: %{base | "abi" => 999, "abi_version" => 999}
 
   defp apply_variant(:legacy, base),
     do: Map.drop(base, ["registry_schema", "registry_sha256", "surface_sha256"])
