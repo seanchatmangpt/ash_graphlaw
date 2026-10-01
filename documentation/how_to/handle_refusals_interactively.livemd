@@ -200,6 +200,21 @@ case AshGraphLaw.Pool.info() do
 end
 ```
 
+Now cross the real engine boundary: start the pool and ask it again. With the engine vendored
+(`mix ash_graphlaw.vendor`) the pool answers; without it the refusal stays typed.
+
+```elixir
+case AshGraphLaw.Pool.start_link(size: 1) do
+  {:ok, _pool} -> :started
+  {:error, {:already_started, _pool}} -> :already_running
+end
+
+case AshGraphLaw.Pool.info() do
+  {:error, refusal} -> {refusal.code, refusal.class}
+  {:ok, info} -> {:pool_live, Map.keys(info)}
+end
+```
+
 ## Handling policy
 
 Match on `class`, not on message text:

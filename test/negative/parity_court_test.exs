@@ -24,7 +24,7 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
   defp run_variant(variant, extra \\ []) do
     dir = ParityFixtures.scratch_dir!("negative")
     path = ParityFixtures.write_engine!(variant, dir)
-    Parity.run([wasm_path: path, examples: false] ++ extra)
+    Parity.run(Keyword.merge([wasm_path: path, examples: false], extra))
   end
 
   defp status(report, id), do: report["checks"] |> Enum.find(&(&1["id"] == id)) |> Map.fetch!("status")

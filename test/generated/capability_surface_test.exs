@@ -196,6 +196,7 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
         assert function_exported?(module, :decode, 1)
         assert function_exported?(module, :run, 2)
         assert function_exported?(module, :fields, 1)
+        assert Code.ensure_loaded?(API), "#{API} is not loaded"
         assert function_exported?(API, function, 2)
         assert function_exported?(API, :"#{function}!", 2)
       end

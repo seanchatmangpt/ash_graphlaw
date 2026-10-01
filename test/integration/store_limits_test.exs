@@ -49,10 +49,16 @@ defmodule AshGraphLaw.Integration.StoreLimitsTest do
       assert limits.table_elements == 512
     end
 
-    test "non-positive and non-integer limits are ignored, never applied as zero" do
+    test "zero is a real bound for the store counts, ignored for memory_limit_bytes" do
+      limits = WasmConfig.limits(memories: 0, instances: 0, tables: 0, table_elements: 0, memory_limit_bytes: 0)
+      assert {limits.memories, limits.instances, limits.tables, limits.table_elements} == {0, 0, 0, 0}
+      assert limits.memory_limit_bytes == WasmConfig.limits([]).memory_limit_bytes
+    end
+
+    test "negative and non-integer limits are ignored, never applied" do
       defaults = WasmConfig.limits([])
 
-      for bad <- [0, -1, "4", nil, 1.5] do
+      for bad <- [-1, "4", nil, 1.5] do
         limits = WasmConfig.limits(memories: bad, instances: bad, tables: bad, table_elements: bad, memory_limit_bytes: bad)
         assert limits.memories == defaults.memories
         assert limits.instances == defaults.instances

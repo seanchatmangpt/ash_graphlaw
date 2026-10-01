@@ -102,16 +102,12 @@ defmodule Mix.Tasks.AshGraphlaw.InstallTest do
   end
 
   describe "with --target" do
-    # UNSUPPORTED(generator-capability): the pack's install.ex.tmpl (ash-extension-pack@caa4fe61,
-    # `add_extension/1`) inserts the bare text `extensions: [AshGraphLaw.Resource]` with
-    # Igniter.Code.Common.add_code/3, which parses it as a statement, and `extensions: [...]` is
-    # not one. Observed: Sourceror raises SyntaxError. This characterization test pins the real
-    # behavior with its exact error; when the pack is fixed it fails and must be replaced by
-    # patch assertions (extension present, exactly one `graphlaw do`, dep and formatter wiring).
-    test "pack defect: patching a target raises a SyntaxError from the generated add_extension/1" do
-      assert_raise SyntaxError, ~r/syntax error before: extensions/, fn ->
-        Igniter.compose_task(target_project(), "ash_graphlaw.install", ["--target", "MyApp.Ticket"])
-      end
+    test "patching a target adds the extension and yields valid Elixir" do
+      igniter = Igniter.compose_task(target_project(), "ash_graphlaw.install", ["--target", "MyApp.Ticket"])
+      source = source_content(igniter, @path)
+
+      assert source =~ "extensions: [AshGraphLaw.Resource]"
+      assert {:ok, _} = Code.string_to_quoted(source)
     end
 
     test "positive control for the characterization: the same project without --target succeeds" do

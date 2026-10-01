@@ -37,17 +37,12 @@ defmodule Mix.Tasks.AshGraphlaw.InstallNegativeTest do
     )
   end
 
-  # UNSUPPORTED(generator-capability): a KNOWN target does not patch either; the pack's
-  # add_extension/1 raises SyntaxError (see ash_graphlaw_install_test.exs). The positive control
-  # for the unknown-target refusals below is therefore that the known target reaches the patch
-  # step and fails there, with a different error than "Could not find module".
+  # Positive control for the unknown-target refusals below: the known target is found and patched.
   test "positive control: a known target is found (it reaches the patch step), unlike a missing one" do
-    error =
-      assert_raise SyntaxError, fn ->
-        Igniter.compose_task(project(), "ash_graphlaw.install", ["--target", "MyApp.Ticket"])
-      end
+    igniter = Igniter.compose_task(project(), "ash_graphlaw.install", ["--target", "MyApp.Ticket"])
+    source = igniter.rewrite |> Rewrite.source!(@path) |> Rewrite.Source.get(:content)
 
-    refute Exception.message(error) =~ "Could not find module"
+    assert source =~ "AshGraphLaw.Resource"
   end
 
   test "an unknown --target module is refused with a clear error, not silently ignored" do

@@ -57,8 +57,9 @@ defmodule AshGraphLaw.WasmConfig do
   ## Options
 
   Every function taking `opts` reads `:wasm_path`, `:expected_sha256` and the
-  limit keys named in `t:limits/0` (plus `:fuel`). Non-positive or non-integer
-  limit values are ignored and the next source (application config, then the
+  limit keys named in `t:limits/0` (plus `:fuel`). Negative or non-integer
+  limit values (and zero for every limit except the store counts `:table_elements`, `:instances`,
+  `:tables`, `:memories`, where zero is a real bound) are ignored and the next source (application config, then the
   default) is used.
 
   ## Telemetry
@@ -242,8 +243,14 @@ defmodule AshGraphLaw.WasmConfig do
 
   defp limit(opts, key, default) do
     [Keyword.get(opts, key), Application.get_env(:ash_graphlaw, key)]
-    |> Enum.find(default, &(is_integer(&1) and &1 > 0))
+    |> Enum.find(default, &(is_integer(&1) and &1 >= min_limit(key)))
   end
+
+  # Store count limits treat 0 as a real bound ("none allowed", refused at instantiation);
+  # every other limit must be positive, so 0 there is ignored.
+  @zero_ok [:table_elements, :instances, :tables, :memories]
+  defp min_limit(key) when key in @zero_ok, do: 0
+  defp min_limit(_key), do: 1
 
   defp read_manifest(path) do
     case File.read(path) do

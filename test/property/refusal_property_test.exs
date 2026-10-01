@@ -111,7 +111,7 @@ defmodule AshGraphLaw.Property.RefusalTest do
             ) do
         refusal = Refusal.from_engine(term)
         assert refusal.code == :engine_unclassified
-        assert refusal.details["raw"] == inspect(term)
+        assert refusal.details["raw"] == inspect(term, limit: 20, printable_limit: 256)
       end
     end
 

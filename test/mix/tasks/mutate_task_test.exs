@@ -110,7 +110,7 @@ defmodule Mix.Tasks.AshGraphlaw.MutateTaskTest do
         assert v["code"] == "mutation_killers_missing"
         assert v["killers"] == Catalog.killers()
         assert v["killer_files"] == []
-        assert v["target"] =~ ~r/^AshGraphLaw\.\S+\.\w+\/\d+$/
+        assert v["target"] =~ ~r/^AshGraphLaw\.\S+\.\w+[?!]?\/\d+$/
       end
     end
 

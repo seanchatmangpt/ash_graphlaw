@@ -226,12 +226,29 @@ defmodule AshGraphLaw.Change.Admit do
          digest = sha256(data.text),
          {:ok, steps} <- law_steps(changeset, admission),
          engine_opts = Authority.engine_opts(resource, lease, opts),
-         {:ok, admitted} <- AshGraphLaw.law(data, steps, engine_opts) do
+         {:ok, admitted} <- law_or_lease_refusal(data, steps, engine_opts, lease) do
       {:ok,
        Evidence.new(name, admitted, digest,
          wasm_sha256: AshGraphLaw.engine_sha256(engine_opts),
          lease: Authority.identity(lease)
        )}
+    end
+  end
+
+  # The engine reports a structurally malformed attestation (truncated or non-hex signature, wrong
+  # field length) as a generic `Unsupported` refusal whose message names the `attestation` field.
+  # When a signed lease was presented that is a forged/invalid lease: an authority refusal.
+  defp law_or_lease_refusal(data, steps, engine_opts, lease) do
+    case AshGraphLaw.law(data, steps, engine_opts) do
+      {:error, %Refusal{code: :engine_refused, message: "`attestation`:" <> _ = message} = refusal} ->
+        if Authority.claim(lease).signed_lease do
+          {:error, Refusal.lease_refused(message, %{"engine_code" => "engine_refused", "kind" => refusal.kind})}
+        else
+          {:error, refusal}
+        end
+
+      other ->
+        other
     end
   end
 

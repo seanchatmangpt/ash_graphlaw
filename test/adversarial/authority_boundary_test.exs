@@ -146,7 +146,8 @@ defmodule AshGraphLaw.Adversarial.AuthorityBoundaryTest do
                  :digest,
                  :wasm_sha256,
                  :graphlaw_release,
-                 :lease
+                 :lease,
+                 :origin
                ])
 
       keys = ev |> Evidence.to_map() |> Map.keys()

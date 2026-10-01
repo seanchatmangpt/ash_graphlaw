@@ -72,7 +72,9 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
   end
 
   test "Hooks step fires the self-monitoring hook through the real engine" do
-    server = start_host!([])
+    # The self-monitoring hook pack exhausts the default per-request budget (5s * 1M fuel/ms) of
+    # the pinned engine. Give this host a 60s deadline; fuel derives as timeout_ms * fuel_per_ms.
+    server = start_host!(timeout_ms: 60_000)
     pack = fixture!("packs/self-monitoring-pack/hook.ttl")
     data = fixture!("packs/self-monitoring-pack/fixtures/session-real-broad-topic.ttl")
 

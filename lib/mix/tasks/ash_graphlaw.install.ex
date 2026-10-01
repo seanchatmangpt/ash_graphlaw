@@ -49,36 +49,35 @@ if Code.ensure_loaded?(Igniter) do
         target ->
           target_module = Igniter.Project.Module.parse(target)
 
-          Igniter.Project.Module.find_and_update_module!(base, target_module, fn zipper ->
-            zipper
-            |> add_extension()
-            |> add_starter_dsl_block()
-          end)
+          base
+          |> Spark.Igniter.add_extension(target_module, Ash.Resource, :extensions, AshGraphLaw.Resource)
+          |> Igniter.Project.Module.find_and_update_module!(target_module, &add_starter_dsl_block/1)
       end
-    end
-
-    # Inserts `extensions: [AshGraphLaw.Resource]` after the target module's `use
-    # Ash.Resource` call. This is a single unconditional
-    # insert, not a detect-or-append merge -- it does not check whether an `extensions:`
-    # option already exists on that `use` call, so running install against a module that
-    # already has one will add a second `extensions:` option rather than merging into the
-    # first. Fine for the common case (patching a plain `use Ash.*` with no options yet);
-    # a real detect-and-merge is a follow-up, not implemented here.
-    defp add_extension(zipper) do
-      Igniter.Code.Common.add_code(zipper, "extensions: [AshGraphLaw.Resource]", placement: :after)
     end
 
     # Adds a minimal, real starter block for the primary section so the target module
     # compiles immediately after install rather than needing hand-authored DSL content.
+    # Skipped when a `graphlaw` block already exists, so a second run is a no-op.
     defp add_starter_dsl_block(zipper) do
-      Igniter.Code.Common.add_code(
-        zipper,
-        """
-        graphlaw do
-        end
-        """,
-        placement: :after
-      )
+      already? =
+        zipper
+        |> Sourceror.Zipper.node()
+        |> Sourceror.to_string()
+        |> String.contains?("graphlaw do")
+
+      if already? do
+        {:ok, zipper}
+      else
+        {:ok,
+         Igniter.Code.Common.add_code(
+           zipper,
+           """
+           graphlaw do
+           end
+           """,
+           placement: :after
+         )}
+      end
     end
   end
 else

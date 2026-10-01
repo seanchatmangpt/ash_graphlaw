@@ -29,12 +29,17 @@ defmodule AshGraphLaw.Property.WasmConfigTest do
     end
   end
 
+  @store_count_keys [:table_elements, :instances, :tables, :memories]
+
   describe "WasmConfig.limits/1" do
-    property "over random options every limit is a positive integer" do
+    property "over random options every limit is a positive integer (store counts may be zero)" do
       check all(opts <- limit_opts(), max_runs: max_runs()) do
         limits = WasmConfig.limits(opts)
         assert Map.keys(limits) |> Enum.sort() == Enum.sort(limit_keys())
-        assert Enum.all?(limits, fn {_k, v} -> is_integer(v) and v > 0 end)
+
+        assert Enum.all?(limits, fn {k, v} ->
+                 is_integer(v) and if(k in @store_count_keys, do: v >= 0, else: v > 0)
+               end)
       end
     end
 
