@@ -29,7 +29,18 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
       function: :capabilities,
       result: AshGraphLaw.Result.Capabilities,
       tag_field: nil,
-      keys: [:abi, :abi_version, :crate, :authorities, :rdf_dialects, :other_dialects, :ops, :registry_schema, :registry_sha256, :surface_sha256],
+      keys: [
+        :abi,
+        :abi_version,
+        :crate,
+        :authorities,
+        :rdf_dialects,
+        :other_dialects,
+        :ops,
+        :registry_schema,
+        :registry_sha256,
+        :surface_sha256
+      ],
       required: [],
       args: []
     },

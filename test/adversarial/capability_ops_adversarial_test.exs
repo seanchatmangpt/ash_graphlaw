@@ -41,7 +41,7 @@ defmodule AshGraphLaw.Adversarial.CapabilityOpsAdversarialTest do
     end
 
     test "positive control: a 1 MiB comment-padded document is parsed", %{opts: opts} do
-      text = sample_turtle() <> "\n" <> String.duplicate("# padding padding padding\n", @mib(div(26)))
+      text = sample_turtle() <> "\n" <> String.duplicate("# padding padding padding\n", div(@mib, 26) + 1)
       assert byte_size(text) > @mib
       assert {:ok, %{quads: 4}} = API.parse(%{text: text, dialect: "turtle"}, opts)
     end

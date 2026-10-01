@@ -47,7 +47,12 @@ defmodule AshGraphLaw.RefusalTest do
     {:ceiling_unmet, :refused_authority},
     {:projection_failed, :refused_structure},
     {:law_module_failed, :refused_structure},
-    {:unsupported_step, :unsupported}
+    {:unsupported_step, :unsupported},
+    {:capability_not_declared, :refused_authority},
+    {:capability_parity_drift, :refused_identity},
+    {:capability_response_undecodable, :refused_structure},
+    {:invalid_capability_request, :refused_structure},
+    {:unknown_capability, :refused_structure}
   ]
 
   @classes [
@@ -70,12 +75,12 @@ defmodule AshGraphLaw.RefusalTest do
   ]
 
   describe "the closed code table" do
-    test "the contract table has exactly 35 codes" do
-      assert length(@table) == 35
-      assert @table |> Enum.map(&elem(&1, 0)) |> Enum.uniq() |> length() == 35
+    test "the contract table has exactly 40 codes" do
+      assert length(@table) == 40
+      assert @table |> Enum.map(&elem(&1, 0)) |> Enum.uniq() |> length() == 40
     end
 
-    test "codes/0 is exactly the contract's 35 codes, no more and no fewer" do
+    test "codes/0 is exactly the contract's 40 codes, no more and no fewer" do
       assert Refusal.codes() |> Enum.sort() == @table |> Enum.map(&elem(&1, 0)) |> Enum.sort()
     end
 

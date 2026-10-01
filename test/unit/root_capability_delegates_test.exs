@@ -65,7 +65,7 @@ defmodule AshGraphLaw.RootCapabilityDelegatesTest do
 
     assert is_binary(dialect)
 
-    assert {:ok, %{"ok" => true, "abi_version" => 1, "ops" => ops}} =
+    assert {:ok, %{"ok" => true, "abi" => 1, "ops" => ops}} =
              AshGraphLaw.capabilities(server: server)
 
     assert "parse" in ops and "law" in ops

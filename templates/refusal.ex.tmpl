@@ -111,7 +111,9 @@ defmodule AshGraphLaw.Refusal do
     "PolicyRefused" => :policy_refused,
     # Real engine codes (graphlaw src/abi.rs) that are refusals of the same two families.
     "ReceiptRefused" => :receipt_required,
-    "UnverifiedLeaseRefused" => :lease_refused
+    "UnverifiedLeaseRefused" => :lease_refused,
+    # Generic engine refusal; the engine kind is carried separately in `details.kind`.
+    "Refused" => :engine_refused
   }
 
   # Engine `RefusalKind` variants (graphlaw src/dialect.rs). The engine reports a generic refusal

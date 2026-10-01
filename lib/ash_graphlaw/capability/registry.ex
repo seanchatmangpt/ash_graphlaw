@@ -96,8 +96,7 @@ defmodule AshGraphLaw.Capability.Registry do
       name: "capabilities",
       order: 1,
       summary: "Report ABI version, crate version, semantic authorities, dialects, ops and registry digests.",
-      request: [
-      ],
+      request: [],
       responses: [
         %{
           tag: nil,
@@ -1133,7 +1132,16 @@ defmodule AshGraphLaw.Capability.Registry do
         }
       ],
       refusal_kinds: ["Ambiguous", "EngineRejected", "NotSemanticContent", "ResourceLimit", "Unsupported"],
-      refusal_codes: ["LeaseRefused", "NotAdmitted", "PlanRefused", "ReceiptRefused", "ReceiptRequired", "Refused", "ResourceLimit", "UnverifiedLeaseRefused"]
+      refusal_codes: [
+        "LeaseRefused",
+        "NotAdmitted",
+        "PlanRefused",
+        "ReceiptRefused",
+        "ReceiptRequired",
+        "Refused",
+        "ResourceLimit",
+        "UnverifiedLeaseRefused"
+      ]
     },
     %{
       name: "policy",
@@ -1372,15 +1380,13 @@ defmodule AshGraphLaw.Capability.Registry do
       name: "rdfs",
       order: 3,
       ceiling: "construct",
-      fields: [
-      ]
+      fields: []
     },
     %{
       name: "owl-rl",
       order: 4,
       ceiling: "construct",
-      fields: [
-      ]
+      fields: []
     },
     %{
       name: "hooks",
@@ -1420,8 +1426,7 @@ defmodule AshGraphLaw.Capability.Registry do
       name: "record-receipts",
       order: 7,
       ceiling: nil,
-      fields: [
-      ]
+      fields: []
     },
     %{
       name: "require-receipt",
@@ -1673,8 +1678,7 @@ defmodule AshGraphLaw.Capability.Registry do
       code: "UnverifiedLeaseRefused",
       order: 8,
       kind: "Unsupported",
-      fields: [
-      ]
+      fields: []
     },
     %{
       code: "PolicyRefused",
@@ -1729,8 +1733,8 @@ defmodule AshGraphLaw.Capability.Registry do
     max_atoms_per_field: 10000,
     max_json_depth: 64,
     max_plan_actions: 1000,
-    max_policy_entries: 100000,
-    max_request_bytes: 16777216,
+    max_policy_entries: 100_000,
+    max_request_bytes: 16_777_216,
     n3_max_iterations: 4000
   }
 

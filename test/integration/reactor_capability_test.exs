@@ -21,15 +21,22 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
 
     input(:pack)
     input(:data)
-    input(:server)
 
     step :fire, AshGraphLaw.Reactor.Hooks do
       argument :pack, input(:pack)
       argument :data, input(:data)
-      options(server: input(:server))
     end
 
     return :fire
+  end
+
+  defmodule SniffStep do
+    @moduledoc false
+    use Reactor.Step
+
+    @impl true
+    def run(arguments, context, _options),
+      do: AshGraphLaw.Reactor.Capability.run(arguments, context, op: "sniff")
   end
 
   defmodule SniffReactor do
@@ -37,15 +44,15 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
     use Reactor
 
     input(:text)
-    input(:server)
 
-    step :sniff, AshGraphLaw.Reactor.Capability do
+    step :sniff, AshGraphLaw.Integration.ReactorCapabilityTest.SniffStep do
       argument :text, input(:text)
-      options(op: "sniff")
     end
 
     return :sniff
   end
+
+  defp server_context(server), do: %{private: %{ash_graphlaw_opts: [server: server]}}
 
   defp repo_root, do: System.get_env("GRAPHLAW_REPO") || Path.expand("~/graphlaw")
 
@@ -70,7 +77,7 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
     data = fixture!("packs/self-monitoring-pack/fixtures/session-real-broad-topic.ttl")
 
     assert {:ok, %AshGraphLaw.Result.Hooks{firings: firings, quads: quads}} =
-             Reactor.run(HooksReactor, %{pack: pack, data: data, server: server})
+             Reactor.run(HooksReactor, %{pack: pack, data: data}, server_context(server))
 
     assert is_list(firings) and length(firings) == 3
     assert is_integer(quads) and quads > 0
@@ -80,7 +87,7 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
     server = start_host!([])
     bad = %{"text" => "this is not turtle {{{", "dialect" => "turtle"}
 
-    assert {:error, error} = Reactor.run(HooksReactor, %{pack: bad, data: bad, server: server})
+    assert {:error, error} = Reactor.run(HooksReactor, %{pack: bad, data: bad}, server_context(server))
     assert refusal_in(error)
   end
 
@@ -88,7 +95,7 @@ defmodule AshGraphLaw.Integration.ReactorCapabilityTest do
     server = start_host!([])
 
     assert {:ok, %AshGraphLaw.Result.Sniff{dialect: dialect}} =
-             Reactor.run(SniffReactor, %{text: "<urn:a> <urn:b> <urn:c> .", server: server})
+             Reactor.run(SniffReactor, %{text: "<urn:a> <urn:b> <urn:c> ."}, server_context(server))
 
     assert is_binary(dialect)
   end

@@ -56,12 +56,12 @@ defmodule AshGraphLaw.Standing do
 
   @typedoc "Closed standing vocabulary; never `:ALIVE` without an exact-SHA receipt."
   @type t ::
-          :UNKNOWN |
-          :PARTIAL_ALIVE |
-          :ALIVE |
-          :BLOCKED |
-          :BUILD_BROKEN |
-          :UNSUPPORTED
+          :UNKNOWN
+          | :PARTIAL_ALIVE
+          | :ALIVE
+          | :BLOCKED
+          | :BUILD_BROKEN
+          | :UNSUPPORTED
 
   for required <- [:UNKNOWN, :PARTIAL_ALIVE, :BLOCKED, :UNSUPPORTED] do
     unless required in @standings do
@@ -97,24 +97,35 @@ defmodule AshGraphLaw.Standing do
       true
   """
   @spec describe(t()) :: String.t()
-  def describe(:UNKNOWN), do: ~S"""
-No observation binds this subject yet; not admitted, not refused.
-"""
-  def describe(:PARTIAL_ALIVE), do: ~S"""
-Admission was observed on the exact input digest; the consequence was not executed.
-"""
-  def describe(:ALIVE), do: ~S"""
-The exact admitted subject was observed executing. This library never assigns it from admission alone.
-"""
-  def describe(:BLOCKED), do: ~S"""
-A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided.
-"""
-  def describe(:BUILD_BROKEN), do: ~S"""
-The subject does not build, so no admission can be observed on it.
-"""
-  def describe(:UNSUPPORTED), do: ~S"""
-The requested step or engine variant is outside what this library version supports.
-"""
+  def describe(:UNKNOWN),
+    do: ~S"""
+    No observation binds this subject yet; not admitted, not refused.
+    """
+
+  def describe(:PARTIAL_ALIVE),
+    do: ~S"""
+    Admission was observed on the exact input digest; the consequence was not executed.
+    """
+
+  def describe(:ALIVE),
+    do: ~S"""
+    The exact admitted subject was observed executing. This library never assigns it from admission alone.
+    """
+
+  def describe(:BLOCKED),
+    do: ~S"""
+    A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided.
+    """
+
+  def describe(:BUILD_BROKEN),
+    do: ~S"""
+    The subject does not build, so no admission can be observed on it.
+    """
+
+  def describe(:UNSUPPORTED),
+    do: ~S"""
+    The requested step or engine variant is outside what this library version supports.
+    """
 
   @doc """
   Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`.
