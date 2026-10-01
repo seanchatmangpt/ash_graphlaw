@@ -143,9 +143,8 @@ defmodule AshGraphLaw.Adversarial.ConcurrencyTest do
 
     for r <- bad do
       assert {:error, error} = r
-      # The pinned engine reports a SHACL violation as `EngineRejected` with no code, which the
-      # library projects as :engine_refused (see documentation/reference/abi_reference.md).
-      assert AshGraphLaw.Error.codes(error) == [:engine_refused]
+      # The engine reports a SHACL violation as `NotAdmitted`, projected as :not_admitted.
+      assert AshGraphLaw.Error.codes(error) == [:not_admitted]
     end
   end
 

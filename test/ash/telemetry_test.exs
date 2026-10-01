@@ -48,7 +48,7 @@ defmodule AshGraphLaw.Ash.TelemetryTest do
     assert {:error, _} = create(%{})
 
     assert_receive {:telemetry, [:ash_graphlaw, :admission, :stop], %{duration: _},
-                    %{admission: :ticket_shape, outcome: :refused, code: :engine_refused, standing: standing}}
+                    %{admission: :ticket_shape, outcome: :refused, code: :not_admitted, standing: standing}}
 
     assert standing == :UNKNOWN
     refute standing == :ALIVE

@@ -125,7 +125,7 @@ defmodule AshGraphLaw.RootApiTest do
 
     test "abi_version/0 and graphlaw_release/0 are the pinned identity" do
       assert AshGraphLaw.abi_version() == 1
-      assert AshGraphLaw.graphlaw_release() == "26.9.28"
+      assert AshGraphLaw.graphlaw_release() == "26.9.29"
     end
   end
 end

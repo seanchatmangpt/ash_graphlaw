@@ -210,7 +210,7 @@ defmodule AshGraphLaw.Adversarial.AuthorityBoundaryTest do
         |> Ash.create()
 
       assert {:error, error} = result
-      assert AshGraphLaw.Error.codes(error) == [:engine_refused]
+      assert AshGraphLaw.Error.codes(error) == [:not_admitted]
       refute_received {:unexpected, _}
 
       for refusal <- AshGraphLaw.Error.refusals(error) do

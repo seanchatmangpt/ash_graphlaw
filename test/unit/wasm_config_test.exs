@@ -10,7 +10,7 @@ defmodule AshGraphLaw.WasmConfigTest do
   alias AshGraphLaw.WasmConfig
 
   # The pin is read from the shipped manifest; one literal control (below) guards the manifest itself.
-  @literal_pin "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645"
+  @literal_pin "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0"
   @pin "priv/graphlaw/MANIFEST.json" |> File.read!() |> Jason.decode!() |> get_in(["artifact", "sha256"])
   @env "GRAPHLAW_WASM_PATH"
 
@@ -46,7 +46,7 @@ defmodule AshGraphLaw.WasmConfigTest do
 
   @vendored Application.app_dir(:ash_graphlaw, "priv/graphlaw/graphlaw.wasm")
 
-  test "literal-pin control: the manifest pin is the GraphLaw v26.9.28 release asset digest" do
+  test "literal-pin control: the manifest pin is the GraphLaw v26.9.29 release asset digest" do
     assert @pin == @literal_pin
     assert WasmConfig.pinned_sha256() == @literal_pin
   end
@@ -84,7 +84,7 @@ defmodule AshGraphLaw.WasmConfigTest do
   end
 
   describe "pinned_sha256/0" do
-    test "is the GraphLaw v26.9.28 release asset digest" do
+    test "is the GraphLaw v26.9.29 release asset digest" do
       assert WasmConfig.pinned_sha256() == @pin
     end
 

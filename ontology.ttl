@@ -82,17 +82,17 @@ glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "co
 
 glx:AshGraphLawProject a glx:Project ;
     glx:packageVersion "26.9.29" ;
-    glx:graphLawVersion "26.9.28" ;
-    glx:engineReleaseTag "v26.9.28" ;
+    glx:graphLawVersion "26.9.29" ;
+    glx:engineReleaseTag "v26.9.29" ;
     glx:maintainer "Sean Chatman" ;
     glx:repositoryUrl "https://github.com/seanchatmangpt/ash_graphlaw" ;
     glx:docsUrl "https://hexdocs.pm/ash_graphlaw" ;
     glx:dateReleased "2026-09-29" ;
     glx:coverageThreshold 80 ;
     glx:abiVersion 1 ;
-    glx:wasmSha256 "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645" ;
+    glx:wasmSha256 "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0" ;
     glx:wasmAsset "graphlaw.wasm" ;
-    glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.28/graphlaw.wasm" ;
+    glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.29/graphlaw.wasm" ;
     glx:marketplaceSha "bd8e15d4b69c401ab65b290d7f180cef43c66f87" ;
     glx:registryFile "priv/graphlaw/capability-registry.json" ;
     glx:registrySha256 "sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16" ;
@@ -741,7 +741,7 @@ glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.
 glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
 glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
 glx:BindingSa2AManifestJsonPackage a glx:VersionBinding ; glx:bindingPath ".sa2a/manifest.json" ; glx:bindingKind "package" ; glx:bindingValue "26.9.29" .
-glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.9.28" .
+glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.9.29" .
 
 #################################################################
 # Vendored GraphLaw capability registry (generated; scripts/import_registry.sh)

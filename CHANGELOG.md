@@ -54,8 +54,13 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Engine pin
 
-- The engine pin is unchanged at v26.9.28. Parity against that pin may legitimately report drift
-  until the pin is bumped to a v26.9.29 release asset; the drift is reported, never masked.
+- The engine pin moves to GraphLaw `v26.9.29` (ABI version 1), `graphlaw.wasm` SHA-256
+  `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`, a published release asset
+  (`ontology.ttl` is the source; `priv/graphlaw/MANIFEST.json` and `lib/ash_graphlaw.ex` carry it).
+  The engine now implements the `plan`, `require-receipt` and signed-lease steps, reports a SHACL
+  violation as `NotAdmitted` (`:not_admitted`) and reports a depth/size cap as `ResourceLimit`
+  (`:resource_limit`, `details.limit` names the cap: `json_depth`, `plan_total_atoms`,
+  `n3_derived_facts`, ...). The tests that pinned the old engine's gaps now assert the new behavior.
 
 ### Changed (authority)
 

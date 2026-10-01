@@ -28,8 +28,8 @@ defmodule AshGraphLaw.EngineLoadTest do
                ~w(gl_alloc gl_call gl_free memory)
     end
 
-    test "the pin is the GraphLaw v26.9.28 release asset digest (literal control)" do
-      assert EngineLoad.pinned_sha256() == "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645"
+    test "the pin is the GraphLaw v26.9.29 release asset digest (literal control)" do
+      assert EngineLoad.pinned_sha256() == "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0"
     end
 
     test "the pin equals the sha256 recorded in the shipped MANIFEST.json" do

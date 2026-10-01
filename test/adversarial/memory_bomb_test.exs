@@ -90,18 +90,17 @@ defmodule AshGraphLaw.Adversarial.MemoryBombTest do
       assert_still_serving(host)
     end
 
-    test "JSON nested beyond the engine depth limit is refused by the engine as a typed Unsupported refusal", %{
+    test "JSON nested beyond the engine depth limit is refused by the engine as a typed :resource_limit", %{
       host: host
     } do
       # control: shallow nesting is served
       assert {:ok, %{"ok" => true}} = Host.request(host, %{"op" => "capabilities", "junk" => deep(8)})
 
-      # The pinned v26.9.28 engine reports excessive depth as kind Unsupported ("request is not
-      # JSON: recursion limit exceeded"), not as a :resource_limit code.
-      assert {:error, %Refusal{code: :engine_refused, class: :refused_structure, kind: "Unsupported"} = refusal} =
+      # The engine names the cap: `ResourceLimit` with `limit: json_depth`.
+      assert {:error, %Refusal{code: :resource_limit, class: :blocked_resource, kind: "ResourceLimit"} = refusal} =
                AshGraphLaw.call(%{"op" => "capabilities", "junk" => deep(200)}, server: host)
 
-      assert refusal.message =~ "recursion limit exceeded"
+      assert refusal.details["limit"] == "json_depth"
       assert_still_serving(host)
     end
 

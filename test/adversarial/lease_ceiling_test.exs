@@ -184,12 +184,10 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
       assert_ceiling_refused(open(signed(:select)), :construct)
     end
 
-    test "UNSUPPORTED(engine-capability): a sufficient signed :select lease reaches the engine, which refuses the plan step; :observe never does" do
-      # v26.9.28 has no `plan` step, so the close plan cannot be admitted. The :select lease
-      # passes the ceiling (no :ceiling_unmet), the engine is called, and it refuses typed.
-      assert {:error, error} = close(signed(:select), "closed probe")
-      assert Error.codes(error) == [:engine_refused]
-      assert [%{kind: "Unsupported"}] = Error.refusals(error)
+    test "a sufficient signed :select lease passes the ceiling and the engine admits the close plan; :observe never does" do
+      # The :select lease passes the ceiling (no :ceiling_unmet), the engine is called, and the
+      # close plan is admitted.
+      assert {:ok, _} = close(signed(:select), "closed probe")
       assert_receive {:telemetry, @host_event, _, _}
       flush_telemetry()
 

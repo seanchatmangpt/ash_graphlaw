@@ -14,7 +14,7 @@ defmodule AshGraphLaw.ABITest do
   @limit 16 * 1024 * 1024
 
   describe "version/0" do
-    test "is ABI 1 (the GraphLaw v26.9.28 wasm ABI)" do
+    test "is ABI 1 (the GraphLaw v26.9.29 wasm ABI)" do
       assert ABI.version() == 1
     end
   end

@@ -8,7 +8,7 @@ defmodule AshGraphLaw.EvidenceTest do
   alias AshGraphLaw.Admitted
   alias AshGraphLaw.Evidence
 
-  @wasm_sha "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645"
+  @wasm_sha "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0"
   @input_digest String.duplicate("ab", 32)
 
   defp admitted(extra \\ %{}) do
@@ -35,7 +35,7 @@ defmodule AshGraphLaw.EvidenceTest do
   end
 
   defp evidence(overrides \\ []) do
-    opts = Keyword.merge([wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.28"], overrides)
+    opts = Keyword.merge([wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.29"], overrides)
     Evidence.new(:ticket_shape, admitted(), @input_digest, opts)
   end
 
@@ -45,7 +45,7 @@ defmodule AshGraphLaw.EvidenceTest do
 
       assert %Evidence{admission: :ticket_shape, input_digest: @input_digest} = ev
       assert ev.wasm_sha256 == @wasm_sha
-      assert ev.graphlaw_release == "v26.9.28"
+      assert ev.graphlaw_release == "v26.9.29"
       assert ev.standing == :PARTIAL_ALIVE
       refute ev.standing == :ALIVE
       assert ev.digest =~ ~r/\A[0-9a-f]{64}\z/
@@ -79,7 +79,7 @@ defmodule AshGraphLaw.EvidenceTest do
       b =
         Evidence.new(:ticket_shape, admitted(), String.duplicate("cd", 32),
           wasm_sha256: @wasm_sha,
-          graphlaw_release: "v26.9.28"
+          graphlaw_release: "v26.9.29"
         )
 
       refute Evidence.digest(a) == Evidence.digest(b)
@@ -91,7 +91,7 @@ defmodule AshGraphLaw.EvidenceTest do
 
     test "changing the admission name changes the digest" do
       other =
-        Evidence.new(:ticket_close, admitted(), @input_digest, wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.28")
+        Evidence.new(:ticket_close, admitted(), @input_digest, wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.29")
 
       refute Evidence.digest(evidence()) == Evidence.digest(other)
     end
@@ -122,7 +122,7 @@ defmodule AshGraphLaw.EvidenceTest do
       assert map["admission"] in [:ticket_shape, "ticket_shape"]
       assert map["input_digest"] == @input_digest
       assert map["wasm_sha256"] == @wasm_sha
-      assert map["graphlaw_release"] == "v26.9.28"
+      assert map["graphlaw_release"] == "v26.9.29"
       assert map["standing"] in [:PARTIAL_ALIVE, "PARTIAL_ALIVE"]
     end
 

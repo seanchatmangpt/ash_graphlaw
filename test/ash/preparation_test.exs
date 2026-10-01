@@ -96,14 +96,14 @@ defmodule AshGraphLaw.Ash.PreparationTest do
       assert {:ok, true} = Note |> Ash.ActionInput.for_action(:check, %{title: "ok"}) |> Ash.run_action()
     end
 
-    test "a violating input is refused by the engine (:engine_refused) and the action does not run" do
+    test "a violating input is refused by the engine (:not_admitted) and the action does not run" do
       assert {:ok, true} = Note |> Ash.ActionInput.for_action(:check, %{title: "control"}) |> Ash.run_action()
 
       input = Ash.ActionInput.for_action(Note, :check, %{})
       refute input.valid?
-      assert Error.codes(input.errors) == [:engine_refused]
+      assert Error.codes(input.errors) == [:not_admitted]
       assert {:error, error} = Ash.run_action(input)
-      assert Error.codes(error) == [:engine_refused]
+      assert Error.codes(error) == [:not_admitted]
     end
   end
 
@@ -114,15 +114,15 @@ defmodule AshGraphLaw.Ash.PreparationTest do
       assert [%{title: "seed"}] = Ash.read!(query)
     end
 
-    test "a violating query is refused by the engine (:engine_refused) and returns no records" do
+    test "a violating query is refused by the engine (:not_admitted) and returns no records" do
       control = Ash.Query.for_read(Note, :checked, %{}, context: %{title: "ok"})
       assert [_] = Ash.read!(control)
 
       query = Ash.Query.for_read(Note, :checked, %{})
       refute query.valid?
-      assert Error.codes(query.errors) == [:engine_refused]
+      assert Error.codes(query.errors) == [:not_admitted]
       assert {:error, error} = Ash.read(query)
-      assert Error.codes(error) == [:engine_refused]
+      assert Error.codes(error) == [:not_admitted]
     end
   end
 end

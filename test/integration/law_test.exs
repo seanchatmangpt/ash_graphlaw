@@ -71,56 +71,49 @@ defmodule AshGraphLaw.Integration.LawTest do
     refute Standing.of(result) == :ALIVE
   end
 
-  test "SHACL violating data is refused by the engine as a typed structural refusal (standing UNKNOWN)", %{server: s} do
+  test "SHACL violating data is refused by the engine as :not_admitted (standing UNKNOWN)", %{server: s} do
     # positive control: conformant data passes the same shapes
     assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(@good), [shacl_step()], server: s)
 
     data = %{"text" => @two_bad, "dialect" => "turtle"}
 
-    # The pinned v26.9.28 engine reports a SHACL violation as kind `EngineRejected` with no
-    # engine code, so the library projects :engine_refused / :refused_structure (not :not_admitted).
-    assert {:error, %Refusal{code: :engine_refused, class: :refused_structure, kind: "EngineRejected"} = r} =
+    # The engine reports a SHACL violation as `NotAdmitted`, projected :not_admitted / :refused_admission.
+    assert {:error, %Refusal{code: :not_admitted, class: :refused_admission, kind: "EngineRejected"} = r} =
              AshGraphLaw.law(data, [shacl_step()], server: s)
 
     assert Standing.of({:error, r}) == :UNKNOWN
   end
 
-  # UNSUPPORTED(engine-capability): graphlaw v26.9.28 has no `plan`, `require-receipt`,
-  # `require-signed-receipt` or `record-receipts` step (probed against the pinned wasm). These
-  # tests pin that fact as a typed Unsupported refusal; when the pin moves to an engine that
-  # implements them, restore the admitted / plan_refused / receipt_required assertions.
-  defp assert_step_unsupported(result, step) do
-    assert {:error, %Refusal{code: :engine_refused, class: :refused_structure, kind: "Unsupported"} = r} = result
-    assert r.message =~ "unknown step `#{step}`"
+  test "a feasible plan step is admitted and records a plan-action receipt", %{server: s} do
+    # positive control: the same data is admitted by a step the engine already implemented
+    assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(at("a")), [%{"step" => "rdfs"}], server: s)
+
+    assert {:ok, %Admitted{receipts: receipts}} =
+             AshGraphLaw.law(data_spec(at("a")), plan_steps("b"), server: s)
+
+    assert Enum.any?(receipts, &(&1.step == "plan-action"))
+  end
+
+  test "an unmet-precondition plan is refused as :plan_refused", %{server: s} do
+    # positive control: the feasible variant of the same plan is admitted
+    assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(at("a")), plan_steps("b"), server: s)
+
+    assert {:error, %Refusal{code: :plan_refused} = r} =
+             AshGraphLaw.law(data_spec(at("a")), plan_steps("z"), server: s)
+
     assert Standing.of({:error, r}) == :UNKNOWN
   end
 
-  test "UNSUPPORTED(engine-capability): a plan step is refused as an unknown step by the pinned engine", %{server: s} do
-    # positive control: the same data is admitted by a step the engine does implement
-    assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(at("a")), [%{"step" => "rdfs"}], server: s)
-
-    assert_step_unsupported(AshGraphLaw.law(data_spec(at("a")), plan_steps("b"), server: s), "plan")
-  end
-
-  test "UNSUPPORTED(engine-capability): an unmet-precondition plan is also refused as an unknown step", %{server: s} do
-    # positive control: a supported step admits the same data
-    assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(at("a")), [%{"step" => "rdfs"}], server: s)
-
-    # the engine never reaches precondition evaluation, so :plan_refused cannot be observed
-    result = AshGraphLaw.law(data_spec(at("a")), plan_steps("z"), server: s)
-    assert_step_unsupported(result, "plan")
-    assert {:error, %Refusal{code: code}} = result
-    refute code == :plan_refused
-  end
-
-  test "UNSUPPORTED(engine-capability): require-receipt is refused as an unknown step by the pinned engine", %{
-    server: s
-  } do
+  test "require-receipt without a recorded receipt is refused as :receipt_required", %{server: s} do
     # positive control: the same data passes a plain rdfs step
     assert {:ok, %Admitted{}} = AshGraphLaw.law(data_spec(at("a")), [%{"step" => "rdfs"}], server: s)
 
     steps = [%{"step" => "require-receipt", "step_name" => "derive:rdfs"}]
-    assert_step_unsupported(AshGraphLaw.law(data_spec(at("a")), steps, server: s), "require-receipt")
+
+    assert {:error, %Refusal{code: :receipt_required} = r} =
+             AshGraphLaw.law(data_spec(at("a")), steps, server: s)
+
+    assert Standing.of({:error, r}) == :UNKNOWN
   end
 
   @tag skip:

@@ -4,7 +4,7 @@
 
 defmodule AshGraphLaw do
   @moduledoc """
-  Ash/BEAM membrane over GraphLaw's WASI ABI 1 (release v26.9.28).
+  Ash/BEAM membrane over GraphLaw's WASI ABI 1 (release v26.9.29).
 
   GraphLaw derives and validates; it never authorizes. This library transports requests
   to the pinned `graphlaw.wasm` engine and projects the outcome as typed values:
@@ -32,7 +32,7 @@ defmodule AshGraphLaw do
   alias AshGraphLaw.{Admitted, Host, Pool, Refusal}
 
   @abi_version 1
-  @graphlaw_release "26.9.28"
+  @graphlaw_release "26.9.29"
   @auth_keys [:signed_lease, :trusted_keys, :max_skew_secs, :lease, :unverified_lease, :now_unix]
 
   @typedoc "Data payload: a bare text string or an engine data spec map (`text`, `dialect`)."

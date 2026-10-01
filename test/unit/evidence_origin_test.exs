@@ -10,12 +10,12 @@ defmodule AshGraphLaw.EvidenceOriginTest do
   alias AshGraphLaw.Projection.Default
   alias AshGraphLaw.Test.Ticket
 
-  @wasm_sha "30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645"
+  @wasm_sha "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0"
   @input_digest String.duplicate("ab", 32)
 
   # Digest and canonical JSON of the evidence below, computed from the pre-origin encoding
   # (independent oracle: sorted-key compact JSON hashed with SHA-256, before evidence.ex changed).
-  @pre_origin_digest "d3c181481fb1adc0fbe57740c57f6b9e3723df78e74e9ab63a0d34fec5f31a09"
+  @pre_origin_digest "ab7b02ed7eb302dc803273c423e17fbc3d5a076770f14a4af80cd34465598ba0"
 
   defp admitted do
     Admitted.from_map(%{
@@ -36,7 +36,7 @@ defmodule AshGraphLaw.EvidenceOriginTest do
   end
 
   defp evidence(extra \\ []) do
-    opts = Keyword.merge([wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.28"], extra)
+    opts = Keyword.merge([wasm_sha256: @wasm_sha, graphlaw_release: "v26.9.29"], extra)
     Evidence.new(:ticket_shape, admitted(), @input_digest, opts)
   end
 
@@ -58,7 +58,7 @@ defmodule AshGraphLaw.EvidenceOriginTest do
 
       assert map |> Map.delete("digest") |> Evidence.canonical_json() ==
                ~s({"admission":"ticket_shape","graph_ids":["state-0","state-1","state-1"],) <>
-                 ~s("graphlaw_release":"v26.9.28","input_digest":"#{@input_digest}","lease":null,) <>
+                 ~s("graphlaw_release":"v26.9.29","input_digest":"#{@input_digest}","lease":null,) <>
                  ~s("receipts":[{"added":0,"authority":"purrdf::shapes","child":"state-1","index":0,) <>
                  ~s("parent":"state-0","revision":"r1","step":"shacl"}],"standing":"PARTIAL_ALIVE",) <>
                  ~s("wasm_sha256":"#{@wasm_sha}"})
