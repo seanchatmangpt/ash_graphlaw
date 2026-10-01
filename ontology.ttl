@@ -93,7 +93,7 @@ glx:AshGraphLawProject a glx:Project ;
     glx:wasmSha256 "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0" ;
     glx:wasmAsset "graphlaw.wasm" ;
     glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.29/graphlaw.wasm" ;
-    glx:marketplaceSha "f897c7b4e748088358ace194e077c44ab572c364" ;
+    glx:marketplaceSha "86735f4e2683cace11f92824af0ac3875ec5e3fb" ;
     glx:registryFile "priv/graphlaw/capability-registry.json" ;
     glx:registrySha256 "sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16" ;
     glx:ggenSha "ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e" .

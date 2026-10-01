@@ -276,7 +276,7 @@ and the WASI import surface is allowlisted; the host never widens either.
 - GraphLaw ABI: 1
 - graphlaw.wasm SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`
 - ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
-- ggen-marketplace pin: `f897c7b4e748088358ace194e077c44ab572c364`
+- ggen-marketplace pin: `86735f4e2683cace11f92824af0ac3875ec5e3fb`
 
 ## Regeneration
 

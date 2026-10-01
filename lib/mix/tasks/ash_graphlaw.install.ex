@@ -1,11 +1,3 @@
-# SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
-#
-# SPDX-License-Identifier: MIT
-#
-# UNSUPPORTED(generator-capability): replacement for the ash-extension-pack install.ex.tmpl output.
-# The pack inserts `extensions: [...]` with Igniter.Code.Common.add_code/3, which parses a statement,
-# so `--target` raises SyntaxError. This file uses Spark.Igniter.add_extension/5 and is applied by
-# scripts/ggen_sync.sh only while the pack output still carries that defect (self-retiring).
 if Code.ensure_loaded?(Igniter) do
   defmodule Mix.Tasks.AshGraphlaw.Install do
     @moduledoc """
@@ -65,7 +57,11 @@ if Code.ensure_loaded?(Igniter) do
 
     # Adds a minimal, real starter block for the primary section so the target module
     # compiles immediately after install rather than needing hand-authored DSL content.
-    # Skipped when a `graphlaw` block already exists, so a second run is a no-op.
+    # Skipped when the block already exists, so a second run is a no-op. The extension
+    # itself is added by `Spark.Igniter.add_extension/5` above, which emits valid Elixir,
+    # is idempotent, and merges into an existing `extensions:` list instead of inserting a
+    # second option (a bare `extensions: [...]` fragment is not a statement and cannot be
+    # inserted with `Igniter.Code.Common.add_code/3`).
     defp add_starter_dsl_block(zipper) do
       already? =
         zipper
