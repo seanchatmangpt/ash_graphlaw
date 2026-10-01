@@ -18,6 +18,29 @@ defmodule AshGraphLaw.Standing do
       carries REFUSED)
 
   Nothing here authorizes anything.
+
+  ## Vocabulary
+
+    * `:UNKNOWN` - No observation binds this subject yet; not admitted, not refused.
+    * `:PARTIAL_ALIVE` - Admission was observed on the exact input digest; the consequence was not executed.
+    * `:ALIVE` - The exact admitted subject was observed executing. This library never assigns it from admission alone.
+    * `:BLOCKED` - A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided.
+    * `:BUILD_BROKEN` - The subject does not build, so no admission can be observed on it.
+    * `:UNSUPPORTED` - The requested step or engine variant is outside what this library version supports.
+
+  ## Examples
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:resource_limit)})
+      :BLOCKED
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:unsupported_step)})
+      :UNSUPPORTED
+
+      iex> AshGraphLaw.Standing.of({:error, AshGraphLaw.Refusal.new(:not_admitted)})
+      :UNKNOWN
+
+      iex> AshGraphLaw.Standing.of(:anything_else)
+      :UNKNOWN
   """
 
   alias AshGraphLaw.{Admitted, Refusal}
@@ -31,13 +54,14 @@ defmodule AshGraphLaw.Standing do
     :UNSUPPORTED
   ]
 
+  @typedoc "Closed standing vocabulary; never `:ALIVE` without an exact-SHA receipt."
   @type t ::
-          :UNKNOWN
-          | :PARTIAL_ALIVE
-          | :ALIVE
-          | :BLOCKED
-          | :BUILD_BROKEN
-          | :UNSUPPORTED
+          :UNKNOWN |
+          :PARTIAL_ALIVE |
+          :ALIVE |
+          :BLOCKED |
+          :BUILD_BROKEN |
+          :UNSUPPORTED
 
   for required <- [:UNKNOWN, :PARTIAL_ALIVE, :BLOCKED, :UNSUPPORTED] do
     unless required in @standings do
@@ -45,47 +69,59 @@ defmodule AshGraphLaw.Standing do
     end
   end
 
-  @doc "All standings, in ontology order."
+  @doc """
+  All standings, in ontology order.
+
+      iex> :UNKNOWN in AshGraphLaw.Standing.all()
+      true
+  """
   @spec all() :: [t()]
   def all, do: @standings
 
-  @doc "True when `value` is a member of the closed vocabulary."
+  @doc """
+  True when `value` is a member of the closed vocabulary.
+
+      iex> AshGraphLaw.Standing.valid?(:PARTIAL_ALIVE)
+      true
+
+      iex> AshGraphLaw.Standing.valid?(:MAYBE)
+      false
+  """
   @spec valid?(term()) :: boolean()
   def valid?(value), do: value in @standings
 
-  @doc "Ontology definition of a standing (string)."
+  @doc """
+  Ontology definition of a standing (string).
+
+      iex> is_binary(AshGraphLaw.Standing.describe(:UNKNOWN))
+      true
+  """
   @spec describe(t()) :: String.t()
-  def describe(:UNKNOWN),
-    do: ~S"""
-    No observation binds this subject yet; not admitted, not refused.
-    """
+  def describe(:UNKNOWN), do: ~S"""
+No observation binds this subject yet; not admitted, not refused.
+"""
+  def describe(:PARTIAL_ALIVE), do: ~S"""
+Admission was observed on the exact input digest; the consequence was not executed.
+"""
+  def describe(:ALIVE), do: ~S"""
+The exact admitted subject was observed executing. This library never assigns it from admission alone.
+"""
+  def describe(:BLOCKED), do: ~S"""
+A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided.
+"""
+  def describe(:BUILD_BROKEN), do: ~S"""
+The subject does not build, so no admission can be observed on it.
+"""
+  def describe(:UNSUPPORTED), do: ~S"""
+The requested step or engine variant is outside what this library version supports.
+"""
 
-  def describe(:PARTIAL_ALIVE),
-    do: ~S"""
-    Admission was observed on the exact input digest; the consequence was not executed.
-    """
+  @doc """
+  Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`.
 
-  def describe(:ALIVE),
-    do: ~S"""
-    The exact admitted subject was observed executing. This library never assigns it from admission alone.
-    """
-
-  def describe(:BLOCKED),
-    do: ~S"""
-    A resource blocked the decision (missing WASM, timeout, saturation); nothing was decided.
-    """
-
-  def describe(:BUILD_BROKEN),
-    do: ~S"""
-    The subject does not build, so no admission can be observed on it.
-    """
-
-  def describe(:UNSUPPORTED),
-    do: ~S"""
-    The requested step or engine variant is outside what this library version supports.
-    """
-
-  @doc "Derives standing from a result of `AshGraphLaw.law/3` or `AshGraphLaw.call/2`."
+  An admitted result yields `:PARTIAL_ALIVE` (never `:ALIVE`); `:blocked_resource` refusals
+  yield `:BLOCKED`, `:unsupported` refusals `:UNSUPPORTED`, everything else `:UNKNOWN`.
+  """
   @spec of(term()) :: t()
   def of({:ok, %Admitted{}}), do: :PARTIAL_ALIVE
   def of({:error, %Refusal{class: :blocked_resource}}), do: :BLOCKED

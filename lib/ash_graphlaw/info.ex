@@ -1,3 +1,7 @@
+
+
+
+
 defmodule AshGraphLaw.Resource.Info do
   @moduledoc """
   Public introspection API for `ash_graphlaw`.
@@ -25,6 +29,7 @@ defmodule AshGraphLaw.Resource.Info do
       nil -> {:error, :not_compiled}
       compiled -> {:ok, compiled}
     end
+
   end
 
   @doc "Bang variant of `compiled_result/1` -- raises `ArgumentError` instead of returning `{:error, _}`."
@@ -39,4 +44,5 @@ defmodule AshGraphLaw.Resource.Info do
   def compiled?(resource) do
     match?({:ok, _}, compiled_result(resource))
   end
+
 end

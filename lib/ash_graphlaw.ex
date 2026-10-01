@@ -119,6 +119,136 @@ defmodule AshGraphLaw do
     call(%{"op" => "hooks", "data" => data_spec(data), "pack" => data_spec(pack)}, opts)
   end
 
+  @doc """
+  Typed `parse` capability: Parse text with the owning engine; counts quads or validates syntax.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Parse`.
+  """
+  @spec parse(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate parse(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `parse/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec parse!(keyword() | map(), opts()) :: term()
+  defdelegate parse!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `convert` capability: Serialize parsed RDF text into another RDF dialect.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Convert`.
+  """
+  @spec convert(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate convert(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `convert/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec convert!(keyword() | map(), opts()) :: term()
+  defdelegate convert!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `canonical` capability: Canonicalize a dataset to N-Quads and return its content-addressed id.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Canonical`.
+  """
+  @spec canonical(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate canonical(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `canonical/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec canonical!(keyword() | map(), opts()) :: term()
+  defdelegate canonical!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `sparql` capability: Evaluate a SPARQL query over a dataset.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Sparql`.
+  """
+  @spec sparql(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate sparql(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `sparql/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec sparql!(keyword() | map(), opts()) :: term()
+  defdelegate sparql!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `shacl` capability: Validate a dataset against SHACL shapes.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Shacl`.
+  """
+  @spec shacl(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate shacl(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `shacl/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec shacl!(keyword() | map(), opts()) :: term()
+  defdelegate shacl!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `shex` capability: Validate a dataset against a ShEx schema and shape map.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Shex`.
+  """
+  @spec shex(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate shex(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `shex/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec shex!(keyword() | map(), opts()) :: term()
+  defdelegate shex!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `n3` capability: Run bounded Notation3 forward reasoning over a document.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.N3`.
+  """
+  @spec n3(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate n3(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `n3/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec n3!(keyword() | map(), opts()) :: term()
+  defdelegate n3!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `entail` capability: Materialize an entailment regime over a dataset.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Entail`.
+  """
+  @spec entail(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate entail(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `entail/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec entail!(keyword() | map(), opts()) :: term()
+  defdelegate entail!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `datalog` capability: Evaluate Datalog rules over triple facts to a fixpoint.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Datalog`.
+  """
+  @spec datalog(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate datalog(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `datalog/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec datalog!(keyword() | map(), opts()) :: term()
+  defdelegate datalog!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc """
+  Typed `policy` capability: Admit a FOND policy as strong-cyclic against a planning problem.
+
+  `args` is a keyword list or map of the registry request fields; `opts` are the same
+  options `call/2` takes. See `AshGraphLaw.Capability.Policy`.
+  """
+  @spec policy(keyword() | map(), opts()) :: {:ok, term()} | {:error, Refusal.t()}
+  defdelegate policy(args, opts \\ []), to: AshGraphLaw.Capability.API
+
+  @doc "Like `policy/2` but raises `AshGraphLaw.Error.Refused` on refusal."
+  @spec policy!(keyword() | map(), opts()) :: term()
+  defdelegate policy!(args, opts \\ []), to: AshGraphLaw.Capability.API
+
   defp dispatch(request, opts) do
     case Keyword.get(opts, :server, Pool) do
       Pool -> Pool.request(request, opts)
