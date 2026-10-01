@@ -108,6 +108,11 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
     File.write!(path, Jason.encode!(%{"abi_version" => 999}))
     assert {:error, %{report: report}} = run_variant(:exact, manifest_path: path)
     assert "R2" in report["drift"]
+    assert report["standing"] == "REFUSED"
+    r2 = Enum.find(report["checks"], &(&1["id"] == "R2"))
+    assert r2["evidence"]["expected"] == 999
+    assert r2["evidence"]["live"] == 1
+    assert r2["broken_term"] == "R_missing_identity"
   end
 
   test "no engine on disk is a typed blocked refusal with a report, never a pass or a skip" do
