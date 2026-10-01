@@ -36,6 +36,7 @@ defmodule AshGraphLaw.Mutation.Catalog do
   | AGL-MUT-014 | every caller claims `:construct` without a signed lease     | `AshGraphLaw.Authority.claim/1` |
   | AGL-MUT-015 | parity court accepts any list comparison (P1, P2)           | `AshGraphLaw.Parity.same_list?/2` |
   | AGL-MUT-016 | parity court accepts any digest comparison (P3, R1)         | `AshGraphLaw.Parity.same_digest?/2` |
+  | AGL-MUT-017 | parity court accepts any runtime ABI identity (R2)           | `AshGraphLaw.Parity.same_abi?/2` |
   """
 
   alias AshGraphLaw.Mutation
@@ -124,6 +125,10 @@ defmodule AshGraphLaw.Mutation.Catalog do
       entry("AGL-MUT-016", AshGraphLaw.Parity, :same_digest?, 2, {:replace_body, "true."},
         guard: "Parity digest comparison (P3, R1)",
         description: "a mismatched registry or surface digest no longer reports capability_parity_drift"
+      ),
+      entry("AGL-MUT-017", AshGraphLaw.Parity, :same_abi?, 2, {:replace_body, "true."},
+        guard: "Parity runtime ABI identity (R2)",
+        description: "a live runtime ABI different from the pinned manifest no longer reports capability_parity_drift"
       )
     ]
   end
