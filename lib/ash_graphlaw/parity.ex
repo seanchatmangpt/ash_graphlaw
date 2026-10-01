@@ -102,6 +102,11 @@ defmodule AshGraphLaw.Parity do
   @spec same_digest?(term(), String.t()) :: boolean()
   def same_digest?(live, expected), do: is_binary(live) and live == expected
 
+  # Exact integer ABI identity comparison behind R2; public only so the mutation court can attack it.
+  @doc false
+  @spec same_abi?(term(), term()) :: boolean()
+  def same_abi?(live, expected), do: is_integer(live) and is_integer(expected) and live == expected
+
   @doc "Runs the court. See the moduledoc for options and the result shape."
   @spec run(keyword()) :: {:ok, report()} | {:error, failure()}
   def run(opts \\ []) when is_list(opts) do
@@ -531,7 +536,7 @@ defmodule AshGraphLaw.Parity do
          {:ok, %{"abi_version" => expected}} <- Jason.decode(raw) do
       live_abi = Map.get(live, "abi_version", Map.get(live, "abi"))
       evidence = %{"path" => path, "expected" => expected, "live" => live_abi}
-      verdict(is_integer(expected) and live_abi == expected, evidence)
+      verdict(same_abi?(live_abi, expected), evidence)
     else
       other -> {"drift", %{"path" => path, "unreadable" => inspect(other, limit: 5)}}
     end
