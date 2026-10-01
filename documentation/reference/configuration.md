@@ -65,8 +65,8 @@ Trust anchors come only from `trusted_keys`; caller context cannot add to them. 
 ## Pin
 
 `priv/graphlaw/MANIFEST.json` (generated) holds the engine release tag, `artifact.url`,
-`artifact.sha256` and the WASI import allowlist. Current pin: `v26.9.28`,
-sha256 `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645`.
+`artifact.sha256` and the WASI import allowlist. Current pin: `v26.9.29`,
+sha256 `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`.
 
 ## See Also
 

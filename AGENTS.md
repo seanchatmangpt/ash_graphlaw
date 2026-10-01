@@ -10,7 +10,7 @@ not weaken evidence, authority, replay, or generation law.
 
 ## Product invariant
 
-AshGraphLaw hosts the pinned GraphLaw WASM engine (release `v26.9.28`, ABI version 1) inside
+AshGraphLaw hosts the pinned GraphLaw WASM engine (release `v26.9.29`, ABI version 1) inside
 an Ash extension. The caller proposes; GraphLaw derives and validates; the library
 transports and projects a typed success or typed refusal. GraphLaw never authorizes, and
 nothing in this library grants authority. Admission evidence is an observation bound to an
@@ -82,8 +82,8 @@ codes; never claim unrun work.
 Expose, do not reimplement: this library never evaluates RDF, SPARQL, SHACL, ShEx, N3, Datalog,
 entailment or planning. The typed surface is generated from the GraphLaw registry
 (`priv/graphlaw/capability-registry.json`, spliced into `ontology.ttl`). `mix ash_graphlaw.parity`
-is a failing court: never skip it, never allow-list drift. Engine pin `v26.9.28` predates the
-registry; drift against it is reported, not masked, until the pin is bumped. A parity pass is
+is a failing court: never skip it, never allow-list drift. Engine pin `v26.9.29` carries the
+registry; any drift against it is reported, not masked. A parity pass is
 `PARTIAL_ALIVE` at most. Rules: `usage-rules/capabilities.md`, `usage-rules/parity.md`,
 `usage-rules/lifecycle.md`.
 

@@ -15,9 +15,9 @@ generated from it (`registry/capability-registry.json`).
 | Item | Value |
 |---|---|
 | `ABI_VERSION` | `1` |
-| Pinned GraphLaw release | `v26.9.28` |
-| Pinned asset | `graphlaw.wasm`, sha256 `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645` |
-| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; not what this library pins |
+| Pinned GraphLaw release | `v26.9.29` |
+| Pinned asset | `graphlaw.wasm`, sha256 `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0` |
+| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; the same release this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
 `abi_version` field of the `capabilities` response with its own expectation and refuse a mismatch
@@ -149,14 +149,14 @@ Success members: `states` (state ids, start first), `receipts` (each with `step`
 `child`, `added`, `authority`, `revision`, and where applicable `lease_id`, `plan_sha256`,
 `index`), `nquads` (final state).
 
-> **Pinned engine gap (`UNSUPPORTED(engine-capability)`).** The pinned v26.9.28 engine
+> **Pinned engine gap (`UNSUPPORTED(engine-capability)`).** Measured against the v26.9.28 engine, not re-measured for the pinned v26.9.29 engine:
 > implements `shacl`, `n3`, `rdfs`, `owl-rl` and `hooks` only. `plan`, `record-receipts`,
 > `require-receipt` and `require-signed-receipt` are refused with kind `Unsupported`
 > ("unknown step `plan`", etc.), which the library projects as `engine_refused` /
 > `refused_structure` (standing `UNKNOWN`). The engine also ignores lease keys entirely: it
 > does not verify signature, signer or expiry, and receipts carry no `lease_id`. The
 > `PlanRefused`, `LeaseRefused`, `UnverifiedLeaseRefused`, `ReceiptRequired` and `ReceiptRefused`
-> codes below are therefore documented ABI shapes that v26.9.28 never emits. A SHACL violation
+> codes below are therefore documented ABI shapes that v26.9.28 never emitted. A SHACL violation
 > is reported as kind `EngineRejected` without a `details.code` (`engine_refused`, not
 > `not_admitted`), and JSON nested beyond the depth limit is reported as kind `Unsupported`
 > ("request is not JSON: recursion limit exceeded"), not `ResourceLimit`. The `policy` op is not

@@ -6,6 +6,12 @@ SPDX-License-Identifier: MIT
 
 # ash_graphlaw
 
+[![Hex.pm](https://img.shields.io/hexpm/v/ash_graphlaw.svg)](https://hex.pm/packages/ash_graphlaw)
+[![CI](https://github.com/seanchatmangpt/ash_graphlaw/actions/workflows/ci.yml/badge.svg)](https://github.com/seanchatmangpt/ash_graphlaw/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-hexdocs-blue.svg)](https://hexdocs.pm/ash_graphlaw)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSES/MIT.md)
+[![REUSE compliant](https://api.reuse.software/badge/github.com/seanchatmangpt/ash_graphlaw)](https://api.reuse.software/info/github.com/seanchatmangpt/ash_graphlaw)
+
 `ash_graphlaw` is the Ash/BEAM membrane for [GraphLaw](https://github.com/seanchatmangpt/graphlaw).
 It hosts the pinned `graphlaw.wasm` WASI module through Wasmex, preserves GraphLaw's JSON ABI, and
 exposes admissions to Ash resources as a Spark extension with a Change, a Validation and a
@@ -28,7 +34,7 @@ graphlaw.wasm
 PurRDF + Eyeron + GraphLaw
 ```
 
-## Invariant
+## Core invariant
 
 A caller proposes a request. GraphLaw derives and validates: it decides whether the projected
 semantic state and the requested transition are admitted. `ash_graphlaw` projects the outcome as a
@@ -36,6 +42,46 @@ typed success (`AshGraphLaw.Admitted`, wrapped in `AshGraphLaw.Evidence`) or a t
 (`AshGraphLaw.Refusal`). Nothing in this library grants authority; admission evidence is an
 observation bound to an exact input digest, and `AshGraphLaw.Standing` never reports `:ALIVE` for
 an admission alone.
+
+```text
+request --> [ Change / Validation / Preparation ] --> Pool --> graphlaw.wasm
+                                                                   |
+        {:ok, %Admitted{}}  <-- admitted, digest-bound evidence ---+
+        {:error, %Refusal{}} <-- closed code + class + broken_term-+
+```
+
+## Typed capabilities
+
+Every public GraphLaw operation has a typed, generated Elixir entry point, so no supported
+operation needs `AshGraphLaw.call/2`. The surface is generated from the GraphLaw capability
+registry (schema `graphlaw.capability-registry/1`, vendored in `priv/graphlaw/`) through the
+`graphlaw-ash-capability-pack`; `AshGraphLaw.Capability.Registry.names/0` lists the ops in ABI
+order (14 at ABI 1), and every op has a request builder, a decoder and a
+lossless `AshGraphLaw.Result.*` struct.
+
+```elixir
+{:ok, %AshGraphLaw.Result.Shacl{conforms: true}} =
+  AshGraphLaw.shacl(data: turtle_text, shapes: shapes_text)
+
+{:error, %AshGraphLaw.Refusal{code: code}} = AshGraphLaw.parse(text: "not rdf at all")
+AshGraphLaw.Capability.API.sparql!(data: turtle_text, query: "SELECT * WHERE { ?s ?p ?o }")
+```
+
+- Root delegates: `parse/2 convert/2 canonical/2 sparql/2 shacl/2 shex/2 n3/2 entail/2 datalog/2
+  policy/2` and their bang forms; `call/2`, `capabilities/1`, `sniff/3`, `law/3` and `hooks/3` keep
+  their behaviour.
+- Raw stays lossless (`result.raw`), unknown response fields and enum values decode without
+  failing, and refusals carry the whole engine error in `refusal.raw`.
+- Parity court: `mix ash_graphlaw.parity` fails on any drift between the live engine, the vendored
+  registry and the Elixir surface. Engine pin `v26.9.29`: parity against a pin older than the
+  registry is reported, never masked.
+- Registry pin: `scripts/vendor_registry.sh` and `scripts/import_registry.sh` carry the registry
+  from the GraphLaw repository into `priv/graphlaw/` and `ontology.ttl` (`--check` in CI).
+- Semantics stay in GraphLaw: `ash_graphlaw` exposes, it never reimplements RDF, SPARQL, SHACL,
+  ShEx, N3, Datalog, entailment or planning. A successful typed call is an observation, not
+  standing.
+
+Per-op pages: [capabilities reference](documentation/reference/capabilities.md).
 
 ## Installation
 
@@ -48,14 +94,9 @@ end
 ```
 
 The package version is `26.9.30` (calendar versioning). The `graphlaw.wasm` binary
-is not shipped in the Hex package; fetch the pinned release asset with the vendor task:
-
-```bash
-mix ash_graphlaw.vendor
-```
-
-The task downloads the pinned asset (`graphlaw.wasm`, release `26.9.28`) into
-`priv/graphlaw/` and checks its SHA-256 against `priv/graphlaw/MANIFEST.json` before use.
+is not shipped in the Hex package; fetch the pinned release asset with the vendor task (see
+[Vendoring the engine](#vendoring-the-engine)). With Igniter available, `mix igniter.install
+ash_graphlaw` runs `mix ash_graphlaw.install`.
 
 ## Configuration
 
@@ -103,11 +144,25 @@ end
 `MyApp.PlanLaw` implements the `AshGraphLaw.Law` behaviour and returns the GraphLaw `law` steps
 for the subject. The admission runs before the action, and a refusal becomes an Ash error.
 
-The `ceiling` is met only by a **signed** lease in the changeset context
-(`context: %{graphlaw_lease: %{signed_lease: signed}}`); a bare `:select` atom grants only
-`:observe`. The engine verifies the signature against `trusted_keys` and judges expiry on its own
-clock, and the resulting `AshGraphLaw.Evidence` records the lease identity and the engine digest.
-See [authority boundary](documentation/topics/authority_boundary.md).
+## Authority: signed leases
+
+The `ceiling` is met only by a **signed** lease in the changeset context; a bare `:select` atom
+grants only `:observe`. The engine verifies the signature against `trusted_keys` and judges expiry
+on its own clock, and the resulting `AshGraphLaw.Evidence` records the lease identity and the
+engine digest.
+
+```elixir
+signed = MyApp.Leases.mint_signed_lease(subject: "ticket-42", ceiling: :select)
+
+MyApp.Ticket
+|> Ash.Changeset.for_update(ticket, :close, %{},
+  context: %{graphlaw_lease: %{signed_lease: signed}}
+)
+|> Ash.update()
+```
+
+`MyApp.Leases.mint_signed_lease/1` stands for your own signer; `ash_graphlaw` verifies leases and
+never mints authority. See [authority boundary](documentation/topics/authority_boundary.md).
 
 ## Handling refusals
 
@@ -131,27 +186,97 @@ Direct calls return `{:ok, %AshGraphLaw.Admitted{}}` or `{:error, %AshGraphLaw.R
 `AshGraphLaw.Standing.of/1` derives the standing from the result. The closed refusal vocabulary is
 in [typed refusals](documentation/reference/typed_refusals.md).
 
-## Manufactured provenance
+## Introspect
 
-- ash_graphlaw: v26.9.30
-- GraphLaw court release: 26.9.28
-- GraphLaw ABI: 1
-- graphlaw.wasm SHA-256: `30f6bc6eca9d125fe805f4c2643818ebb0a1471edec75ed0ed989c734397c645`
-- ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
-- ggen-marketplace pin: `caa4fe6133445638cbfdbfac017187ed8090dc95`
+`AshGraphLaw.Info` reads the declared `graphlaw` section of any resource without running the
+engine:
 
-## Documentation
+```elixir
+AshGraphLaw.Info.admissions(MyApp.Ticket)
+AshGraphLaw.Info.admission(MyApp.Ticket, :ticket_close)
+```
 
-Documentation follows the Diataxis layout under [documentation/](documentation/README.md).
+See the [DSL cheat sheet](documentation/dsls/DSL-AshGraphLaw.Resource.md) for every option.
+
+## Vendoring the engine
+
+The engine binary is pinned by release tag `v26.9.29` (asset `graphlaw.wasm`, ABI
+1) and by SHA-256. Fetch and check it:
+
+```bash
+mix ash_graphlaw.vendor   # downloads graphlaw.wasm into priv/graphlaw/, checks the SHA-256
+mix ash_graphlaw.verify   # re-checks the digest and the WASI import allowlist
+```
+
+Source: `https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.29/graphlaw.wasm`
+
+Expected SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`. A mismatch is refused; the binary is never used
+unverified. See [vendor the wasm](documentation/how_to/vendor_the_wasm.md).
+
+## Verification ladder
+
+Cheapest, highest-information check first:
+
+```bash
+mix format --check-formatted
+mix compile --warnings-as-errors
+mix credo --strict
+mix test                                   # wasm-free tests
+mix test --include wasm --include slow     # with the vendored engine
+mix ash_graphlaw.verify
+mix ash_graphlaw.parity                    # capability parity court
+mix ash_graphlaw.mutate --require-killed   # mutation catalog
+mix docs
+mix hex.build
+```
+
+A green ladder is an observation on one exact commit. It is not standing: `:ALIVE` requires an
+exact-SHA receipt. See [claims and evidence](documentation/reference/claims_and_evidence.md).
+
+## Documentation map
+
+Documentation follows the Diataxis layout under [documentation/](documentation/README.md) (the
+hub). Hosted docs: https://hexdocs.pm/ash_graphlaw.
 
 | Kind | Start here |
 |---|---|
 | Tutorial | [getting started](documentation/tutorials/getting_started.md), [first admitted action](documentation/tutorials/first_admitted_action.md) |
 | How-to | [vendor the wasm](documentation/how_to/vendor_the_wasm.md), [declare an admission](documentation/how_to/declare_an_admission.md), [write a law module](documentation/how_to/write_a_law_module.md), [run the pool](documentation/how_to/run_the_pool.md), [handle refusals](documentation/how_to/handle_refusals.md) |
-| Reference | [DSL](documentation/reference/dsl_reference.md), [ABI](documentation/reference/abi_reference.md), [claims and evidence](documentation/reference/claims_and_evidence.md), [support matrix](documentation/reference/support_matrix.md), [typed refusals](documentation/reference/typed_refusals.md), [DSL cheat sheet](documentation/dsls/DSL-AshGraphLaw.Resource.md) |
+| Reference | [DSL](documentation/reference/dsl_reference.md), [ABI](documentation/reference/abi_reference.md), [claims and evidence](documentation/reference/claims_and_evidence.md), [support matrix](documentation/reference/support_matrix.md), [typed refusals](documentation/reference/typed_refusals.md), [typed capabilities](documentation/reference/capabilities.md), [DSL cheat sheet](documentation/dsls/DSL-AshGraphLaw.Resource.md) |
 | Explanation | [architecture](documentation/topics/architecture.md), [authority boundary](documentation/topics/authority_boundary.md), [generation and residue](documentation/topics/generation_and_residue.md), [wasm host design](documentation/topics/wasm_host_design.md) |
 
 Agent-facing guidance is in [usage-rules.md](usage-rules.md) and [AGENTS.md](AGENTS.md).
+
+## Citing
+
+See [CITATION.cff](CITATION.cff) for the citation metadata of this release.
+
+## Reproduce
+
+[REPRODUCE.md](REPRODUCE.md) lists the exact commands and pins to rebuild and re-verify this
+release from a clean checkout.
+
+## Security
+
+Report vulnerabilities as described in [SECURITY.md](SECURITY.md). The engine is pinned by SHA-256
+and the WASI import surface is allowlisted; the host never widens either.
+
+## Non-goals
+
+- Not a reimplementation of RDF, SHACL, N3, OWL-RL or hooks in Elixir; those stay in GraphLaw.
+- Not an authority source: it verifies signed leases and never mints them.
+- Not a standing oracle: an admission alone never yields `:ALIVE`.
+- Not a bundler of `graphlaw.wasm`: the binary is vendored and digest-checked, not shipped in Hex.
+- Not a place to hand-edit projections: edit the ontology, queries or templates.
+
+## Manufactured provenance
+
+- ash_graphlaw: v26.9.30
+- GraphLaw court release: v26.9.29
+- GraphLaw ABI: 1
+- graphlaw.wasm SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`
+- ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
+- ggen-marketplace pin: `f897c7b4e748088358ace194e077c44ab572c364`
 
 ## Regeneration
 

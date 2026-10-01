@@ -39,7 +39,9 @@ defmodule AshGraphLaw.Adversarial.HostileEncodingTest do
 
     test "invalid UTF-8 in a map key or a list element is refused too" do
       assert {:error, %Refusal{code: :invalid_encoding}} = ABI.encode_request(%{"op" => "sniff", <<0xFF>> => 1})
-      assert {:error, %Refusal{code: :invalid_encoding}} = ABI.encode_request(%{"op" => "n3", "rules" => ["ok", <<0xFF>>]})
+
+      assert {:error, %Refusal{code: :invalid_encoding}} =
+               ABI.encode_request(%{"op" => "n3", "rules" => ["ok", <<0xFF>>]})
     end
 
     test "the refusal never echoes the offending bytes" do

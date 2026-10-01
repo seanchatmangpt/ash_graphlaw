@@ -14,7 +14,7 @@ All notable changes to this project are documented in this file. The format foll
 ## [26.9.30] - 2026-09-30
 
 Version bump for the 26.9.30 Hex release dry run. The typed capability surface below ships in this
-release; the GraphLaw engine pin (`v26.9.28`), wasm SHA-256 pin and ABI version are unchanged.
+release; the GraphLaw engine pin is `v26.9.29` (wasm SHA-256 `7bb2a7e5...`, ABI version 1).
 
 ### Added (typed capability surface, v26.9.29 target)
 

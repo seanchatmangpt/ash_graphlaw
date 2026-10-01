@@ -57,11 +57,15 @@ defmodule AshGraphLaw.Adversarial.ForgedLeaseEngineTest do
     forgeries = [
       flipped_signature: put_attestation(genuine, "signature", flip_hex(genuine["attestation"]["signature"])),
       zero_signature: put_attestation(genuine, "signature", String.duplicate("0", 128)),
-      truncated_signature: put_attestation(genuine, "signature", binary_part(genuine["attestation"]["signature"], 0, 64)),
-      wrong_payload_digest: put_attestation(genuine, "payload_sha256", flip_hex(genuine["attestation"]["payload_sha256"])),
+      truncated_signature:
+        put_attestation(genuine, "signature", binary_part(genuine["attestation"]["signature"], 0, 64)),
+      wrong_payload_digest:
+        put_attestation(genuine, "payload_sha256", flip_hex(genuine["attestation"]["payload_sha256"])),
       wrong_key_id: put_attestation(genuine, "key_id", flip_hex(genuine["attestation"]["key_id"])),
-      key_id_of_untrusted_signer: put_attestation(genuine, "key_id", Lease.signed(:construct, signer: :untrusted)["attestation"]["key_id"]),
-      signature_of_another_lease: put_attestation(genuine, "signature", Lease.signed(:construct, id: "L-other")["attestation"]["signature"])
+      key_id_of_untrusted_signer:
+        put_attestation(genuine, "key_id", Lease.signed(:construct, signer: :untrusted)["attestation"]["key_id"]),
+      signature_of_another_lease:
+        put_attestation(genuine, "signature", Lease.signed(:construct, id: "L-other")["attestation"]["signature"])
     ]
 
     for {kind, lease} <- forgeries do

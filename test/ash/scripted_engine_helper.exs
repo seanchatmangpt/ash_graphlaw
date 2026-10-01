@@ -113,7 +113,9 @@ defmodule AshGraphLaw.Test.ScriptedEngine do
   @impl GenServer
   def handle_call({:request, body, _op, timeout}, _from, state) do
     request = Jason.decode!(body)
-    {:reply, state.script.(request), %{state | requests: [request | state.requests], timeouts: [timeout | state.timeouts]}}
+
+    {:reply, state.script.(request),
+     %{state | requests: [request | state.requests], timeouts: [timeout | state.timeouts]}}
   end
 
   def handle_call(:status, _from, state), do: {:reply, {:ok, :loaded}, state}
@@ -133,7 +135,8 @@ defmodule AshGraphLaw.Test.Scripted.Laws do
     # A law with both callbacks: deterministic projection of the title only.
     @behaviour AshGraphLaw.Law
     @impl true
-    def steps(_subject, _admission), do: [%{"step" => "shacl", "shapes" => "@prefix sh: <http://www.w3.org/ns/shacl#> ."}]
+    def steps(_subject, _admission),
+      do: [%{"step" => "shacl", "shapes" => "@prefix sh: <http://www.w3.org/ns/shacl#> ."}]
 
     @impl true
     def data(subject, _admission) do
@@ -243,7 +246,8 @@ defmodule AshGraphLaw.Test.Scripted.Projections do
     @moduledoc false
     @behaviour AshGraphLaw.Projection
     @impl true
-    def data(_subject, _opts), do: {:error, AshGraphLaw.Refusal.new(:projection_failed, "projection refused this subject")}
+    def data(_subject, _opts),
+      do: {:error, AshGraphLaw.Refusal.new(:projection_failed, "projection refused this subject")}
   end
 
   defmodule Raises do

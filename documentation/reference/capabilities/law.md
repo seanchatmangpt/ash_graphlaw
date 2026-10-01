@@ -58,6 +58,12 @@ Refusal detail codes: `LeaseRefused`, `NotAdmitted`, `PlanRefused`, `ReceiptRefu
 Client-side, a bad request refuses with `:invalid_capability_request` before the engine is called.
 A refusal is an observation about one exact input and never grants authority.
 
+## Shared typed models and limits
+
+Typed models (see the [capability reference](../capabilities.md)): .
+
+Engine limits that can refuse any operation: `max_atoms_per_field`=10000, `max_json_depth`=64, `max_plan_actions`=1000, `max_policy_entries`=100000, `max_request_bytes`=16777216, `n3_max_iterations`=4000.
+
 ## See Also
 
 - [Capability reference](../capabilities.md)

@@ -63,7 +63,9 @@ defmodule AshGraphLaw.Integration.HostRecycleLoadTest do
       )
       |> Enum.map(fn {:ok, r} -> r end)
 
-    assert Enum.all?(results, &match?({:ok, %{"ok" => true}}, &1)), inspect(Enum.reject(results, &match?({:ok, %{"ok" => true}}, &1)))
+    assert Enum.all?(results, &match?({:ok, %{"ok" => true}}, &1)),
+           inspect(Enum.reject(results, &match?({:ok, %{"ok" => true}}, &1)))
+
     # a fresh instance answers exactly like the one it replaced
     assert results |> Enum.uniq() |> length() == 1
 

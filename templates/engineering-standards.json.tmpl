@@ -1,0 +1,54 @@
+---
+to: engineering-standards.json
+sparql:
+  project: |
+    # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
+    # SPDX-License-Identifier: MIT
+    # Single-row project pin table: package version, GraphLaw release/ABI/wasm pin, generator pins.
+    # Feeds mix.exs, README, root API, ABI, manifest and test-helper templates.
+    PREFIX glx: <https://graphlaw.dev/ash#>
+
+    SELECT ?package_version ?graphlaw_version ?abi_version ?wasm_sha256 ?wasm_asset ?wasm_url ?marketplace_sha ?ggen_sha
+           ?docs_url ?repository_url ?maintainer ?date_released ?coverage_threshold ?engine_release_tag
+    WHERE {
+      ?project a glx:Project ;
+        glx:packageVersion ?package_version ;
+        glx:graphLawVersion ?graphlaw_version ;
+        glx:abiVersion ?abi_version ;
+        glx:wasmSha256 ?wasm_sha256 ;
+        glx:wasmAsset ?wasm_asset ;
+        glx:wasmUrl ?wasm_url ;
+        glx:marketplaceSha ?marketplace_sha ;
+        glx:ggenSha ?ggen_sha ;
+        glx:docsUrl ?docs_url ;
+        glx:repositoryUrl ?repository_url ;
+        glx:maintainer ?maintainer ;
+        glx:dateReleased ?date_released ;
+        glx:coverageThreshold ?coverage_threshold ;
+        glx:engineReleaseTag ?engine_release_tag .
+    }
+    ORDER BY ?package_version
+for_each: project
+force: true
+---
+{#- SPDX-FileCopyrightText: 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>; SPDX-License-Identifier: MIT -#}
+{% set p = results | first %}{
+  "schema": "engineering-standards.repository-adoption.v26.9.21",
+  "repository": "seanchatmangpt/ash_graphlaw",
+  "version": "{{ p.package_version }}",
+  "mode": "SEMANTIC_WORK",
+  "role": "AshGraphLaw host of the pinned GraphLaw WASM engine ({{ p.engine_release_tag }})",
+  "root": {
+    "repository": "seanchatmangpt/engineering-standards",
+    "sha": "5a3bb6446aeaee2255a7523d4d8cebf6042960c3",
+    "version": "26.9.21"
+  },
+  "local_constitution": "AGENTS.md",
+  "generator_identity": "ggen {{ p.ggen_sha }} via templates/engineering-standards.json.tmpl",
+  "non_claims": [
+    "root adoption does not prove local runtime behavior",
+    "root adoption does not grant merge, release, deploy, or external DO authority",
+    "local repository courts remain authoritative for local runtime standing",
+    "no standing is stored in this file; standing is derived from receipts bound to an exact subject"
+  ]
+}

@@ -6,10 +6,14 @@ defmodule AshGraphLaw.MixProject do
   @moduledoc false
   use Mix.Project
 
+  # Bound to glx:packageVersion in ontology.ttl (rendered by ggen). Never edit here; edit the ontology
+  # and run scripts/ggen_sync.sh. The tag pushed for a release must equal this string with a `v` prefix.
   @version "26.9.30"
   @name "AshGraphLaw"
   @description "GraphLaw WASM admission engine for Ash Framework: derives and validates, never authorizes"
   @github_url "https://github.com/seanchatmangpt/ash_graphlaw"
+  @docs_url "https://hexdocs.pm/ash_graphlaw"
+  @maintainer "Sean Chatman"
 
   def project do
     [
@@ -21,16 +25,8 @@ defmodule AshGraphLaw.MixProject do
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env()),
       docs: &docs/0,
-      dialyzer: [
-        plt_add_apps: [:jason, :mix, :ex_unit],
-        plt_local_path: "priv/plts",
-        plt_core_path: "priv/plts",
-        ignore_warnings: ".dialyzer_ignore.exs"
-      ],
-      test_coverage: [
-        summary: [threshold: 70],
-        ignore_modules: [~r/^AshGraphLaw\.Test\./, ~r/^AshGraphLaw\.Mutation/]
-      ],
+      dialyzer: dialyzer(),
+      test_coverage: test_coverage(),
       consolidate_protocols: Mix.env() == :prod,
       aliases: aliases(),
       name: @name,
@@ -40,14 +36,44 @@ defmodule AshGraphLaw.MixProject do
     ]
   end
 
+  # Dialyzer baseline. Real defects are fixed; the residual suppression lives in .dialyzer_ignore.exs with a
+  # per-entry justification. `list_unused_filters` turns a stale suppression into a failure, so the ignore file
+  # cannot rot. :ex_unit is in the PLT because test/support modules reference ExUnit callbacks; :mix because
+  # the mix tasks call Mix.* directly; :jason because evidence is decoded with it.
+  defp dialyzer do
+    [
+      plt_add_apps: [:jason, :mix, :ex_unit],
+      plt_local_path: "priv/plts",
+      plt_core_path: "priv/plts",
+      ignore_warnings: ".dialyzer_ignore.exs",
+      list_unused_filters: true
+    ]
+  end
+
+  # Coverage gate: threshold is glx:coverageThreshold (80), pinned explicitly so a toolchain bump cannot move it
+  # silently. ignore_modules covers only test scaffolding (fixtures under test/support and the Inspect
+  # protocol impls for fixture structs); every module under lib/ counts toward the gate.
+  defp test_coverage do
+    [
+      summary: [threshold: 80],
+      ignore_modules: [~r/^AshGraphLaw\.Test\./, ~r/^Inspect\.AshGraphLaw\.Test\./]
+    ]
+  end
+
+  # Tasks that chain "test" through an alias or run tooling needing test-only modules default to :test,
+  # so no MIX_ENV export is needed locally or in CI.
   def cli do
     [
       preferred_envs: [
         credo: :test,
         dialyzer: :test,
         sobelow: :test,
+        "test.all": :test,
+        ci: :test,
+        "ash_graphlaw.test_livebooks": :test,
         "spark.formatter": :test,
-        "spark.cheat_sheets": :test
+        "spark.cheat_sheets": :test,
+        "ash_graphlaw.parity": :test
       ]
     ]
   end
@@ -61,24 +87,26 @@ defmodule AshGraphLaw.MixProject do
       source_url: @github_url,
       source_ref: "v#{@version}",
       main: "readme",
-      extras:
-        [
-          {"README.md", title: "Home"},
-          {"LICENSES/MIT.md", title: "License"}
-        ] ++
-          Path.wildcard("documentation/tutorials/*.md") ++
-          Path.wildcard("documentation/how_to/*.md") ++
-          Path.wildcard("documentation/reference/*.md") ++
-          Path.wildcard("documentation/topics/*.md") ++
-          ["usage-rules.md"] ++
-          Path.wildcard("usage-rules/*.md") ++
-          ["CHANGELOG.md"],
+      extras: extras(),
       groups_for_extras: [
         Tutorials: ~r'documentation/tutorials',
+        Livebooks: ~r'\.livemd$',
         "How To": ~r'documentation/how_to',
         Reference: ~r'documentation/reference',
         Topics: ~r'documentation/topics',
-        "About AshGraphLaw": ["CHANGELOG.md", "LICENSES/MIT.md", ~r'usage-rules']
+        "DSL Reference": ~r'documentation/dsls',
+        Assurance: ~r'documentation/assurance',
+        "About AshGraphLaw": [
+          "documentation/README.md",
+          "CONTRIBUTING.md",
+          "SECURITY.md",
+          "AGENTS.md",
+          "REPRODUCE.md",
+          "HANDWRITTEN.md",
+          "CHANGELOG.md",
+          "LICENSES/MIT.md",
+          ~r'usage-rules'
+        ]
       ],
       groups_for_modules: [
         AshGraphLaw: [
@@ -112,6 +140,20 @@ defmodule AshGraphLaw.MixProject do
           AshGraphLaw.Receipt,
           AshGraphLaw.Admitted
         ],
+        "Typed capabilities": [
+          AshGraphLaw.Capability,
+          ~r/^AshGraphLaw\.Capability\./,
+          ~r/^AshGraphLaw\.Result\./
+        ],
+        Lifecycle: [
+          ~r/^AshGraphLaw\.Calculation\./,
+          AshGraphLaw.Validation.Shacl,
+          AshGraphLaw.Change.Canonicalize,
+          AshGraphLaw.Lifecycle
+        ],
+        Reactor: [AshGraphLaw.Reactor, ~r/^AshGraphLaw\.Reactor\./],
+        Telemetry: [AshGraphLaw.Telemetry],
+        Parity: [AshGraphLaw.Parity, Mix.Tasks.AshGraphlaw.Parity],
         Mutation: ~r/AshGraphLaw\.Mutation/,
         "Mix tasks": ~r/Mix\.Tasks\.AshGraphlaw/,
         Internals: ~r/.*/
@@ -119,14 +161,55 @@ defmodule AshGraphLaw.MixProject do
     ]
   end
 
+  # Extras are listed in reading order. Single files that another lane may not have produced yet are filtered
+  # through File.exists?/1 so `mix docs` never fails on an absent optional page; directories use Path.wildcard/1
+  # so new pages under documentation/ are picked up without editing this file. The hub gets its own :filename
+  # because two README.md extras would otherwise both render to readme.html.
+  defp extras do
+    existing([
+      {"README.md", title: "Home"},
+      {"documentation/README.md", title: "Documentation Hub", filename: "documentation_hub"}
+    ]) ++
+      Path.wildcard("documentation/tutorials/*.md") ++
+      Path.wildcard("documentation/how_to/*.md") ++
+      Path.wildcard("documentation/how_to/*.livemd") ++
+      existing([{"ash_graphlaw.livemd", title: "Livebook: AshGraphLaw"}]) ++
+      Path.wildcard("documentation/topics/*.md") ++
+      Path.wildcard("documentation/reference/*.md") ++
+      Path.wildcard("documentation/reference/capabilities/*.md") ++
+      Path.wildcard("documentation/dsls/*.md") ++
+      Path.wildcard("documentation/assurance/*.md") ++
+      existing(["usage-rules.md"]) ++
+      Path.wildcard("usage-rules/*.md") ++
+      existing([
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "AGENTS.md",
+        "REPRODUCE.md",
+        "HANDWRITTEN.md",
+        "CHANGELOG.md",
+        {"LICENSES/MIT.md", title: "License"}
+      ])
+  end
+
+  defp existing(entries) do
+    Enum.filter(entries, fn
+      {path, _opts} -> File.exists?(path)
+      path -> File.exists?(path)
+    end)
+  end
+
   defp package do
     [
-      maintainers: ["AshGraphLaw contributors"],
+      maintainers: [@maintainer],
       licenses: ["MIT"],
+      # MANIFEST.json ships (it carries the wasm url + SHA-256 pin); the *.wasm engine itself never ships:
+      # it is vendored and digest-verified by `mix ash_graphlaw.vendor`.
       files:
-        ~w(lib priv/graphlaw/MANIFEST.json .formatter.exs mix.exs AGENTS.md usage-rules.md usage-rules README* LICENSE* CHANGELOG* SECURITY* documentation),
+        ~w(lib priv/graphlaw/MANIFEST.json priv/graphlaw/capability-registry.json priv/graphlaw/capability-registry.ttl priv/graphlaw/op-examples.json .formatter.exs mix.exs AGENTS.md usage-rules.md usage-rules README* LICENSE* LICENSES REUSE.toml CITATION.cff REPRODUCE.md engineering-standards.json HANDWRITTEN.md ash_graphlaw.livemd CHANGELOG* SECURITY* CONTRIBUTING.md documentation),
       links: %{
         "GitHub" => @github_url,
+        "Documentation" => @docs_url,
         "Changelog" => "#{@github_url}/blob/main/CHANGELOG.md"
       }
     ]
@@ -139,19 +222,33 @@ defmodule AshGraphLaw.MixProject do
     ]
   end
 
+  # Every constraint records why it is what it is. Runtime deps are kept to the minimum the admission host
+  # needs; every tool is dev/test-only with runtime: false so nothing analytic ships in a release.
   defp deps do
     [
+      # Floor 3.33.11 is the first release whose Ash.Resource.Info surface this extension is tested against.
       {:ash, "~> 3.33 and >= 3.33.11"},
-      {:spark, ">= 2.7.0"},
+      # Spark 2.7 introduced the entity/section options the DSL (singleton_entity_keys) relies on.
+      {:spark, "~> 2.7"},
+      # Evidence and receipts are JSON; ~> 1.4 is the line every ~/ash_* sibling resolves.
       {:jason, "~> 1.4"},
+      # The WASM host. 0.15.x pins the wasmtime/WASI surface allowlisted in priv/graphlaw/MANIFEST.json;
+      # a minor bump requires re-running `mix ash_graphlaw.verify` against the pinned engine.
       {:wasmex, "~> 0.15.1"},
+      # Telemetry events are emitted by the host and admission change; ~> 1.0 is the stable API.
       {:telemetry, "~> 1.0"},
+      # Optional: AshGraphLaw.Reactor steps compile only when Reactor.Step is loadable in the consumer.
+      {:reactor, "~> 1.0", optional: true},
+      # Optional: only the `mix ash_graphlaw.install` task needs it, and only in the consuming project.
       {:igniter, ">= 0.6.29 and < 1.0.0-0", optional: true},
+      # stream_data (test/property) arrives transitively through ash; declaring it here with only: :test
+      # conflicts with ash's own non-test requirement and breaks dependency resolution in dev.
       {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false},
-      {:credo, ">= 1.7.16", only: [:dev, :test], runtime: false},
-      {:dialyxir, ">= 1.4.3", only: [:dev, :test], runtime: false},
-      {:sobelow, ">= 0.13.0", only: [:dev, :test], runtime: false},
-      {:mix_audit, ">= 2.1.0", only: [:dev, :test], runtime: false}
+      # Static analysis and audit tooling: dev/test only, never shipped.
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -159,6 +256,18 @@ defmodule AshGraphLaw.MixProject do
     [
       sobelow: "sobelow --skip",
       credo: "credo --strict",
+      # Default suite plus the tests gated behind :wasm (needs the vendored engine) and :slow.
+      "test.all": ["test --include wasm --include slow"],
+      # The local mirror of CI, cheapest gate first. Any failing task aborts the chain.
+      ci: [
+        "format --check-formatted",
+        "compile --warnings-as-errors",
+        "credo",
+        "sobelow",
+        "dialyzer",
+        "test.all",
+        "hex.build"
+      ],
       "spark.formatter": "spark.formatter --extensions AshGraphLaw.Resource",
       "spark.cheat_sheets": "spark.cheat_sheets --extensions AshGraphLaw.Resource"
     ]

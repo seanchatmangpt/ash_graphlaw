@@ -127,7 +127,7 @@ defmodule Mix.Tasks.AshGraphlaw.TestLivebooks do
   def discover(root) do
     docs = root |> Path.join("documentation/**/*.livemd") |> Path.wildcard() |> Enum.sort()
     top = Path.join(root, @default_root)
-    (if File.regular?(top), do: [top], else: []) ++ docs
+    if(File.regular?(top), do: [top], else: []) ++ docs
   end
 
   @doc """
@@ -172,7 +172,10 @@ defmodule Mix.Tasks.AshGraphlaw.TestLivebooks do
         :ok
 
       {:error, details} ->
-        Mix.shell().error("FAIL #{path}: cell #{details.cell} (line #{details.line}) #{details.kind}: #{details.message}")
+        Mix.shell().error(
+          "FAIL #{path}: cell #{details.cell} (line #{details.line}) #{details.kind}: #{details.message}"
+        )
+
         if opts[:verbose] && details.output != "", do: Mix.shell().error(details.output)
         {:error, details}
     end
@@ -285,7 +288,9 @@ defmodule Mix.Tasks.AshGraphlaw.TestLivebooks do
 
       {:error, :enoent} ->
         {:error,
-         AshGraphLaw.Refusal.new(:wasm_not_vendored, "no engine at #{path}; run `mix ash_graphlaw.vendor`", %{path: path})}
+         AshGraphLaw.Refusal.new(:wasm_not_vendored, "no engine at #{path}; run `mix ash_graphlaw.vendor`", %{
+           path: path
+         })}
 
       {:error, reason} ->
         {:error, AshGraphLaw.Refusal.new(:wasm_unreadable, "#{path}: #{inspect(reason)}", %{path: path})}

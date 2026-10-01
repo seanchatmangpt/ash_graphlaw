@@ -55,7 +55,7 @@ defmodule AshGraphLaw.Parity do
   @registry AshGraphLaw.Capability.Registry
   @api AshGraphLaw.Capability.API
   @json AshGraphLaw.Capability.CanonicalJSON
-  @helper_modules ~w(Registry API CanonicalJSON Coerce Decode)
+  @helper_modules ~w(Registry API CanonicalJSON Coerce Decode Limits)
   @host_opts [:wasm_path, :bytes, :expected_sha256, :fuel, :timeout_ms]
 
   @checks [

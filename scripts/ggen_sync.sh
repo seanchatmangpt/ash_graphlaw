@@ -54,6 +54,7 @@ RESULT_OPS=(
 PROJECTIONS=(
   mix.exs README.md .formatter.exs .gitignore test/test_helper.exs
   priv/graphlaw/MANIFEST.json documentation/reference/typed_refusals.md LICENSE ggen.lock
+  CITATION.cff engineering-standards.json
   lib/ash_graphlaw.ex
   lib/ash_graphlaw/abi.ex lib/ash_graphlaw/receipt.ex lib/ash_graphlaw/admitted.ex
   lib/ash_graphlaw/standing.ex lib/ash_graphlaw/refusal.ex lib/ash_graphlaw/resource.ex
@@ -63,6 +64,7 @@ PROJECTIONS=(
   lib/ash_graphlaw/capability.ex lib/ash_graphlaw/capability/registry.ex
   lib/ash_graphlaw/capability/api.ex lib/ash_graphlaw/result/term.ex
   documentation/reference/capabilities.md test/generated/capability_surface_test.exs
+  lib/ash_graphlaw/capability/limits.ex lib/ash_graphlaw/model/enums.ex documentation/reference/COVERAGE.md
 )
 for op in "${CAPABILITY_OPS[@]}"; do
   PROJECTIONS+=("lib/ash_graphlaw/capability/$op.ex" "documentation/reference/capabilities/$op.md")
@@ -161,7 +163,7 @@ run_sync() {
   local proj
   for proj in "${PROJECTIONS[@]}"; do
     case "$proj" in
-      lib/ash_graphlaw/capability*|lib/ash_graphlaw/result/*|documentation/reference/capabilities*|test/generated/*)
+      lib/ash_graphlaw/capability*|lib/ash_graphlaw/result/*|lib/ash_graphlaw/model/*|documentation/reference/COVERAGE.md|documentation/reference/capabilities*|test/generated/*)
         rm -f "$proj" ;;
     esac
   done
@@ -179,6 +181,16 @@ run_sync() {
   done
   # The pack's own scripts index documents the pack repository, not this package.
   rm -f scripts/README.md
+  # The pack installer inserts `extensions: [...]` as a bare statement (Igniter add_code/3 parses
+  # a statement), so `--target` raises SyntaxError. Until the pack template is fixed, the
+  # corrected installer in scripts/patches/ replaces the projection, but only while the pack
+  # output still carries the defect; once the pack emits Spark.Igniter.add_extension the
+  # replacement retires itself. Ledgered in HANDWRITTEN.md.
+  local installer=lib/mix/tasks/ash_graphlaw.install.ex
+  if [ -f "$installer" ] && grep -q 'Igniter.Code.Common.add_code(zipper, "extensions:' "$installer"; then
+    cp scripts/patches/ash_graphlaw.install.ex "$installer"
+    echo "installer: applied scripts/patches/ash_graphlaw.install.ex (pack add_extension defect)"
+  fi
   mix format || { echo "REFUSED(format:failed)" >&2; exit 5; }
   echo "ggen sync ok; pruned foreign packages: $(echo $foreign | tr '\n' ' ')"
 }

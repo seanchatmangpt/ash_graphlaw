@@ -3,3 +3,7 @@
 [packs.ash-extension-pack]
 source = "path:vendor/ggen-marketplace/packs/ash-extension-pack"
 content_hash = "blake3:824ff8b96dfc7999d49aaac2269296663dcd5ce31602b366e71b373069646c32"
+
+[packs.graphlaw-ash-capability-pack]
+source = "path:vendor/ggen-marketplace/packs/graphlaw-ash-capability-pack"
+content_hash = "blake3:c3150ce3c61d4b749b820fd1a4ba6fe2250a93a301abd3173f38f26585c0694a"

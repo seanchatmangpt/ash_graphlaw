@@ -12,7 +12,15 @@
 # would defeat the only thing the `:wasm` tests exist to establish. CI always vendors the
 # wasm, so `:wasm` always runs there.
 #
-# `:slow` tests are excluded by default; run them with `mix test --include slow`.
+# `:slow` tests are excluded by default. Include them (and `:wasm` when the engine is vendored) with:
+#
+#     mix test --include slow           # slow tests only
+#     mix test --include wasm           # override the exclusion above (fails loudly if unvendored)
+#     mix test.all                      # both, i.e. `mix test --include wasm --include slow`
+#
+# ExUnit prints `Randomized with seed <n>` on every run; reproduce a run, property tests
+# included, with `mix test --seed <n>`. Log output emitted by a passing test is captured, so a
+# failing test shows exactly the log lines it produced (`capture_log: true`).
 
 excluded = [:slow]
 
@@ -43,4 +51,4 @@ excluded =
       [:wasm | excluded]
   end
 
-ExUnit.start(exclude: excluded)
+ExUnit.start(exclude: excluded, capture_log: true)

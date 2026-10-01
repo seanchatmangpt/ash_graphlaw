@@ -67,7 +67,14 @@ defmodule AshGraphLaw.Mutation.RunnerRedefinitionTest do
   end
 
   test "the mutation machinery itself cannot be redefined by a killer file", %{tmp_dir: root} do
-    for module <- [Mutation, Runner, Catalog, AshGraphLaw.Mutation.Verdict, AshGraphLaw.Mutation.Collector, Mix.Tasks.AshGraphlaw.Mutate] do
+    for module <- [
+          Mutation,
+          Runner,
+          Catalog,
+          AshGraphLaw.Mutation.Verdict,
+          AshGraphLaw.Mutation.Collector,
+          Mix.Tasks.AshGraphlaw.Mutate
+        ] do
       before = md5(module)
       file = write!(root, "#{System.unique_integer([:positive])}_test.exs", "defmodule #{inspect(module)} do\nend\n")
 
@@ -78,7 +85,14 @@ defmodule AshGraphLaw.Mutation.RunnerRedefinitionTest do
 
   test "a conflict in the second file stops the run before the first file is compiled", %{tmp_dir: root} do
     marker = Path.join(root, "first_ran")
-    first = write!(root, "a_test.exs", "File.write!(#{inspect(marker)}, \"x\")\ndefmodule FirstOk#{System.unique_integer([:positive])} do\nend\n")
+
+    first =
+      write!(
+        root,
+        "a_test.exs",
+        "File.write!(#{inspect(marker)}, \"x\")\ndefmodule FirstOk#{System.unique_integer([:positive])} do\nend\n"
+      )
+
     second = write!(root, "b_test.exs", "defmodule AshGraphLaw.Authority do\nend\n")
 
     assert {:error, {:module_conflict, AshGraphLaw.Authority, _}} = Runner.run([first, second], test_root: root)

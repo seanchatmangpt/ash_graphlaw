@@ -12,6 +12,7 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
   use ExUnit.Case, async: true
 
   alias AshGraphLaw.Capability.API
+  alias AshGraphLaw.Capability.Limits
   alias AshGraphLaw.Capability.Registry
   alias AshGraphLaw.Refusal
   alias AshGraphLaw.Result.Term
@@ -176,6 +177,19 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
     }
   ]
 
+  # model name, generated module, declared field keys, required field keys
+  @models []
+
+  # limit name, value, scope
+  @limits [
+    {:max_atoms_per_field, 10000, ""},
+    {:max_json_depth, 64, ""},
+    {:max_plan_actions, 1000, ""},
+    {:max_policy_entries, 100_000, ""},
+    {:max_request_bytes, 16_777_216, ""},
+    {:n3_max_iterations, 4000, ""}
+  ]
+
   describe "positive control: the registry surface is present" do
     test "the registry lists the ontology's operations, in order, with the declared digests" do
       names = Registry.names()
@@ -284,6 +298,62 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
       assert {:error, %Refusal{code: :unknown_capability}} = API.run("no_such_capability", [])
       assert Registry.module_for("no_such_capability") == :error
       assert Registry.op("no_such_capability") == :error
+    end
+  end
+
+  describe "typed models" do
+    test "every model is a struct with its declared keys plus :extra" do
+      for %{module: module, keys: keys} <- @models do
+        assert Code.ensure_loaded?(module), "#{module} is not loaded"
+        struct_keys = Map.keys(struct(module)) -- [:__struct__]
+        assert Enum.sort(struct_keys) == Enum.sort([:extra | keys])
+        assert module.keys() == Enum.map(keys, &Atom.to_string/1)
+      end
+    end
+
+    test "from_map is tolerant and unknown keys survive a round trip" do
+      for %{module: module} <- @models do
+        injected = %{"future_field" => %{"a" => [1, 2]}}
+        decoded = module.from_map(injected)
+
+        assert decoded.extra == injected
+        assert module.to_map(decoded)["future_field"] == %{"a" => [1, 2]}
+        assert %{} = module.from_map(:not_a_map).extra
+        assert module.from_map(nil).extra == %{}
+      end
+    end
+
+    test "to_map keeps required keys and omits absent optional keys" do
+      for %{module: module, required: required} <- @models do
+        assert module.from_map(%{}) |> module.to_map() |> Map.keys() |> Enum.sort() ==
+                 Enum.sort(required)
+      end
+    end
+
+    test "wire values decode by key, with atom keys accepted" do
+      for %{module: module, keys: [key | _]} <- @models do
+        wire = Atom.to_string(key)
+        assert Map.fetch!(module.from_map(%{wire => "x"}), key) == "x"
+        assert Map.fetch!(module.from_map(%{key => "x"}), key) == "x"
+        assert module.from_map(%{key => "x"}).extra == %{}
+      end
+    end
+  end
+
+  describe "limits" do
+    test "the Limits module agrees with the registry limits" do
+      assert Limits.all() |> Enum.map(&{&1.name, &1.value, &1.scope}) == @limits
+      assert Limits.all() |> Map.new(&{&1.name, &1.value}) == Registry.limits()
+    end
+
+    test "get/1 and in_scope/1 are total" do
+      for {name, value, scope} <- @limits do
+        assert {:ok, %{value: ^value}} = Limits.get(name)
+        assert Enum.any?(Limits.in_scope(scope), &(&1.name == name))
+        assert apply(Limits, name, []) == value
+      end
+
+      assert Limits.get(:no_such_limit) == :error
     end
   end
 end

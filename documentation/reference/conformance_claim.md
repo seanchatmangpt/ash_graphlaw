@@ -25,7 +25,7 @@ What release `26.9.30` claims, and what it does not.
 - That the engine implements RDF, SPARQL, SHACL, ShEx, N3, Datalog, entailment or planning
   correctly. That is the upstream claim, tested in the GraphLaw repository. AshGraphLaw exposes
   those operations and reimplements none.
-- That parity holds against the pinned engine `v26.9.28`. The registry describes `v26.9.29`.
+- That parity holds against the pinned engine `v26.9.29` on the exact subject without a recorded run of `mix ash_graphlaw.parity`.
 - That the installer `--target` option works (`UNSUPPORTED`).
 - That any consequence was executed, or that this library signs leases.
 
@@ -34,7 +34,7 @@ What release `26.9.30` claims, and what it does not.
 | Item | Value |
 |---|---|
 | Library | `26.9.30` |
-| Engine pin | `v26.9.28`, ABI version 1 |
+| Engine pin | `v26.9.29`, ABI version 1 |
 | Registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` |
 | Exact-SHA receipt | none: `<<RECEIPT:claim-4>>` |
 

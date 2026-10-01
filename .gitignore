@@ -2,19 +2,28 @@
 #
 # SPDX-License-Identifier: MIT
 
+# Build outputs (per-lane build roots included: MIX_BUILD_ROOT=_build-lane<NN>)
 /_build/
 /_build-lane*/
 /deps/
 /doc/
 /cover/
 /tmp/
+erl_crash.dump
+*.ez
+/ash_graphlaw-*.tar
+
+# ggen scratch and generator state (projections themselves are committed)
 /.ggen-v2/
 /.ggen/
 /.clap-noun-verb/
-/vendor/
-/priv/graphlaw/*.wasm
-/priv/graphlaw/*.wasm.partial-*
-/priv/plts/
 /marketplace-src/
-/ash_graphlaw-*.tar
-erl_crash.dump
+/vendor/
+
+# The pinned engine is vendored and digest-verified, never committed or shipped.
+# priv/graphlaw/MANIFEST.json (url + SHA-256 pin) is the tracked artifact.
+*.wasm
+/priv/graphlaw/*.wasm.partial-*
+
+# Dialyzer PLTs are a local cache (plt_local_path / plt_core_path); dialyxir creates the directory.
+/priv/plts/

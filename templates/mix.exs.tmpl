@@ -275,8 +275,8 @@ defmodule AshGraphLaw.MixProject do
       {:reactor, "~> 1.0", optional: true},
       # Optional: only the `mix ash_graphlaw.install` task needs it, and only in the consuming project.
       {:igniter, ">= 0.6.29 and < 1.0.0-0", optional: true},
-      # Property tests (test/property). Test-only; ash already pulls stream_data, this makes the use explicit.
-      {:stream_data, "~> 1.0", only: :test},
+      # stream_data (test/property) arrives transitively through ash; declaring it here with only: :test
+      # conflicts with ash's own non-test requirement and breaks dependency resolution in dev.
       {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false},
       # Static analysis and audit tooling: dev/test only, never shipped.
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

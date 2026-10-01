@@ -59,7 +59,9 @@ defmodule AshGraphLaw.Integration.StoreLimitsTest do
       defaults = WasmConfig.limits([])
 
       for bad <- [-1, "4", nil, 1.5] do
-        limits = WasmConfig.limits(memories: bad, instances: bad, tables: bad, table_elements: bad, memory_limit_bytes: bad)
+        limits =
+          WasmConfig.limits(memories: bad, instances: bad, tables: bad, table_elements: bad, memory_limit_bytes: bad)
+
         assert limits.memories == defaults.memories
         assert limits.instances == defaults.instances
         assert limits.tables == defaults.tables
@@ -111,8 +113,11 @@ defmodule AshGraphLaw.Integration.StoreLimitsTest do
 
         observed =
           case Host.request(host, %{"op" => "capabilities"}) do
-            {:ok, %{"ok" => true}} -> :served_limit_not_binding
-            {:error, %Refusal{code: code, class: class}} when code in @typed_codes and class in @classes -> {:refused, code}
+            {:ok, %{"ok" => true}} ->
+              :served_limit_not_binding
+
+            {:error, %Refusal{code: code, class: class}} when code in @typed_codes and class in @classes ->
+              {:refused, code}
           end
 
         IO.puts("[store_limits] #{label} observed: #{inspect(observed)}")

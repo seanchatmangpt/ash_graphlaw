@@ -95,19 +95,33 @@ observations: a decoded result is not standing and grants no authority.
 - `refusal_kinds`: `NotSemanticContent`, `Ambiguous`, `EngineRejected`, `Unsupported`, `ResourceLimit`
 - `regimes`: `simple`, `rdf`, `rdfs`, `owl-rl`, `d`
 
+## Typed models
+
+Value models shared by the typed surface; each is generated as an Elixir struct under
+`AshGraphLaw.Model` that keeps unknown wire keys in `:extra`.
+
+| Model | Elixir module | Engine type | Fields |
+|---|---|---|---|
+
 ## Limits
 
-| Limit | Value |
-|---|---|
-| `max_atoms_per_field` | 10000 |
-| `max_json_depth` | 64 |
-| `max_plan_actions` | 1000 |
-| `max_policy_entries` | 100000 |
-| `max_request_bytes` | 16777216 |
-| `n3_max_iterations` | 4000 |
+| Limit | Value | Scope | Unit | Enforced in |
+|---|---|---|---|---|
+| `max_atoms_per_field` | 10000 | unscoped | unknown | unknown |
+| `max_json_depth` | 64 | unscoped | unknown | unknown |
+| `max_plan_actions` | 1000 | unscoped | unknown | unknown |
+| `max_policy_entries` | 100000 | unscoped | unknown | unknown |
+| `max_request_bytes` | 16777216 | unscoped | unknown | unknown |
+| `n3_max_iterations` | 4000 | unscoped | unknown | unknown |
+
+## Limit scopes
+
+- unscoped: `max_atoms_per_field`, `max_json_depth`, `max_plan_actions`, `max_policy_entries`, `max_request_bytes`, `n3_max_iterations`
 
 ## See Also
 
 - `AshGraphLaw.Capability.Registry`
 - `AshGraphLaw.Capability.API`
+- `AshGraphLaw.Capability.Limits`
+- `AshGraphLaw.Model.Enums`
 - [Typed refusals](typed_refusals.md)

@@ -100,6 +100,7 @@ defmodule AshGraphLaw.Integration.FuelAndResponseCapTest do
       assert full_size > 100
 
       capped = start_host!(max_response_bytes: 100)
+
       assert {:error, %Refusal{code: :resource_limit, class: :blocked_resource, details: details}} =
                Host.request(capped, %{"op" => "capabilities"})
 
@@ -124,7 +125,9 @@ defmodule AshGraphLaw.Integration.FuelAndResponseCapTest do
 
       # find the response length the engine reports, through the refusal detail of a tiny cap
       tiny = start_host!(max_response_bytes: 1)
-      assert {:error, %Refusal{code: :resource_limit, details: %{bytes: bytes}}} = Host.request(tiny, %{"op" => "capabilities"})
+
+      assert {:error, %Refusal{code: :resource_limit, details: %{bytes: bytes}}} =
+               Host.request(tiny, %{"op" => "capabilities"})
 
       at_cap = start_host!(max_response_bytes: bytes)
       assert {:ok, %{"ok" => true}} = Host.request(at_cap, %{"op" => "capabilities"})

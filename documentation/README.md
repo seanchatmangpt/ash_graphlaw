@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # AshGraphLaw Documentation Hub (Diataxis Framework)
 
-AshGraphLaw (library `26.9.30`, engine pin `v26.9.28`) lets an Ash action declare a named
+AshGraphLaw (library `26.9.30`, engine pin `v26.9.29`) lets an Ash action declare a named
 admission that a pinned GraphLaw WASM engine derives and validates against the action's projected
 data. A refusal is a typed value. An admission is an observation bound to one exact input digest
 and grants no authority.
