@@ -102,6 +102,14 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
     assert r2["broken_term"] == "R_missing_identity"
   end
 
+  test "manifest ABI drift is refused at R2" do
+    dir = ParityFixtures.scratch_dir!("manifest-abi")
+    path = Path.join(dir, "MANIFEST.json")
+    File.write!(path, Jason.encode!(%{"abi_version" => 999}))
+    assert {:error, %{report: report}} = run_variant(:exact, manifest_path: path)
+    assert "R2" in report["drift"]
+  end
+
   test "no engine on disk is a typed blocked refusal with a report, never a pass or a skip" do
     assert {:error, %{refusal: %Refusal{code: :wasm_not_vendored}, report: report}} =
              Parity.run(wasm_path: "/nonexistent/parity/graphlaw.wasm", examples: false)
