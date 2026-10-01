@@ -91,6 +91,17 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
     assert p3["evidence"]["live_registry_sha256"] == ParityFixtures.wrong_digest()
   end
 
+  test "a live ABI mismatch is refused at R2 even when capability identity is otherwise canonical" do
+    {refusal, report} = drift!(:bad_abi)
+
+    assert "R2" in report["drift"]
+    assert refusal.message =~ "R2"
+    r2 = Enum.find(report["checks"], &(&1["id"] == "R2"))
+    assert r2["evidence"]["expected"] == 1
+    assert r2["evidence"]["live"] == 999
+    assert r2["broken_term"] == "R_missing_identity"
+  end
+
   test "no engine on disk is a typed blocked refusal with a report, never a pass or a skip" do
     assert {:error, %{refusal: %Refusal{code: :wasm_not_vendored}, report: report}} =
              Parity.run(wasm_path: "/nonexistent/parity/graphlaw.wasm", examples: false)
