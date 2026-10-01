@@ -28,8 +28,9 @@ defmodule AshGraphLaw.Parity do
   | `P8` | no supported op requires `AshGraphLaw.call/2` (every op has a typed `run/2` and API function) |
   | `P9` | every `priv/graphlaw/op-examples.json` example reproduces through the typed API against the live engine (`not_run` under `examples: false`) |
   | `R1` | the vendored `priv/graphlaw/capability-registry.json` digest, recomputed by `CanonicalJSON`, equals `Registry.digest/0` |
+  | `R2` | live runtime ABI identity equals the pinned `priv/graphlaw/MANIFEST.json` `abi_version` |
 
-  `R1` is an additive check beyond P1..P9.
+  `R1` and `R2` are additive checks beyond P1..P9.
 
   ## Result
 
@@ -44,7 +45,7 @@ defmodule AshGraphLaw.Parity do
     * `:wasm_path`, `:bytes`, `:expected_sha256`, `:fuel`, `:timeout_ms` - forwarded to the host;
     * `:examples` - run P9 (default `true`);
     * `:registry` - registry module (default `AshGraphLaw.Capability.Registry`);
-    * `:examples_path`, `:registry_json_path` - override the vendored `priv/graphlaw` files.
+    * `:examples_path`, `:registry_json_path`, `:manifest_path` - override vendored `priv/graphlaw` files.
   """
 
   alias AshGraphLaw.Host
@@ -68,7 +69,8 @@ defmodule AshGraphLaw.Parity do
     {"P7", "every registry refusal code maps to a known refusal atom", "R_missing_consequence"},
     {"P8", "no supported op requires AshGraphLaw.call/2", "admission_vacuous"},
     {"P9", "every op example reproduces through the typed API on the live engine", "R_missing_replay"},
-    {"R1", "vendored registry JSON digest equals Registry.digest/0", "R_missing_identity"}
+    {"R1", "vendored registry JSON digest equals Registry.digest/0", "R_missing_identity"},
+    {"R2", "live runtime ABI equals pinned manifest abi_version", "R_missing_identity"}
   ]
 
   @typedoc "One check result inside a report."
@@ -185,7 +187,8 @@ defmodule AshGraphLaw.Parity do
       check("P7", fn -> p7(reg) end),
       check("P8", fn -> p8(reg) end),
       check("P9", fn -> p9(reg, host, opts) end),
-      check("R1", fn -> r1(reg, opts) end)
+      check("R1", fn -> r1(reg, opts) end),
+      check("R2", fn -> r2(live, opts) end)
     ]
   end
 
@@ -516,6 +519,19 @@ defmodule AshGraphLaw.Parity do
         same_digest?(recomputed, reg.digest) and same_digest?(Map.get(doc, "registry_sha256"), reg.digest),
         evidence
       )
+    else
+      other -> {"drift", %{"path" => path, "unreadable" => inspect(other, limit: 5)}}
+    end
+  end
+
+  defp r2(live, opts) do
+    path = Keyword.get(opts, :manifest_path) || priv_file("MANIFEST.json")
+
+    with {:ok, raw} <- File.read(path),
+         {:ok, %{"abi_version" => expected}} <- Jason.decode(raw) do
+      live_abi = Map.get(live, "abi_version", Map.get(live, "abi"))
+      evidence = %{"path" => path, "expected" => expected, "live" => live_abi}
+      verdict(is_integer(expected) and live_abi == expected, evidence)
     else
       other -> {"drift", %{"path" => path, "unreadable" => inspect(other, limit: 5)}}
     end
