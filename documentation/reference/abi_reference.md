@@ -20,7 +20,7 @@ generated from it (`registry/capability-registry.json`).
 | Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; the same release this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
-`abi_version` field of the `capabilities` response with its own expectation and refuse a mismatch
+`abi` field of the `capabilities` response with its own expectation and refuse a mismatch
 (`:abi_version_mismatch`).
 
 ## Module surface
@@ -149,20 +149,18 @@ Success members: `states` (state ids, start first), `receipts` (each with `step`
 `child`, `added`, `authority`, `revision`, and where applicable `lease_id`, `plan_sha256`,
 `index`), `nquads` (final state).
 
-> **Pinned engine gap (`UNSUPPORTED(engine-capability)`).** Measured against the v26.9.28 engine, not re-measured for the pinned v26.9.29 engine:
-> implements `shacl`, `n3`, `rdfs`, `owl-rl` and `hooks` only. `plan`, `record-receipts`,
-> `require-receipt` and `require-signed-receipt` are refused with kind `Unsupported`
-> ("unknown step `plan`", etc.), which the library projects as `engine_refused` /
-> `refused_structure` (standing `UNKNOWN`). The engine also ignores lease keys entirely: it
-> does not verify signature, signer or expiry, and receipts carry no `lease_id`. The
-> `PlanRefused`, `LeaseRefused`, `UnverifiedLeaseRefused`, `ReceiptRequired` and `ReceiptRefused`
-> codes below are therefore documented ABI shapes that v26.9.28 never emitted. A SHACL violation
-> is reported as kind `EngineRejected` without a `details.code` (`engine_refused`, not
-> `not_admitted`), and JSON nested beyond the depth limit is reported as kind `Unsupported`
-> ("request is not JSON: recursion limit exceeded"), not `ResourceLimit`. The `policy` op is not
-> in the engine's capabilities.
+> **Pinned v26.9.29 engine observations.** The engine implements every `law` step in the table,
+> including `plan`, `record-receipts`, `require-receipt` and `require-signed-receipt`. A SHACL
+> violation is reported with `details.code` `NotAdmitted` (`:not_admitted`) and JSON nested
+> beyond the depth limit as kind `ResourceLimit` (`details.code` `ResourceLimit` →
+> `:resource_limit`; `details.limit` names the cap, e.g. `json_depth`). The engine verifies a
+> `signed_lease` itself (signature against `trusted_keys`, expiry on its own clock) and stamps
+> passing receipts with `lease_id`; the `PlanRefused`, `LeaseRefused`, `UnverifiedLeaseRefused`,
+> `ReceiptRequired` and `ReceiptRefused` codes below are engine-emitted `details.code` values.
+> The `policy` op is op 14 of the pinned capability registry (refusal kinds `EngineRejected`,
+> `Unsupported`, `ResourceLimit`; refusal codes `ResourceLimit`, `PolicyRefused`).
 
-Leases on a `law` request (shape per the ABI; not enforced by v26.9.28, see above): `signed_lease` (`{"lease": {...}, "attestation": {...}}`) with
+Leases on a `law` request (shape per the ABI; verified by the pinned v26.9.29 engine, see above): `signed_lease` (`{"lease": {...}, "attestation": {...}}`) with
 `trusted_keys` and optional `max_skew_secs` (default 60); or an unsigned `lease` refused unless
 `unverified_lease: true` and the caller supplies `now_unix`. For a signed lease the module uses
 its own clock and ignores `now_unix`. Required ceilings: `Observe` for gates, `Select` for
