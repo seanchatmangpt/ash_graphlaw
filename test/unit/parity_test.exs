@@ -51,7 +51,10 @@ defmodule AshGraphLaw.ParityTest do
     test "every check id is present, in order, with a title and a status" do
       report = :exact |> run_variant() |> report_of()
       assert Enum.map(report["checks"], & &1["id"]) == Parity.check_ids()
-      assert Parity.check_ids() == ~w(P1 P2 P3 P4 P5 P6 P7 P8 P9 R1)
+      # R2 (live runtime ABI identity vs the pinned MANIFEST abi_version)
+      # joined the additive tail: the committed parity.ex check list is
+      # authoritative (E6 lane, v26.10.2 loop closure).
+      assert Parity.check_ids() == ~w(P1 P2 P3 P4 P5 P6 P7 P8 P9 R1 R2)
 
       for check <- report["checks"] do
         assert is_binary(check["title"]) and check["status"] in ["pass", "drift", "not_run"]
