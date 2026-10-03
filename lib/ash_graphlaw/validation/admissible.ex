@@ -121,7 +121,7 @@ defmodule AshGraphLaw.Validation.Admissible do
   `{:error, %AshGraphLaw.Error.Refused{}}` carrying the typed refusal.
   """
   @impl Ash.Resource.Validation
-  @spec validate(subject(), opts(), Ash.Resource.Validation.context()) :: :ok | {:error, Exception.t()}
+  @spec validate(subject(), opts(), Ash.Resource.Validation.Context.t()) :: :ok | {:error, Exception.t()}
   def validate(subject, opts, _context) do
     case admit(subject, opts) do
       :ok -> :ok
@@ -133,7 +133,7 @@ defmodule AshGraphLaw.Validation.Admissible do
   Declares the validation non-atomic: `{:not_atomic, "GraphLaw admission requires a WASM call"}`.
   """
   @impl Ash.Resource.Validation
-  @spec atomic(subject(), opts(), Ash.Resource.Validation.context()) :: {:not_atomic, String.t()}
+  @spec atomic(subject(), opts(), Ash.Resource.Validation.Context.t()) :: {:not_atomic, String.t()}
   def atomic(_subject, _opts, _context), do: {:not_atomic, "GraphLaw admission requires a WASM call"}
 
   @doc "Describes the validation for error messages (`message` and `vars`)."

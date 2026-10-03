@@ -88,7 +88,7 @@ defmodule AshGraphLaw.Preparation.Admit do
   `AshGraphLaw.Error.Refused` error added.
   """
   @impl Ash.Resource.Preparation
-  @spec prepare(Ash.Query.t() | Ash.ActionInput.t(), opts(), Ash.Resource.Preparation.context()) ::
+  @spec prepare(Ash.Query.t() | Ash.ActionInput.t(), opts(), Ash.Resource.Preparation.Context.t()) ::
           Ash.Query.t() | Ash.ActionInput.t()
   def prepare(subject, opts, _context) do
     case Admissible.admit(subject, opts) do

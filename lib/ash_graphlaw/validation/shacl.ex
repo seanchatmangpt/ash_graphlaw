@@ -96,7 +96,7 @@ defmodule AshGraphLaw.Validation.Shacl do
   results otherwise, or `{:error, %AshGraphLaw.Error.Refused{}}` when the call is refused.
   """
   @impl Ash.Resource.Validation
-  @spec validate(Ash.Changeset.t(), keyword(), Ash.Resource.Validation.context()) :: :ok | {:error, Exception.t()}
+  @spec validate(Ash.Changeset.t(), keyword(), Ash.Resource.Validation.Context.t()) :: :ok | {:error, Exception.t()}
   def validate(%Ash.Changeset{resource: resource} = changeset, opts, _context) do
     opts = Keyword.put(opts, :lease, Lifecycle.lease(changeset, opts))
     extra = [shapes: Keyword.fetch!(opts, :shapes)]
@@ -109,7 +109,7 @@ defmodule AshGraphLaw.Validation.Shacl do
 
   @doc "Declares the validation non-atomic."
   @impl Ash.Resource.Validation
-  @spec atomic(Ash.Changeset.t(), keyword(), Ash.Resource.Validation.context()) :: {:not_atomic, String.t()}
+  @spec atomic(Ash.Changeset.t(), keyword(), Ash.Resource.Validation.Context.t()) :: {:not_atomic, String.t()}
   def atomic(_changeset, _opts, _context), do: {:not_atomic, "GraphLaw SHACL validation requires a WASM call"}
 
   @doc "Describes the validation for error messages (`message` and `vars`)."

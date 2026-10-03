@@ -38,6 +38,7 @@ Owner pack for all rows: `ash-extension-pack`. Last observed: 2026-09-29.
 | `lib/ash_graphlaw/mutation/verdict.ex` | no pack template emits a mutation verdict type |
 | `lib/ash_graphlaw/refusal.ex` | from_engine/2 policy (engine error payload to refusal code) sits inside the generated refusal template; the code table itself is generated |
 | `lib/mix/tasks/ash_graphlaw.vendor.ex` | no pack template emits a wasm vendoring task |
+| `lib/ash_graphlaw/model/enums.ex` | Elixir 1.20 type checker rejects the generated `Map.get(@enums, enum, [])` when the registry emits an empty enum map; the `:maps.get/3` form is behaviorally identical for every generated map content (upstream pack template fix pending) |
 | `lib/mix/tasks/ash_graphlaw.verify.ex` | no pack template emits a wasm verification task |
 | `lib/mix/tasks/ash_graphlaw.mutate.ex` | no pack template emits a mutation task |
 | `lib/mix/tasks/ash_graphlaw.test_livebooks.ex` | no pack template emits a Livebook cell-evaluation task |
