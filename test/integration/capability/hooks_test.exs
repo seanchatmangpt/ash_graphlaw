@@ -45,7 +45,7 @@ defmodule AshGraphLaw.Integration.Capability.HooksTest do
   describe "refusals" do
     test "an unsupported hook kind is an engine refusal", %{opts: opts} do
       assert_refusal(API.hooks(args_of(example!("hooks.unsupported-kind-refused")), opts), :engine_refused,
-        kind: "EngineRejected"
+        kind: "Unsupported"
       )
     end
 

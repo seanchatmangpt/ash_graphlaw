@@ -146,7 +146,8 @@ defmodule AshGraphLaw.Mutation.CatalogCompletenessTest do
       {out, status} = mix!(["ash_graphlaw.mutate", "--only", "AGL-MUT-007", "--require-killed"])
       assert status == 0, out
       assert out =~ "mutant_killed"
-      refute out =~ "mutant_survived"
+      # The final tally prints `mutant_survived: 0` on success; a survivor is a nonzero count.
+      refute out =~ ~r/mutant_survived: [1-9]/
     end
   end
 end

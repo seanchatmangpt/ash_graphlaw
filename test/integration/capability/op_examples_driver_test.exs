@@ -68,9 +68,28 @@ defmodule AshGraphLaw.Integration.Capability.OpExamplesDriverTest do
          opts: opts
        } do
     for example <- examples()["examples"], example["outcome"] == "refused" do
-      assert {:error, %Refusal{} = refusal} = typed(example["op"], args_of(example), opts), example["id"]
-      assert refusal.code in [:invalid_capability_request, expected_code(example["refusal_code"])], example["id"]
-      assert refusal.code in Refusal.codes(), example["id"]
+      # A wire-contract refusal the client normalizes away (a bare string for a data_spec the
+      # typed layer coerces to {"text": ...}) never reaches the engine through the typed API;
+      # the declared refusal holds against the ORIGINAL raw request instead.
+      if normalized?(example) do
+        assert {:error, %Refusal{} = engine} = AshGraphLaw.call(example["request"], opts),
+               example["id"]
+
+        assert engine.kind == example["refusal_kind"], example["id"]
+      else
+        assert {:error, %Refusal{} = refusal} = typed(example["op"], args_of(example), opts), example["id"]
+        assert refusal.code in [:invalid_capability_request, expected_code(example["refusal_code"])], example["id"]
+        assert refusal.code in Refusal.codes(), example["id"]
+      end
+    end
+  end
+
+  # The client normalizes the request away from the example's original wire form (e.g. a bare
+  # string data_spec coerced to {"text": ...}); false when the client refuses the request outright.
+  defp normalized?(example) do
+    case built(example["op"], args_of(example)) do
+      {:ok, request} -> example["request"] != Map.delete(request, "op")
+      {:error, %Refusal{}} -> false
     end
   end
 
@@ -95,6 +114,14 @@ defmodule AshGraphLaw.Integration.Capability.OpExamplesDriverTest do
           assert refusal.code == expected_code(example["refusal_code"]), id
           assert refusal.kind == example["refusal_kind"], id
         end
+
+      # Wire-contract refusal the client normalizes away: the typed layer coerces the bare
+      # string data_spec and the engine accepts the normalized form; the declared refusal holds
+      # against the ORIGINAL raw request only.
+      {"refused", {:ok, _raw_map}, {:ok, _typed}} when normalized? ->
+        assert {:error, %Refusal{kind: kind} = engine} = AshGraphLaw.call(example["request"], opts), id
+        assert kind == example["refusal_kind"], id
+        assert engine.code in Refusal.codes(), id
 
       other ->
         flunk("#{id}: outcome #{example["outcome"]} not reproduced: #{inspect(other, limit: 8)}")
