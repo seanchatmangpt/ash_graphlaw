@@ -123,7 +123,8 @@ defmodule AshGraphLaw.Negative.CapabilityRequestNegativeTest do
         args = op |> base_args() |> Map.put("op", op)
         assert %{details: %{"unknown_keys" => ["op"]}} = refusal!(built(op, args)), op
 
-        assert %{details: %{"unknown_keys" => ["op"]}} = refusal!(built(op, Map.delete(args, "op") |> Map.put(:op, op))),
+        assert %{details: %{"unknown_keys" => ["op"]}} =
+                 refusal!(built(op, Map.delete(args, "op") |> Map.put(:op, op))),
                op
       end
     end

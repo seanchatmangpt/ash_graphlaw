@@ -88,12 +88,12 @@ Per-op pages: [capabilities reference](documentation/reference/capabilities.md).
 ```elixir
 def deps do
   [
-    {:ash_graphlaw, "~> 26.9.30"}
+    {:ash_graphlaw, "~> 26.10.1"}
   ]
 end
 ```
 
-The package version is `26.9.30` (calendar versioning). The `graphlaw.wasm` binary
+The package version is `26.10.1` (calendar versioning). The `graphlaw.wasm` binary
 is not shipped in the Hex package; fetch the pinned release asset with the vendor task (see
 [Vendoring the engine](#vendoring-the-engine)). With Igniter available, `mix igniter.install
 ash_graphlaw` runs `mix ash_graphlaw.install`.
@@ -271,7 +271,7 @@ and the WASI import surface is allowlisted; the host never widens either.
 
 ## Manufactured provenance
 
-- ash_graphlaw: v26.9.30
+- ash_graphlaw: v26.10.1
 - GraphLaw court release: v26.9.29
 - GraphLaw ABI: 1
 - graphlaw.wasm SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`

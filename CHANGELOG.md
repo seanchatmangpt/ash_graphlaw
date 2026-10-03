@@ -11,6 +11,37 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [26.10.1] - 2026-10-01
+
+First Hex publish. Version bump carrying the prior-art vocabulary bindings and the parity court
+hardening landed after 26.9.30. GraphLaw engine pin unchanged: `v26.9.29` (wasm SHA-256
+`7bb2a7e5...`, ABI version 1).
+
+### Added
+
+- Prior-art vocabulary bindings under `priv/prior_art/`: RDF 1.1 graph semantics
+  (`rdf_1_1_import.json`), RDFS 1.1 vocabulary semantics (`rdfs_1_1_import.json`) and the PROV-O
+  projection ceiling (`prov-o-rec-20130430.json`) — the external vocabularies the admission graph
+  is allowed to project into, pinned by their normative documents.
+
+### Fixed
+
+- Reference documentation (ABI, DSL, support matrix) now describes the pinned v26.9.29 engine
+  instead of the retired v26.9.28 gap set: every law step (including `plan`, `require_receipt`,
+  `require_signed_receipt`) executes, SHACL violations surface as `:not_admitted`, depth overrun
+  as `:resource_limit`, and signed leases are verified engine-side with receipts stamped
+  `lease_id`.
+
+### Tests
+
+- Parity court bound to the pinned runtime ABI: cross-runtime ABI drift fixture, parity R2
+  refuses manifest ABI drift.
+
+### Manufacture
+
+- Marketplace pin re-anchored to the pushed `86735f4e` (pack emits the fixed installer), with
+  `CITATION.cff` and `engineering-standards.json` added as version-bound projections.
+
 ## [26.9.30] - 2026-09-30
 
 Version bump for the 26.9.30 Hex release dry run. The typed capability surface below ships in this

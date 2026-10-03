@@ -3,8 +3,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "ash_graphlaw"
-version: "26.9.30"
-date-released: "2026-09-30"
+version: "26.10.1"
+date-released: "2026-10-01"
 license: MIT
 type: software
 authors:
