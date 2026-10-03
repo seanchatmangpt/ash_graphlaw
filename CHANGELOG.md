@@ -9,8 +9,6 @@ All notable changes to this project are documented in this file. The format foll
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses calendar versioning
 (`YY.M.N`).
 
-## [Unreleased]
-
 ## [26.10.1] - 2026-10-01
 
 First Hex publish. Version bump carrying the prior-art vocabulary bindings and the parity court
