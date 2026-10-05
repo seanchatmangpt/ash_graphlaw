@@ -214,8 +214,14 @@ defmodule AshGraphLaw.Authority do
 
   defp check_declared(resource, op, policy) do
     with {:ok, capability} <- Admissions.capability(resource, op) do
-      if Keyword.has_key?(policy, :lease) do
-        %{ceiling: granted} = claim(Keyword.fetch!(policy, :lease))
+      check_lease_ceiling(capability, policy)
+    end
+  end
+
+  defp check_lease_ceiling(capability, policy) do
+    case Keyword.fetch(policy, :lease) do
+      {:ok, lease} ->
+        %{ceiling: granted} = claim(lease)
         required = capability.ceiling
 
         if Map.fetch!(@ceiling_rank, granted) >= Map.fetch!(@ceiling_rank, required) do
@@ -228,9 +234,9 @@ defmodule AshGraphLaw.Authority do
              %{capability: to_string(capability.name), required: required, granted: granted}
            )}
         end
-      else
+
+      :error ->
         :ok
-      end
     end
   end
 
