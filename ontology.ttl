@@ -81,7 +81,7 @@ glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "co
 #################################################################
 
 glx:AshGraphLawProject a glx:Project ;
-    glx:packageVersion "26.10.1" ;
+    glx:packageVersion "26.10.7" ;
     glx:graphLawVersion "26.9.29" ;
     glx:engineReleaseTag "v26.9.29" ;
     glx:maintainer "Sean Chatman" ;
