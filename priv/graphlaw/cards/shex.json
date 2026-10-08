@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-shex",
+  "description": "Validate a dataset against a ShEx schema and shape map. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.shex.validate",
+      "name": "GraphLaw shex",
+      "description": "Validate a dataset against a ShEx schema and shape map.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "shex"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/shex",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-datalog",
+  "description": "Evaluate Datalog rules over triple facts to a fixpoint. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.datalog.reason",
+      "name": "GraphLaw datalog",
+      "description": "Evaluate Datalog rules over triple facts to a fixpoint.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "datalog"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/datalog",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

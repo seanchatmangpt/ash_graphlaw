@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-sparql",
+  "description": "Evaluate a SPARQL query over a dataset. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.sparql.query",
+      "name": "GraphLaw sparql",
+      "description": "Evaluate a SPARQL query over a dataset.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "sparql"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/sparql",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

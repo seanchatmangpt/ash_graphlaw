@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-shacl",
+  "description": "Validate a dataset against SHACL shapes. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.shacl.validate",
+      "name": "GraphLaw shacl",
+      "description": "Validate a dataset against SHACL shapes.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "shacl"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/shacl",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

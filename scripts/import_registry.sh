@@ -16,6 +16,8 @@
 # The digest is recomputed from priv/graphlaw/capability-registry.json (DIGEST RULE); the
 # import is REFUSED when it differs from the file's declared registry_sha256. Idempotent.
 # --check writes nothing: exit 1 when ontology.ttl differs from the expected result.
+# In write mode the run also regenerates the A2A v1.0 capability cards in priv/graphlaw/cards/
+# via scripts/generate_capability_cards.py.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -100,3 +102,12 @@ else:
     else:
         print("already current: %s @ %s" % (onto_path, digest))
 PY
+
+# Regenerate the A2A v1.0 capability cards from the same verified registry (write mode) or
+# verify them against it (--check). Card generation is part of the import law; hand-editing
+# priv/graphlaw/cards/ is refused on the next run.
+if [ "$check" -eq 1 ]; then
+  python3 scripts/generate_capability_cards.py --check
+else
+  python3 scripts/generate_capability_cards.py
+fi

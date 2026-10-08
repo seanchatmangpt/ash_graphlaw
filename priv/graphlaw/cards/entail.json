@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-entail",
+  "description": "Materialize an entailment regime over a dataset. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.entail.entail",
+      "name": "GraphLaw entail",
+      "description": "Materialize an entailment regime over a dataset.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "entail"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/entail",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

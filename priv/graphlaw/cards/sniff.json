@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-sniff",
+  "description": "Route text to a dialect and owning engine without parsing it. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.sniff.sniff",
+      "name": "GraphLaw sniff",
+      "description": "Route text to a dialect and owning engine without parsing it.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "sniff"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/sniff",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

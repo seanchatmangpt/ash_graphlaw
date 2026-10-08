@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-law",
+  "description": "Run an ordered chain of law steps with receipts and optional lease authorization. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.law.execute",
+      "name": "GraphLaw law",
+      "description": "Run an ordered chain of law steps with receipts and optional lease authorization.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "law"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/law",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}

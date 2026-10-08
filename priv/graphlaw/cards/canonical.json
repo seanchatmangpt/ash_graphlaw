@@ -1,0 +1,25 @@
+{
+  "name": "graphlaw-canonical",
+  "description": "Canonicalize a dataset to N-Quads and return its content-addressed id. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
+  "version": "26.9.29",
+  "skills": [
+    {
+      "id": "graphlaw.canonical.canonicalize",
+      "name": "GraphLaw canonical",
+      "description": "Canonicalize a dataset to N-Quads and return its content-addressed id.",
+      "tags": [
+        "graphlaw",
+        "a2a-v1.0",
+        "select-construct-only",
+        "canonical"
+      ]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://graphlaw.dev/registry#op/canonical",
+      "protocolBinding": "HTTP+JSON",
+      "protocolVersion": "1.0"
+    }
+  ]
+}
