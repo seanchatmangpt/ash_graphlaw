@@ -9,6 +9,22 @@ All notable changes to this project are documented in this file. The format foll
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses calendar versioning
 (`YY.M.N`).
 
+## [26.10.8] - 2026-10-08
+
+Version bump to 26.10.8: refreshes the five stale `glx:VersionBinding` package rows in
+`ontology.ttl` (frozen at 26.10.1 while `glx:packageVersion` had advanced to 26.10.7), which
+made gate `gates/070_version_sync_contract.rq` refuse every `ggen sync run` with
+`package_binding_drift`. Engine pin unchanged: `v26.9.29`. Also lands the v26.10.3 ARD-PRD
+ RDF requirements document under `docs/sjira/`.
+
+### Fixed
+
+- Version-sync gate (070): package-kind `glx:VersionBinding` rows for mix.exs, README.md,
+  CHANGELOG.md, CITATION.cff, engineering-standards.json now match `glx:packageVersion`.
+- Retired the stale `lib/ash_graphlaw/model/enums.ex` HANDWRITTEN.md row: the generated
+  `Map.get(@enums, enum, [])` form compiles clean and passes the full suite under the current
+  toolchain; the `:maps.get/3` hand-adjustment is no longer needed.
+
 ## [26.10.1] - 2026-10-01
 
 First Hex publish. Version bump carrying the prior-art vocabulary bindings and the parity court

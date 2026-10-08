@@ -27,10 +27,3 @@ erl_crash.dump
 
 # Dialyzer PLTs are a local cache (plt_local_path / plt_core_path); dialyxir creates the directory.
 /priv/plts/
-
-# lane-lease build roots (fan-out campaign)
-target/
-node_modules/
-.DS_Store
-_build-lane*/
-target-lane*/

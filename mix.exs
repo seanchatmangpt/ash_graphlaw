@@ -8,7 +8,7 @@ defmodule AshGraphLaw.MixProject do
 
   # Bound to glx:packageVersion in ontology.ttl (rendered by ggen). Never edit here; edit the ontology
   # and run scripts/ggen_sync.sh. The tag pushed for a release must equal this string with a `v` prefix.
-  @version "26.10.7"
+  @version "26.10.8"
   @name "AshGraphLaw"
   @description "GraphLaw WASM admission engine for Ash Framework: derives and validates, never authorizes"
   @github_url "https://github.com/seanchatmangpt/ash_graphlaw"
