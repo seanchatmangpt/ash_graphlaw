@@ -1,0 +1,237 @@
+@prefix sj: <https://ggen-igniter.dev/ontology/semantic-jira#> .
+@prefix ard: <https://seanchatmangpt.dev/sjira/v26.10.3/ard#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ash_graphlaw v26.10.3 Product Requirements Document as RDF.
+#
+# This graph authors NO sj:WorkOrder and NO sj:Receipt. It is a requirements
+# document: goals, requirements anchored to real test paths in this repository,
+# falsifiers per claim, and honest limitations. Every factual assertion below
+# is grounded in files on disk at subject 33aeaae; descriptions are factual,
+# carry no self-approval, and grant no authority.
+#
+# Subject: ash_graphlaw 26.10.1 (Hex package version; repository working head
+# 33aeaaef101630a3ff9292a115bd69607f8391ca at authoring time).
+
+ard:ARD-PRD-26.10.3 a sj:GoalCheckpoint ;
+    dcterms:identifier "ARD-PRD-26.10.3" ;
+    rdfs:label "ash_graphlaw product requirements document (RDF)" ;
+    dcterms:description "Requirements for ash_graphlaw, the Ash/BEAM membrane hosting the pinned graphlaw.wasm WASI engine: digest-verified engine pinning, typed admission and refusal surface, forged-capability and lease refusal courts, ontology-generated refusal table, parity evidence pipeline, and the authority boundary that derives and validates but never authorizes." ;
+    dcterms:source "docs/sjira/v26.10.3/ARD-PRD.ttl" ;
+    sj:repository "seanchatmangpt/ash_graphlaw" ;
+    sj:baseSha "33aeaaef101630a3ff9292a115bd69607f8391ca" ;
+    sj:authorityCeiling "CONSTRUCT" ;
+    sj:evidenceHorizon "ADMISSION_EVIDENCE" ;
+    sj:replayIdentity "semantic-jira:v26.10.3:ARD-PRD-26.10.3" ;
+    sj:requiresEvidence ard:ev-engine-digest, ard:ev-test-ladder, ard:ev-parity-evidence, ard:ev-refusal-table ;
+    sj:requiresCourt ard:court-verification-ladder ;
+    sj:acceptance
+        ard:acc-authority-boundary,
+        ard:acc-digest-verified-pin,
+        ard:acc-typed-surface,
+        ard:acc-refusal-closed-table,
+        ard:acc-forged-capability-refusal,
+        ard:acc-parity-court,
+        ard:acc-generation-residue ;
+    sj:falsifier
+        ard:fals-authority-widening,
+        ard:fals-unverified-binary,
+        ard:fals-open-refusal-vocabulary,
+        ard:fals-forged-lease-admitted,
+        ard:fals-parity-drift-masked,
+        ard:fals-test-count-drift ;
+    sj:exclusion
+        "This PRD authors no WorkOrder and no Receipt; it is requirements state, not execution state.",
+        "No goal, acceptance criterion or document in this graph is ALIVE; ALIVE requires an exact-SHA court receipt that this graph does not contain.",
+        "No projection, document or test result grants DO authority; admission evidence is an observation." ;
+    sj:successorPolicy "Capability gaps route to the owning repository (graphlaw engine gaps to seanchatmangpt/graphlaw; generator gaps to graphlaw-ash-capability-pack) without forking subject identity." .
+
+# ---------------------------------------------------------------- goals
+
+ard:goal-authority-boundary a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-1" ;
+    rdfs:label "Derives and validates, never authorizes" ;
+    dcterms:description "The engine derives and validates: it decides whether the projected semantic state and the requested transition are admitted. The host projects the outcome as typed success (AshGraphLaw.Admitted wrapped in AshGraphLaw.Evidence) or typed refusal (AshGraphLaw.Refusal) and grants no authority; AshGraphLaw.Standing never reports :ALIVE for an admission alone." ;
+    sj:acceptance ard:acc-authority-boundary ;
+    sj:falsifier ard:fals-authority-widening .
+
+ard:goal-engine-pin a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-2" ;
+    rdfs:label "Digest-verified engine pinning" ;
+    dcterms:description "graphlaw.wasm is pinned by release tag v26.9.29 and SHA-256 7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0 (ABI 1). mix ash_graphlaw.vendor downloads and digest-checks the binary; mix ash_graphlaw.verify re-checks the digest and the WASI import allowlist. A mismatch is refused; the binary is never used unverified. The host judges a hex pin before compiling the bytes and admits imports only from the manifest allowlist." ;
+    sj:acceptance ard:acc-digest-verified-pin ;
+    sj:falsifier ard:fals-unverified-binary .
+
+ard:goal-typed-capabilities a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-3" ;
+    rdfs:label "Typed capability surface" ;
+    dcterms:description "All 14 GraphLaw ops at ABI 1 (capabilities, sniff, parse, convert, canonical, sparql, shacl, shex, n3, entail, datalog, hooks, law, policy) have typed modules, request builders, decoders and lossless AshGraphLaw.Result.* structs, generated from the vendored capability registry graphlaw.capability-registry/1 through the graphlaw-ash-capability-pack; no supported op needs AshGraphLaw.call/2. The registry is imported by scripts/vendor_registry.sh and scripts/import_registry.sh with a --check mode run in CI." ;
+    sj:acceptance ard:acc-typed-surface ;
+    sj:falsifier ard:fals-parity-drift-masked .
+
+ard:goal-refusal-vocabulary a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-4" ;
+    rdfs:label "Closed typed-refusal vocabulary from ontology" ;
+    dcterms:description "Typed refusals form a closed table of 40 codes (35 original plus :invalid_capability_request, :unknown_capability, :capability_not_declared, :capability_parity_drift, :capability_response_undecodable). The reference table documentation/reference/typed_refusals.md is generated from ontology.ttl; the refusal_forward_compat_property_test pins forward compatibility of unknown codes." ;
+    sj:acceptance ard:acc-refusal-closed-table ;
+    sj:falsifier ard:fals-open-refusal-vocabulary .
+
+ard:goal-forged-capability-courts a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-5" ;
+    rdfs:label "Forged-capability and lease refusal courts" ;
+    dcterms:description "Adversarial courts in test/adversarial/forged_lease_engine_test.exs feed the engine genuine Ed25519-signed leases with flipped, zeroed and truncated attestation signatures and require typed refusal. test/adversarial/lease_ceiling_test.exs and test/adversarial/authority_boundary_test.exs require that ceilings above :observe are met only by a signed lease carrying lease and attestation, that bare atoms, unsigned :lease and :unverified_lease grant :observe only, and that the signature, trusted signer and expiry are checked engine-side with receipts stamped lease_id. The host library itself verifies signed leases and never mints them." ;
+    sj:acceptance ard:acc-forged-capability-refusal ;
+    sj:falsifier ard:fals-forged-lease-admitted .
+
+ard:goal-parity a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-6" ;
+    rdfs:label "Parity evidence pipeline" ;
+    dcterms:description "mix ash_graphlaw.parity (AshGraphLaw.Parity.run/1, checks P1-P9) fails on any drift between the live engine, the vendored registry and the Elixir surface, with optional --evidence-dir output. Parity against a pin older than the registry is reported, never masked. CI runs a parity job that gates test; test/integration/parity_pinned_engine_test.exs and test/integration/pinned_engine_test.exs pin the v26.9.29 engine behavior." ;
+    sj:acceptance ard:acc-parity-court ;
+    sj:falsifier ard:fals-parity-drift-masked .
+
+ard:goal-generation a sj:GoalCheckpoint ;
+    dcterms:identifier "GL-7" ;
+    rdfs:label "Ontology-generated surface and coverage ledger" ;
+    dcterms:description "README.md, documentation/reference/typed_refusals.md and documentation/reference/COVERAGE.md are ggen projections of ontology.ttl and the coverage ledger; a 24-op GENERATED / 9-module UNSUPPORTED(generator-capability) split is recorded. Projections are regenerated by scripts/ggen_sync.sh, never hand-edited." ;
+    sj:acceptance ard:acc-generation-residue ;
+    sj:falsifier ard:fals-hand-edited-projection .
+
+# ---------------------------------------------------------------- requirements
+
+ard:req-ladder a sj:AcceptanceCriterion ;
+    dcterms:identifier "RQ-1" ;
+    rdfs:label "Verification ladder green on the subject" ;
+    dcterms:description "The repository ladder (mix format --check-formatted, compile --warnings-as-errors, credo --strict, mix test, mix test --include wasm --include slow, mix ash_graphlaw.verify, mix ash_graphlaw.parity, mix ash_graphlaw.mutate --require-killed, docs, hex.build) runs on the exact subject. Recorded observation on a lane build root of this subject: 66 properties, 975 tests, 0 failures (docs/jira/v26.10.2/graphlaw-wasm-abi-lineage.md records 975 tests / 66 properties with 1 failure on that historical lane; the 0-failure figure is the working-head claim, UNKNOWN until re-run on the exact head)." ;
+    sj:requiresEvidence ard:ev-test-ladder .
+
+ard:req-mutation-court a sj:AcceptanceCriterion ;
+    dcterms:identifier "RQ-2" ;
+    rdfs:label "Mutation catalog non-vacuous" ;
+    dcterms:description "mix ash_graphlaw.mutate --require-killed requires every catalog mutant killed; courts in test/mutation/ (catalog_completeness_test.exs, mutation_engine_test.exs, runner_containment_test.exs, runner_redefinition_test.exs) pin catalog completeness and runner containment." ;
+    sj:falsifier "A surviving mutant that still passes the suite." .
+
+ard:req-adversarial a sj:AcceptanceCriterion ;
+    dcterms:identifier "RQ-3" ;
+    rdfs:label "Adversarial corpus rejects hostile inputs" ;
+    dcterms:description "The adversarial corpus (memory_bomb_test.exs, hostile_encoding_test.exs, concurrency_test.exs, replay_determinism_test.exs, capability_ops_adversarial_test.exs under test/adversarial/) requires typed refusals (:resource_limit, :invalid_encoding, and table codes) rather than host crashes." ;
+    sj:falsifier "A hostile input crashes the host or yields an untyped error." .
+
+# ---------------------------------------------------------------- limitations
+
+ard:limit-engine-free-properties a sj:Falsifier ;
+    rdfs:label "Engine-free property coverage gap" ;
+    dcterms:description "Of the 86 properties, approximately 79 run engine-free (wasm-free); the remainder require the vendored engine via --include wasm. Coverage of the engine-backed path is therefore narrower than the suite totals suggest, and the split is not tracked per-module in the coverage ledger." ;
+    dcterms:identifier "LIM-1" .
+
+ard:limit-no-cross-repo-demo a sj:Falsifier ;
+    rdfs:label "No in-repo cross-repo admission demo" ;
+    dcterms:description "No demonstration in this repository shows ash_graphlaw admitting a real cross-repo work order end to end (for example the xaas v26.10.1 Chicago graphlaw layer); the graphlaw layer evidence in that graph is ADMITTED_SEMANTIC_SOURCE, not EXECUTED_VERIFIED. Cross-repo admission is UNKNOWN here until such a receipt exists." ;
+    dcterms:identifier "LIM-2" .
+
+ard:limit-no-alive-receipts a sj:Falsifier ;
+    rdfs:label "No ALIVE claims" ;
+    dcterms:description "Per documentation/reference/conformance_claim.md, no claim carries an exact-SHA receipt yet; tokens <<RECEIPT:claim-N>> mark where release receipts go. This PRD inherits that state and claims no ALIVE." ;
+    dcterms:identifier "LIM-3" .
+
+# ---------------------------------------------------------------- acceptance, falsifiers, evidence, courts
+
+ard:acc-authority-boundary a sj:AcceptanceCriterion ;
+    rdfs:label "Authority boundary holds" ;
+    dcterms:description "An admission alone never yields :ALIVE standing, never executes consequence, and the host never mints a lease; ceilings above :observe require an engine-verified signed lease." .
+
+ard:acc-digest-verified-pin a sj:AcceptanceCriterion ;
+    rdfs:label "Engine binary used only digest-verified" ;
+    dcterms:description "A digest-mismatched graphlaw.wasm is refused before compilation; WASI imports outside the manifest allowlist are refused." .
+
+ard:acc-typed-surface a sj:AcceptanceCriterion ;
+    rdfs:label "Typed surface covers the registry" ;
+    dcterms:description "Every op in the vendored registry has a typed module, API function and result decoder; test/generated/capability_surface_test.exs and test/generated tests pin the generated surface." .
+
+ard:acc-refusal-closed-table a sj:AcceptanceCriterion ;
+    rdfs:label "Refusal table closed and generated" ;
+    dcterms:description "The refusal vocabulary is a closed 40-code table whose reference page is generated from ontology.ttl; unknown engine codes decode losslessly via refusal.raw without widening the table." .
+
+ard:acc-forged-capability-refusal a sj:AcceptanceCriterion ;
+    rdfs:label "Forged capabilities refused" ;
+    dcterms:description "Flipped, zeroed and truncated Ed25519 attestation signatures, unsigned leases and unverifiable leases produce typed refusals, engine-side." .
+
+ard:acc-parity-court a sj:AcceptanceCriterion ;
+    rdfs:label "Parity drift not masked" ;
+    dcterms:description "mix ash_graphlaw.parity fails on engine/registry/surface drift and reports an older engine pin rather than masking it; CI parity job gates test." .
+
+ard:acc-generation-residue a sj:AcceptanceCriterion ;
+    rdfs:label "Projections generated, residue named" ;
+    dcterms:description "Generated projections replay byte-identically from ontology.ttl; unsupported modules carry the closed reason generator-capability in the coverage ledger." .
+
+ard:fals-authority-widening a sj:Falsifier ;
+    rdfs:label "Authority widening" ;
+    dcterms:description "Any observation of an admission granting DO, of Standing reporting :ALIVE from an admission alone, or of the host minting or verifying a lease outside the engine falsifies the authority boundary." .
+
+ard:fals-unverified-binary a sj:Falsifier ;
+    rdfs:label "Unverified binary executes" ;
+    dcterms:description "A graphlaw.wasm with a wrong SHA-256 or an off-allowlist WASI import being compiled or executed falsifies the pin." .
+
+ard:fals-open-refusal-vocabulary a sj:Falsifier ;
+    rdfs:label "Open refusal vocabulary" ;
+    dcterms:description "An admission path emitting a refusal outside the closed 40-code table, or a hand-edit of the generated typed_refusals.md surviving the sync check, falsifies the vocabulary claim." .
+
+ard:fals-forged-lease-admitted a sj:Falsifier ;
+    rdfs:label "Forged lease admitted" ;
+    dcterms:description "A flipped, zeroed or truncated Ed25519 attestation signature being admitted, or an unsigned :lease/:unverified_lease raising a ceiling above :observe, falsifies the forge-resistance claim." .
+
+ard:fals-parity-drift-masked a sj:Falsifier ;
+    rdfs:label "Parity drift masked" ;
+    dcterms:description "A drift between live engine, vendored registry and Elixir surface passing mix ash_graphlaw.parity, or an older-pin mismatch being suppressed, falsifies the parity claim." .
+
+ard:fals-test-count-drift a sj:Falsifier ;
+    rdfs:label "Suite statistic drift" ;
+    dcterms:description "Suite statistics in this document drifting from a fresh exact-head ladder run falsify the recorded figures." .
+
+ard:ev-engine-digest a sj:EvidenceRequirement ;
+    rdfs:label "Engine digest verification receipt" ;
+    dcterms:description "Output of mix ash_graphlaw.vendor / mix ash_graphlaw.verify recording the SHA-256 check of the pinned binary." .
+
+ard:ev-test-ladder a sj:EvidenceRequirement ;
+    rdfs:label "Exact-head verification-ladder output" ;
+    dcterms:description "Test-ladder output on the exact subject head recording test, property and failure counts." .
+
+ard:ev-parity-evidence a sj:EvidenceRequirement ;
+    rdfs:label "Parity evidence directory" ;
+    dcterms:description "--evidence-dir output of a recorded mix ash_graphlaw.parity run (P1-P9 checks)." .
+
+ard:ev-refusal-table a sj:EvidenceRequirement ;
+    rdfs:label "Generated refusal table" ;
+    dcterms:description "documentation/reference/typed_refusals.md generated from ontology.ttl and checked by scripts/ggen_sync.sh." .
+
+ard:court-verification-ladder a sj:Court ;
+    rdfs:label "Repository verification-ladder court" ;
+    dcterms:description "Run the documented ladder on the exact subject head; the run is an observation on one commit, not standing." .
+
+# ---------------------------------------------------------------- capabilities
+
+ard:cap-forge-resistance a sj:Capability ;
+    sj:capabilityId "ash_graphlaw:forge-resistant-lease-admission" .
+
+ard:cap-parity a sj:Capability ;
+    sj:capabilityId "ash_graphlaw:parity-evidence" .
+
+ard:cap-generation a sj:Capability ;
+    sj:capabilityId "ash_graphlaw:ontology-generated-surface" .
+
+# ---------------------------------------------------------------- stop query
+
+ard:stop-query-value a sj:Checkpoint ;
+    rdfs:label "Stop query" ;
+    sj:stopQuery """PREFIX sj: <https://ggen-igniter.dev/ontology/semantic-jira#>
+PREFIX ard: <https://seanchatmangpt.dev/sjira/v26.10.3/ard#>
+ASK {
+  ard:ARD-PRD-26.10.3 sj:requiresCourt ard:court-verification-ladder .
+  FILTER NOT EXISTS {
+    ard:ARD-PRD-26.10.3 sj:receipt ?receipt .
+    ?receipt a sj:Receipt ;
+             sj:standing "ALIVE" .
+  }
+}""" .
