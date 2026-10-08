@@ -15,7 +15,7 @@ generated from it (`registry/capability-registry.json`).
 | Item | Value |
 |---|---|
 | `ABI_VERSION` | `1` |
-| Pinned GraphLaw release | `v26.9.29` |
+| Pinned GraphLaw release | `v26.9.29` (intentional engine pin, see CHANGELOG 26.10.8) |
 | Pinned asset | `graphlaw.wasm`, sha256 `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0` |
 | Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; the same release this library pins |
 

@@ -13,6 +13,9 @@ evidence item names a file. Standing uses `UNKNOWN`, `PARTIAL_ALIVE`, `ALIVE`, `
 
 ## Subject
 
+> Point-in-time record for release `26.9.29` (engine pin `v26.9.28` at that time). The current
+> engine pin is `v26.9.29` — an intentional pin, see CHANGELOG 26.10.8.
+
 | Item | Value |
 |---|---|
 | Library | `26.9.29`, working tree, no release SHA |

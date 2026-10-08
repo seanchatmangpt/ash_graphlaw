@@ -6,6 +6,9 @@ SPDX-License-Identifier: MIT
 
 # claims_and_evidence
 
+> Point-in-time record for library `26.9.30` (engine pin `v26.9.28` at that time). The current
+> engine pin is `v26.9.29` — an intentional pin, see CHANGELOG 26.10.8.
+
 Every claim this library makes, the test file that demonstrates it, its standing, and its limits.
 Standing vocabulary: `UNKNOWN`, `PARTIAL_ALIVE`, `ALIVE`, `BLOCKED`, `BUILD_BROKEN`,
 `UNSUPPORTED`. `ALIVE` means observed execution on an exact admitted subject (a commit SHA plus the

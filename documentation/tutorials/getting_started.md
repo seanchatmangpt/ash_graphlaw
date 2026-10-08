@@ -17,7 +17,7 @@ output it did not observe.
 def deps do
   [
     {:ash, "~> 3.33"},
-    {:ash_graphlaw, "~> 26.9.30"}
+    {:ash_graphlaw, "~> 26.10.8"}
   ]
 end
 ```

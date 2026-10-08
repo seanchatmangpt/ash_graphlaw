@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 ## Install
 
-- Add `{:ash_graphlaw, "~> 26.9"}` to `deps`. Its runtime deps are `ash`, `spark`, `jason`,
+- Add `{:ash_graphlaw, "~> 26.10"}` to `deps`. Its runtime deps are `ash`, `spark`, `jason`,
   `wasmex` and `telemetry`; `igniter` is optional.
 - Prefer `mix igniter.install ash_graphlaw` when Igniter is present. The installer task is
   generated (`Mix.Tasks.AshGraphlaw.Install`).
