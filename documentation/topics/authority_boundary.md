@@ -84,6 +84,27 @@ Each refusal has a class (`refused_identity`, `refused_structure`, `refused_auth
 `refused_admission`, `blocked_resource`, `unsupported`) and a `broken_term` from the Chatman
 failure taxonomy. A refusal is a typed outcome, not a standing.
 
+## Determinism by projection
+
+`AshGraphLaw.Projection.Default` (`lib/ash_graphlaw/projection/default.ex`) turns a changeset,
+query or action input into N-Triples that are de-duplicated and sorted, so the same input always
+yields byte-identical text. Determinism here is what makes engine calls comparable across runs
+and what makes parity checking (`mix ash_graphlaw.parity`) meaningful: if projections drifted,
+two honest runs could disagree for reasons that have nothing to do with the law. Sensitive
+attributes are omitted entirely (redaction by omission), never masked in place — a masked value
+would still be projected as structure; an omitted one projects nothing.
+
+## Consequences for callers
+
+- Treat `%AshGraphLaw.Admitted{}` as evidence, not permission. Whatever the transition actually
+  does must be authorized elsewhere.
+- Treat refusals as closed data: match on `code`/`class`, read `details`, keep `raw` for
+  diagnostics.
+- Do not derive authority from a receipt's `:authority` field — it is a label the engine
+  recorded, an observation.
+- Gate authority with ceilings and signed leases up front; the engine re-verifies signatures on
+  the same request.
+
 ## See Also
 
 - [Architecture](architecture.md)

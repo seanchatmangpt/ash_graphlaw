@@ -51,6 +51,17 @@ end
 `AshGraphLaw.Validation.Admissible` (pass or fail only, no evidence) and
 `AshGraphLaw.Preparation.Admit` (queries and action inputs) take the same `:admission` option.
 
+Full `AshGraphLaw.Change.Admit` option table (from the module doc):
+
+| Option | Type | Default |
+|---|---|---|
+| `:admission` | atom (required) | none |
+| `:projection` | module or nil | admission's, then `AshGraphLaw.Projection.Default` |
+| `:server` | atom | `AshGraphLaw.Pool` |
+| `:timeout` | positive integer (ms) | runtime section's `timeout_ms` |
+| `:phase` | `:before_action` or `:before_transaction` | `:before_action` |
+| `:lease_key` | atom | `:graphlaw_lease` |
+
 ## 4. Pass a signed lease that meets the ceiling
 
 Order is `:observe < :select < :construct`. `:observe` needs no lease. Otherwise put a **signed**
@@ -80,6 +91,28 @@ without a `law` module (all except `:rdfs` and `:owl_rl`), a declared `law` modu
 exist or does not export `steps/2`, malformed `trusted_keys`, and `timeout_ms <= 0` or
 `max_skew_secs < 0`. A compiled state that is not a map with a `:graphlaw` list is refused rather
 than treated as empty.
+
+## Check what a resource declared
+
+```elixir
+AshGraphLaw.Admissions.all(Ticket)
+AshGraphLaw.Admissions.fetch(Ticket, :ticket_shape)
+AshGraphLaw.Admissions.declared?(Ticket, :ticket_shape)
+```
+
+Functions in `lib/ash_graphlaw/admissions.ex`: `all/1`, `fetch/2`, `runtime/1`,
+`capabilities/1`, `capability/2`, `declared?/2`.
+
+## Troubleshooting
+
+- **`:unknown_admission`** — the `:admission` name does not match a declared admission on the
+  resource. List them with `AshGraphLaw.Admissions.all/1`.
+- **`:ceiling_unmet`** — the admission's `:ceiling` exceeds what the lease in changeset context
+  supports; a missing lease gives `:observe` only. The refusal is raised before the engine is
+  called (`lib/ash_graphlaw/change/admit.ex`, "Flow" section).
+- **`:law_module_failed`** — the declared admission's law module raised in `steps/2`.
+- **`:host_not_started`** (`:blocked_resource`) — the pool is not running or the engine is not
+  vendored; run `mix ash_graphlaw.vendor` and set `config :ash_graphlaw, start_pool: true`.
 
 ## See Also
 
