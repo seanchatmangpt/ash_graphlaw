@@ -20,7 +20,7 @@ GraphLaw admission configuration: one runtime entity and any number of named adm
 
 
 
-### graphlaw.runtime
+### graphlaw.runtime {: #graphlaw-runtime }
 
 
 
@@ -44,7 +44,7 @@ GraphLaw admission configuration: one runtime entity and any number of named adm
 
 
 
-### graphlaw.admission
+### graphlaw.admission {: #graphlaw-admission }
 ```elixir
 admission name
 ```
