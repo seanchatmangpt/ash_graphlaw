@@ -6,7 +6,7 @@ Lane R4, 2026-10-09. Subject: ash_graphlaw `66877414b6866dd525a9cea468658be9655b
 **sha256 `4c862576ab63595f9cd0417b35341af3ec1001f49450e79bf2e4c291a4a4246f`**
 (receipt field binds the same bytes as BLAKE3 `a579e2109941e1f27f2faf0403d6c91e3eebb7f234dcc191a814573001309616`).
 
-> superseded-by f51d81ac4f7e4119dff950327237effee4968f4aa9aba52c7d62c5362f441fa9 as-of 2026-10-09 (R34); pin retained as historical subject identity for this ACCEPTED certify at `66877414b`.
+> extractor pinned in receipt is historical; current fleet pin see ggen-marketplace docs/sjira/v26.10.8/PIN-ROTATION-LEDGER.md; pin retained as historical subject identity for this ACCEPTED certify at `66877414b`.
 
 ## Verdict: ACCEPTED
 
