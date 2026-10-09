@@ -19,9 +19,9 @@ the engine (`Conforms`, `CanonicalId`, `Sparql`) define no `expression/2`.
 
 | Call | Result |
 |---|---|
-| `Ash.update/3` on an action with `require_atomic?: true` | refused by Ash with the reason above |
-| `Ash.bulk_update/4` with `strategy: :atomic` | refused by Ash with the reason above |
-| `Ash.bulk_update/4` with `strategy: :stream` | runs the change per record |
+| Ash.update/3 on an action with require_atomic?: true | refused by Ash with the reason above |
+| Ash.bulk_update/4 with strategy: :atomic | refused by Ash with the reason above |
+| Ash.bulk_update/4 with strategy: :stream | runs the change per record |
 
 Set `require_atomic? false` on the action that carries an admission:
 

@@ -19,8 +19,8 @@ Nothing existing changes shape. `call/2`, `capabilities/1`, `sniff/3`, `law/3`, 
 | typed capability modules, API, registry, result structs | none until you call them |
 | root delegates `parse/2 ... policy/2` and bang forms | new names on `AshGraphLaw` |
 | `capability` DSL entity | none unless you declare one |
-| refusal codes 36 to 40 | exhaustive `case` on `Refusal.code` needs new clauses |
-| `Refusal.raw` | new struct field, `nil` for client-side refusals |
+| refusal codes 36 to 40 | exhaustive case on Refusal.code needs new clauses |
+| `Refusal.raw` | new struct field, nil for client-side refusals |
 | telemetry `[:ash_graphlaw, :capability, ...]` | new events |
 | optional `:reactor` dependency | none unless you add it |
 

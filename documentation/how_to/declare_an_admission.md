@@ -58,7 +58,7 @@ Full `AshGraphLaw.Change.Admit` option table (from the module doc):
 | `:admission` | atom (required) | none |
 | `:projection` | module or nil | admission's, then `AshGraphLaw.Projection.Default` |
 | `:server` | atom | `AshGraphLaw.Pool` |
-| `:timeout` | positive integer (ms) | runtime section's `timeout_ms` |
+| `:timeout` | positive integer (ms) | runtime section's timeout_ms |
 | `:phase` | `:before_action` or `:before_transaction` | `:before_action` |
 | `:lease_key` | atom | `:graphlaw_lease` |
 

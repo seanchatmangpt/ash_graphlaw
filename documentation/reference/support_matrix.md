@@ -14,9 +14,9 @@ What is generated, what is hand-written, and what is not supported. Provenance l
 
 | Module | File | Provenance |
 |---|---|---|
-| `AshGraphLaw.Resource`, `.Dsl.Runtime`, `.Dsl.Admission` | `lib/ash_graphlaw/resource.ex` | GENERATED (ash-extension-pack) |
-| `AshGraphLaw.Resource.Persist`, `.Verify`, `.Info` | `persist.ex`, `verify.ex`, `info.ex` | GENERATED (ash-extension-pack) |
-| `test/ash_graphlaw_composition_test.exs`, `LICENSE` | repo | GENERATED (ash-extension-pack) |
+| AshGraphLaw.Resource, .Dsl.Runtime, .Dsl.Admission | `lib/ash_graphlaw/resource.ex` | GENERATED (ash-extension-pack) |
+| `AshGraphLaw.Resource.Persist`, `.Verify`, `.Info` | lib/ash_graphlaw/persist.ex, lib/ash_graphlaw/verify.ex, lib/ash_graphlaw/info.ex | GENERATED (ash-extension-pack) |
+| test/ash_graphlaw_composition_test.exs, LICENSE | repo | GENERATED (ash-extension-pack) |
 | `Mix.Tasks.AshGraphlaw.Install` | `lib/mix/tasks/ash_graphlaw.install.ex` | GENERATED (ash-extension-pack) |
 | `AshGraphLaw`, `.ABI`, `.Refusal`, `.Receipt`, `.Admitted`, `.Standing` | `lib/ash_graphlaw*.ex` | GENERATED (local templates) |
 | `AshGraphLaw.Capability` (behaviour), `.Capability.Registry`, `.Capability.API`, `.Capability.<Op>` (14) | `lib/ash_graphlaw/capability*.ex` | GENERATED (graphlaw-ash-capability-pack) |
@@ -26,7 +26,7 @@ What is generated, what is hand-written, and what is not supported. Provenance l
 | `AshGraphLaw.Telemetry`, `.Lifecycle`, `.Parity`, `mix ash_graphlaw.parity` | `lib/` | HAND |
 | `AshGraphLaw.Calculation.{Conforms,CanonicalId,Sparql}`, `.Validation.Shacl`, `.Change.Canonicalize`, `.Projection.Origin` | `lib/ash_graphlaw/` | HAND |
 | `AshGraphLaw.Reactor`, `.Reactor.Hooks`, `.Reactor.Capability` | `lib/ash_graphlaw/reactor*` | HAND (optional `:reactor`) |
-| `mix.exs`, `.formatter.exs`, `.gitignore`, `README.md`, `priv/graphlaw/MANIFEST.json`, `test/test_helper.exs` | repo root | GENERATED (local templates) |
+| mix.exs, .formatter.exs, .gitignore, README.md, priv/graphlaw/MANIFEST.json, test/test_helper.exs | repo root | GENERATED (local templates) |
 | `documentation/reference/typed_refusals.md` | | GENERATED |
 | `documentation/dsls/DSL-AshGraphLaw.Resource.md` | | TOOL (`mix spark.cheat_sheets`) |
 | `scripts/ggen_sync.sh`, `scripts/vendor_marketplace.sh` | `scripts/` | HAND (pack has no consumer-side scoping; see [generation and residue](../topics/generation_and_residue.md)) |
@@ -61,7 +61,7 @@ are `GENERATED`; the ceiling table is `HAND` (`authority.ex`).
 | 6 | `sparql` | `AshGraphLaw.Capability.Sparql` | `AshGraphLaw.Result.Sparql` | `sparql/2` | observe | no | GENERATED / HAND |
 | 7 | `shacl` | `AshGraphLaw.Capability.Shacl` | `AshGraphLaw.Result.Shacl` | `shacl/2` | observe | no | GENERATED / HAND |
 | 8 | `shex` | `AshGraphLaw.Capability.Shex` | `AshGraphLaw.Result.Shex` | `shex/2` | observe | no | GENERATED / HAND |
-| 9 | `n3` | `AshGraphLaw.Capability.N3` | `AshGraphLaw.Result.N3` | `n3/2` | construct | no | GENERATED / HAND |
+| 9 | n3 | `AshGraphLaw.Capability.N3` | `AshGraphLaw.Result.N3` | `n3/2` | construct | no | GENERATED / HAND |
 | 10 | `entail` | `AshGraphLaw.Capability.Entail` | `AshGraphLaw.Result.Entail` | `entail/2` | construct | no | GENERATED / HAND |
 | 11 | `datalog` | `AshGraphLaw.Capability.Datalog` | `AshGraphLaw.Result.Datalog` | `datalog/2` | construct | no | GENERATED / HAND |
 | 12 | `hooks` | `AshGraphLaw.Capability.Hooks` | `AshGraphLaw.Result.Hooks` | `hooks/3` | construct | yes | GENERATED / HAND |
@@ -85,9 +85,9 @@ expose it as an `admission` step.
 |---|---|---|
 | `AshGraphLaw.Validation.Shacl` | `shacl` | not applicable |
 | `AshGraphLaw.Change.Canonicalize` | `canonical` | no (`{:not_atomic, ...}`) |
-| `AshGraphLaw.Calculation.Conforms` | `shacl` | no `expression/2` |
-| `AshGraphLaw.Calculation.CanonicalId` | `canonical` | no `expression/2` |
-| `AshGraphLaw.Calculation.Sparql` | `sparql` | no `expression/2` |
+| `AshGraphLaw.Calculation.Conforms` | `shacl` | no expression/2 |
+| `AshGraphLaw.Calculation.CanonicalId` | `canonical` | no expression/2 |
+| `AshGraphLaw.Calculation.Sparql` | `sparql` | no expression/2 |
 
 ## Ash integration points
 
@@ -103,15 +103,15 @@ expose it as an `admission` step.
 |---|---|---|
 | Reactor middleware | UNSUPPORTED | Steps exist (`AshGraphLaw.Reactor.Hooks`, `.Capability`), not middleware; pack spec sets `workflowReactor false` |
 | Atomic actions | UNSUPPORTED | Admission needs a WASM call; `atomic/3` returns `{:not_atomic, ...}` |
-| Caller-supplied lease material | UNSUPPORTED | The pinned v26.9.29 engine verifies signed leases itself (signature against `trusted_keys`, expiry on its own clock, receipts stamped with `lease_id`); library-side, `trusted_keys` and `max_skew_secs` come only from the resource `runtime` section, and caller-context `now_unix`, `lease`, `unverified_lease` are never forwarded |
+| Caller-supplied lease material | UNSUPPORTED | The pinned v26.9.29 engine verifies signed leases itself (signature against trusted_keys, expiry on its own clock, receipts stamped with lease_id); library-side, trusted_keys and max_skew_secs come only from the resource runtime section, and caller-context now_unix, lease, unverified_lease are never forwarded |
 | Lease signing | UNSUPPORTED | The library verifies via the engine; it never issues or signs leases. Key custody is outside the library |
-| Installer `--target` patching | UNSUPPORTED | The pack's generated installer inserts unparsable code (SyntaxError); the formatter and `wasmex` wiring work |
+| Installer `--target` patching | UNSUPPORTED | The pack's generated installer inserts unparsable code (SyntaxError); the formatter and wasmex wiring work |
 | Receipt persistence | UNSUPPORTED | Evidence lives in changeset context; no store is written |
 | Executing consequences | UNSUPPORTED | Admission is observation; nothing is actuated |
 | Bundled wasm binary | UNSUPPORTED | Fetched and digest-checked by `mix ash_graphlaw.vendor` |
 | `wasm32-unknown-unknown` engines | UNSUPPORTED | Upstream requires a WASI host |
 | Unpinned engine builds | refused | Digest mismatch is `:wasm_digest_mismatch` unless the caller supplies `expected_sha256`; a pinned load is judged on the digest before the bytes are compiled |
-| WASI imports outside the manifest allowlist | refused | `:wasm_import_surface_mismatch` names each offending `module.function`; the allowlist is `glx:WasiImport` rows in `ontology.ttl` |
+| WASI imports outside the manifest allowlist | refused | :wasm_import_surface_mismatch names each offending module.function; the allowlist is glx:WasiImport rows in ontology.ttl |
 | Self-granted ceilings | refused | Only a signed lease raises authority above `:observe`; see [authority boundary](../topics/authority_boundary.md) |
 
 ## See Also

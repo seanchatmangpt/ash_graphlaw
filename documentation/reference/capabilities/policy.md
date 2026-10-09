@@ -28,8 +28,8 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `problem` | `json_or_string` | true | false | none | Planning problem as a JSON object or JSON text. |
-| `policy` | `json_or_string` | true | false | none | Policy as a JSON object, entries array or JSON text. |
+| problem | json_or_string | true | false | none | Planning problem as a JSON object or JSON text. |
+| `policy` | json_or_string | true | false | none | Policy as a JSON object, entries array or JSON text. |
 
 ## Response
 
@@ -37,11 +37,11 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `initial_states` | `list<string>` | true | false | Initial states of the problem. |
-| `reachable` | `list<string>` | true | false | States reachable under the policy. |
-| `goal_states` | `list<string>` | true | false | Reachable goal states. |
+| initial_states | `list<string>` | true | false | Initial states of the problem. |
+| reachable | `list<string>` | true | false | States reachable under the policy. |
+| goal_states | `list<string>` | true | false | Reachable goal states. |
 | `entries` | `list<list<string>>` | true | false | Admitted policy entries as [state, action]. |
-| `ntriples` | `string` | true | false | Admitted policy as N-Triples. |
+| ntriples | string | true | false | Admitted policy as N-Triples. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

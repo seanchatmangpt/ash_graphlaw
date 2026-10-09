@@ -28,8 +28,8 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `rules` | `list<object>` | true | false | none | Rules: {head: [s,p,o], body: [[s,p,o], ...]}; terms starting with ? are variables. |
-| `facts` | `list<list<string>>` | true | false | none | Ground facts as [subject, predicate, object] strings. |
+| rules | `list<object>` | true | false | none | Rules: {head: [s,p,o], body: [[s,p,o], ...]}; terms starting with ? are variables. |
+| facts | `list<list<string>>` | true | false | none | Ground facts as [subject, predicate, object] strings. |
 
 ## Response
 
@@ -37,8 +37,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `count` | `integer` | true | false | Number of facts in the fixpoint. |
-| `facts` | `list<list<string>>` | true | false | Sorted fixpoint facts as [subject, predicate, object]. |
+| count | integer | true | false | Number of facts in the fixpoint. |
+| facts | `list<list<string>>` | true | false | Sorted fixpoint facts as [subject, predicate, object]. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

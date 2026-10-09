@@ -15,7 +15,7 @@ Vendors the pinned engine into `priv/graphlaw/graphlaw.wasm`.
 
 | Invocation | Effect |
 |---|---|
-| `mix ash_graphlaw.vendor` | downloads `artifact.url` from `priv/graphlaw/MANIFEST.json` over HTTPS |
+| `mix ash_graphlaw.vendor` | downloads artifact.url from priv/graphlaw/MANIFEST.json over HTTPS |
 | `mix ash_graphlaw.vendor --from PATH` | uses a local file instead of downloading |
 | `mix ash_graphlaw.vendor --check` | verifies the vendored file against the pin; writes nothing |
 
@@ -48,7 +48,7 @@ It never skips. Run `mix ash_graphlaw.vendor` first.
 | `mix ash_graphlaw.parity` | run all checks, print `id status title` per check |
 | `mix ash_graphlaw.parity --evidence-dir DIR` | also write `DIR/parity_report.json` (canonical JSON), on pass and on refusal |
 | `mix ash_graphlaw.parity --list` | print check ids and titles; no engine is loaded; exit 0 |
-| `mix ash_graphlaw.parity --no-examples` | `P9` is reported `not_run`, never `pass` |
+| `mix ash_graphlaw.parity --no-examples` | P9 is reported not_run, never pass |
 | `mix ash_graphlaw.parity --wasm PATH` | use other engine bytes (unpinned) |
 
 Failure raises `Mix.Error` with a bracketed code: `[capability_parity_drift] <check ids>`,
@@ -102,7 +102,7 @@ projections that belong to the pack's reference specs, and runs `mix format`.
 |---|---|
 | 0 | synced and formatted |
 | 2 | `vendor/` missing |
-| 3 | pin mismatch between `ontology.ttl` and `vendor/ggen-marketplace/.pin` |
+| 3 | pin mismatch between ontology.ttl and vendor/ggen-marketplace/.pin |
 | 4 | `ggen sync run` failed |
 | 5 | `mix format` failed |
 | 6 | non-deterministic projections (`--check`) |

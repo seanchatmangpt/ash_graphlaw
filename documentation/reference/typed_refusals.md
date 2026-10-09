@@ -35,14 +35,14 @@ The GraphLaw WASM engine answered `"ok": false`.
 
 | Code | Class | Broken term | Meaning | What to do |
 | --- | --- | --- | --- | --- |
-| `not_admitted` | `refused_admission` | `mu_on_O` | The engine evaluated the admission steps and refused the input: at least one step (SHACL, N3, RDFS, OWL-RL, hooks) did not admit it. | Read `broken_term`, fix the input or the law, resubmit. |
-| `plan_refused` | `refused_admission` | `mu_on_O` | The engine's plan step refused: the submitted plan violates a precondition or goal it can verify against the data. | Read `broken_term`, fix the input or the law, resubmit. |
-| `receipt_required` | `refused_admission` | `mu_on_O` | A require_receipt step found no receipt for the required step, so the transition has no receipted admission behind it. | Read `broken_term`, fix the input or the law, resubmit. |
-| `lease_refused` | `refused_authority` | `R_missing_authority` | The engine refused the supplied lease: it is unsigned, expired, outside the allowed clock skew, or signed by an untrusted key. | Read `broken_term`, fix the input or the law, resubmit. |
-| `resource_limit` | `blocked_resource` | `R_missing_consequence` | The engine hit a resource limit (input size, fuel, or memory) before it could decide; nothing was admitted or refused. | Read `broken_term`, fix the input or the law, resubmit. |
-| `policy_refused` | `refused_admission` | `mu_on_O` | The engine refused the request under its policy: the requested authority ceiling or operation is not permitted. | Read `broken_term`, fix the input or the law, resubmit. |
-| `engine_refused` | `refused_structure` | `mu_on_O` | The engine refused the request for a structural reason (malformed op, data, or steps) reported under its error kind. | Read `broken_term`, fix the input or the law, resubmit. |
-| `engine_unclassified` | `unsupported` | `R_missing_standing` | The engine returned a refusal variant this library does not know; it is carried verbatim and classified unsupported rather than guessed. | Read `broken_term`, fix the input or the law, resubmit. |
+| `not_admitted` | refused_admission | mu_on_O | The engine evaluated the admission steps and refused the input: at least one step (SHACL, N3, RDFS, OWL-RL, hooks) did not admit it. | Read `broken_term`, fix the input or the law, resubmit. |
+| `plan_refused` | refused_admission | mu_on_O | The engine's plan step refused: the submitted plan violates a precondition or goal it can verify against the data. | Read `broken_term`, fix the input or the law, resubmit. |
+| `receipt_required` | refused_admission | mu_on_O | A require_receipt step found no receipt for the required step, so the transition has no receipted admission behind it. | Read `broken_term`, fix the input or the law, resubmit. |
+| `lease_refused` | refused_authority | R_missing_authority | The engine refused the supplied lease: it is unsigned, expired, outside the allowed clock skew, or signed by an untrusted key. | Read `broken_term`, fix the input or the law, resubmit. |
+| `resource_limit` | blocked_resource | R_missing_consequence | The engine hit a resource limit (input size, fuel, or memory) before it could decide; nothing was admitted or refused. | Read `broken_term`, fix the input or the law, resubmit. |
+| `policy_refused` | refused_admission | mu_on_O | The engine refused the request under its policy: the requested authority ceiling or operation is not permitted. | Read `broken_term`, fix the input or the law, resubmit. |
+| `engine_refused` | refused_structure | mu_on_O | The engine refused the request for a structural reason (malformed op, data, or steps) reported under its error kind. | Read `broken_term`, fix the input or the law, resubmit. |
+| `engine_unclassified` | unsupported | R_missing_standing | The engine returned a refusal variant this library does not know; it is carried verbatim and classified unsupported rather than guessed. | Read `broken_term`, fix the input or the law, resubmit. |
 
 ## Host refusals
 
@@ -50,24 +50,24 @@ The WASM host could not load, instantiate or call the engine.
 
 | Code | Class | Broken term | Meaning | What to do |
 | --- | --- | --- | --- | --- |
-| `wasm_not_vendored` | `blocked_resource` | `R_missing_consequence` | No GraphLaw WASM binary exists at the resolved path; run mix ash_graphlaw.vendor to fetch the pinned release asset. | Vendor and verify the engine, then check the pool. |
-| `wasm_unreadable` | `blocked_resource` | `R_missing_consequence` | The GraphLaw WASM file exists at the resolved path but could not be read. | Vendor and verify the engine, then check the pool. |
-| `wasm_invalid` | `refused_structure` | `R_missing_identity` | The bytes at the WASM path do not compile as a WebAssembly module. | Vendor and verify the engine, then check the pool. |
-| `wasm_digest_mismatch` | `refused_identity` | `R_missing_identity` | The sha256 of the WASM bytes differs from the pinned digest, so the module is not the admitted GraphLaw release. | Vendor and verify the engine, then check the pool. |
-| `wasm_import_surface_mismatch` | `refused_identity` | `R_missing_identity` | The module imports something other than the wasi_snapshot_preview1 surface, so it is not the pinned GraphLaw shape. | Vendor and verify the engine, then check the pool. |
-| `wasm_missing_export` | `refused_structure` | `R_missing_identity` | The module lacks a required export (gl_alloc, gl_call, gl_free, or memory). | Vendor and verify the engine, then check the pool. |
-| `abi_version_mismatch` | `refused_identity` | `R_missing_identity` | The engine reports an ABI version different from the version this library was built for. | Vendor and verify the engine, then check the pool. |
-| `instantiation_failed` | `blocked_resource` | `R_missing_consequence` | The WASM module passed admission but could not be instantiated by the runtime. | Vendor and verify the engine, then check the pool. |
-| `abi_failure` | `blocked_resource` | `R_missing_consequence` | A GraphLaw ABI call violated its contract, for example a bad pointer or a failed allocation; the instance is recycled. | Vendor and verify the engine, then check the pool. |
-| `call_trapped` | `blocked_resource` | `R_missing_consequence` | The WASM call trapped while executing; the instance is recycled. | Vendor and verify the engine, then check the pool. |
-| `call_exited` | `blocked_resource` | `R_missing_consequence` | The WASM program exited during the call; the instance is recycled. | Vendor and verify the engine, then check the pool. |
-| `call_timeout` | `blocked_resource` | `R_missing_consequence` | The call did not finish within the configured timeout_ms. | Vendor and verify the engine, then check the pool. |
-| `saturated` | `blocked_resource` | `R_missing_consequence` | The host queue is full (max_queue), so the request was shed instead of waiting. | Vendor and verify the engine, then check the pool. |
-| `host_not_started` | `blocked_resource` | `R_missing_consequence` | No GraphLaw host process is running under the requested server name. | Vendor and verify the engine, then check the pool. |
-| `fuel_exhausted` | `blocked_resource` | `R_missing_consequence` | The call used up its fuel budget before the engine returned. | Vendor and verify the engine, then check the pool. |
-| `invalid_encoding` | `refused_structure` | `mu_on_O` | The request contained a string that is not valid UTF-8 and was refused before reaching the engine. | Vendor and verify the engine, then check the pool. |
-| `invalid_json` | `refused_structure` | `mu_on_O` | A request could not be encoded as JSON, or an engine response was not valid JSON. | Vendor and verify the engine, then check the pool. |
-| `malformed_response` | `refused_structure` | `mu_on_O` | The engine response was valid JSON but lacked the expected envelope fields. | Vendor and verify the engine, then check the pool. |
+| `wasm_not_vendored` | blocked_resource | R_missing_consequence | No GraphLaw WASM binary exists at the resolved path; run mix ash_graphlaw.vendor to fetch the pinned release asset. | Vendor and verify the engine, then check the pool. |
+| `wasm_unreadable` | blocked_resource | R_missing_consequence | The GraphLaw WASM file exists at the resolved path but could not be read. | Vendor and verify the engine, then check the pool. |
+| `wasm_invalid` | refused_structure | R_missing_identity | The bytes at the WASM path do not compile as a WebAssembly module. | Vendor and verify the engine, then check the pool. |
+| `wasm_digest_mismatch` | refused_identity | R_missing_identity | The sha256 of the WASM bytes differs from the pinned digest, so the module is not the admitted GraphLaw release. | Vendor and verify the engine, then check the pool. |
+| `wasm_import_surface_mismatch` | refused_identity | R_missing_identity | The module imports something other than the wasi_snapshot_preview1 surface, so it is not the pinned GraphLaw shape. | Vendor and verify the engine, then check the pool. |
+| `wasm_missing_export` | refused_structure | R_missing_identity | The module lacks a required export (gl_alloc, gl_call, gl_free, or memory). | Vendor and verify the engine, then check the pool. |
+| `abi_version_mismatch` | refused_identity | R_missing_identity | The engine reports an ABI version different from the version this library was built for. | Vendor and verify the engine, then check the pool. |
+| `instantiation_failed` | blocked_resource | R_missing_consequence | The WASM module passed admission but could not be instantiated by the runtime. | Vendor and verify the engine, then check the pool. |
+| `abi_failure` | blocked_resource | R_missing_consequence | A GraphLaw ABI call violated its contract, for example a bad pointer or a failed allocation; the instance is recycled. | Vendor and verify the engine, then check the pool. |
+| `call_trapped` | blocked_resource | R_missing_consequence | The WASM call trapped while executing; the instance is recycled. | Vendor and verify the engine, then check the pool. |
+| `call_exited` | blocked_resource | R_missing_consequence | The WASM program exited during the call; the instance is recycled. | Vendor and verify the engine, then check the pool. |
+| `call_timeout` | blocked_resource | R_missing_consequence | The call did not finish within the configured timeout_ms. | Vendor and verify the engine, then check the pool. |
+| `saturated` | blocked_resource | R_missing_consequence | The host queue is full (max_queue), so the request was shed instead of waiting. | Vendor and verify the engine, then check the pool. |
+| `host_not_started` | blocked_resource | R_missing_consequence | No GraphLaw host process is running under the requested server name. | Vendor and verify the engine, then check the pool. |
+| `fuel_exhausted` | blocked_resource | R_missing_consequence | The call used up its fuel budget before the engine returned. | Vendor and verify the engine, then check the pool. |
+| `invalid_encoding` | refused_structure | mu_on_O | The request contained a string that is not valid UTF-8 and was refused before reaching the engine. | Vendor and verify the engine, then check the pool. |
+| `invalid_json` | refused_structure | mu_on_O | A request could not be encoded as JSON, or an engine response was not valid JSON. | Vendor and verify the engine, then check the pool. |
+| `malformed_response` | refused_structure | mu_on_O | The engine response was valid JSON but lacked the expected envelope fields. | Vendor and verify the engine, then check the pool. |
 
 ## Ash refusals
 
@@ -75,32 +75,32 @@ The Ash integration rejected the declaration or the request before or around the
 
 | Code | Class | Broken term | Meaning | What to do |
 | --- | --- | --- | --- | --- |
-| `unknown_admission` | `refused_structure` | `mu_on_O` | The named admission is not declared in the resource's graphlaw section. | Correct the resource declaration or the request context. |
-| `duplicate_admission` | `refused_structure` | `mu_on_O` | Two admissions in one resource share the same name. | Correct the resource declaration or the request context. |
-| `missing_law_module` | `refused_structure` | `admission_vacuous` | An admission uses a step that needs a payload but declares no law module, so it would admit vacuously. | Correct the resource declaration or the request context. |
-| `invalid_runtime_option` | `refused_structure` | `mu_on_O` | A graphlaw runtime option is out of range: timeout_ms must be positive and max_skew_secs non-negative. | Correct the resource declaration or the request context. |
-| `invalid_trusted_key` | `refused_authority` | `R_missing_authority` | A trusted key is not a 64-character hexadecimal public key, so lease signatures cannot be checked against it. | Correct the resource declaration or the request context. |
-| `ceiling_unmet` | `refused_authority` | `R_missing_authority` | The lease in the changeset context does not reach the ceiling the admission requires; refused before the engine is called. | Correct the resource declaration or the request context. |
-| `projection_failed` | `refused_structure` | `mu_on_O` | The projection module could not produce N-Triples data for the subject. | Correct the resource declaration or the request context. |
-| `law_module_failed` | `refused_structure` | `mu_on_O` | The law module raised or returned a value that is not a list of step maps. | Correct the resource declaration or the request context. |
-| `unsupported_step` | `unsupported` | `admission_vacuous` | The admission step is not supported by this library version or by the pinned engine release. | Correct the resource declaration or the request context. |
-| `invalid_capability_request` | `refused_structure` | `mu_on_O` | A typed capability request failed client-side validation before the engine was called: unknown top-level keys, missing required fields, or a value whose type does not match the registry field type. | Correct the resource declaration or the request context. |
-| `unknown_capability` | `refused_structure` | `mu_on_O` | The named capability is not in the vendored GraphLaw capability registry, so no typed request can be built for it. | Correct the resource declaration or the request context. |
-| `capability_not_declared` | `refused_authority` | `R_missing_authority` | The resource declares at least one capability in its graphlaw section but not this one, so the op is refused before the engine is called. | Correct the resource declaration or the request context. |
-| `capability_parity_drift` | `refused_identity` | `R_missing_identity` | The live engine, the vendored capability registry, the typed module set or the admission DSL disagree about the supported capability set; the parity court refuses. | Correct the resource declaration or the request context. |
-| `capability_response_undecodable` | `refused_structure` | `mu_on_O` | The engine returned a capability response that is not a JSON object, so it cannot be decoded into a typed result; the raw value is preserved on the refusal. | Correct the resource declaration or the request context. |
+| `unknown_admission` | refused_structure | mu_on_O | The named admission is not declared in the resource's graphlaw section. | Correct the resource declaration or the request context. |
+| `duplicate_admission` | refused_structure | mu_on_O | Two admissions in one resource share the same name. | Correct the resource declaration or the request context. |
+| `missing_law_module` | refused_structure | admission_vacuous | An admission uses a step that needs a payload but declares no law module, so it would admit vacuously. | Correct the resource declaration or the request context. |
+| `invalid_runtime_option` | refused_structure | mu_on_O | A graphlaw runtime option is out of range: timeout_ms must be positive and max_skew_secs non-negative. | Correct the resource declaration or the request context. |
+| `invalid_trusted_key` | refused_authority | R_missing_authority | A trusted key is not a 64-character hexadecimal public key, so lease signatures cannot be checked against it. | Correct the resource declaration or the request context. |
+| `ceiling_unmet` | refused_authority | R_missing_authority | The lease in the changeset context does not reach the ceiling the admission requires; refused before the engine is called. | Correct the resource declaration or the request context. |
+| `projection_failed` | refused_structure | mu_on_O | The projection module could not produce N-Triples data for the subject. | Correct the resource declaration or the request context. |
+| `law_module_failed` | refused_structure | mu_on_O | The law module raised or returned a value that is not a list of step maps. | Correct the resource declaration or the request context. |
+| `unsupported_step` | unsupported | admission_vacuous | The admission step is not supported by this library version or by the pinned engine release. | Correct the resource declaration or the request context. |
+| `invalid_capability_request` | refused_structure | mu_on_O | A typed capability request failed client-side validation before the engine was called: unknown top-level keys, missing required fields, or a value whose type does not match the registry field type. | Correct the resource declaration or the request context. |
+| `unknown_capability` | refused_structure | mu_on_O | The named capability is not in the vendored GraphLaw capability registry, so no typed request can be built for it. | Correct the resource declaration or the request context. |
+| `capability_not_declared` | refused_authority | R_missing_authority | The resource declares at least one capability in its graphlaw section but not this one, so the op is refused before the engine is called. | Correct the resource declaration or the request context. |
+| `capability_parity_drift` | refused_identity | R_missing_identity | The live engine, the vendored capability registry, the typed module set or the admission DSL disagree about the supported capability set; the parity court refuses. | Correct the resource declaration or the request context. |
+| `capability_response_undecodable` | refused_structure | mu_on_O | The engine returned a capability response that is not a JSON object, so it cannot be decoded into a typed result; the raw value is preserved on the refusal. | Correct the resource declaration or the request context. |
 
 ## Classes
 
 
 | Class | Codes |
 | --- | --- |
-| `refused_admission` | 4 |
-| `refused_authority` | 4 |
-| `blocked_resource` | 11 |
-| `refused_structure` | 15 |
-| `unsupported` | 2 |
-| `refused_identity` | 4 |
+| refused_admission | 4 |
+| refused_authority | 4 |
+| blocked_resource | 11 |
+| refused_structure | 15 |
+| unsupported | 2 |
+| refused_identity | 4 |
 
 ## See Also
 

@@ -12,10 +12,10 @@ The library is ontology-first. Sources are edited; outputs are projections.
 
 | Source | Role |
 |---|---|
-| `ontology.ttl` | Project facts, pins, refusal-code table, standing table, pack spec rows |
+| ontology.ttl | Project facts, pins, refusal-code table, standing table, pack spec rows |
 | `queries/*.rq` | SPARQL SELECT queries with `ORDER BY` (project, standing, refusal codes, WASI imports). Each is copied verbatim into the frontmatter of the template that uses it; `test/unit/template_query_sync_test.exs` refuses drift |
 | `templates/*.tmpl` | Local consumer templates; each carries its own `to:` target and inline `sparql:` (ggen frontmatter schema) |
-| `ggen.toml` | Frontmatter-schema manifest: ontology, `[packs]`, `[templates]`, `[law] gates` |
+| ggen.toml | Frontmatter-schema manifest: ontology, `[packs]`, `[templates]`, `[law] gates` |
 | `gates/*.rq` | Pre-generation contract checks, run by ggen as `[law] gates` |
 | ggen-marketplace `ash-extension-pack` | Spark extension, persister, verifier, info, installer |
 

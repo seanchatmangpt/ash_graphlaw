@@ -14,9 +14,9 @@ generated from it (`registry/capability-registry.json`).
 
 | Item | Value |
 |---|---|
-| `ABI_VERSION` | `1` |
+| ABI_VERSION | `1` |
 | Pinned GraphLaw release | `v26.9.29` (intentional engine pin, see CHANGELOG 26.10.8) |
-| Pinned asset | `graphlaw.wasm`, sha256 `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0` |
+| Pinned asset | priv/graphlaw/graphlaw.wasm, sha256 7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0 |
 | Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; the same release this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
@@ -30,9 +30,9 @@ and `memory`. If `_initialize` is exported the host calls it once before the fir
 
 | Export | Signature | Behaviour |
 |---|---|---|
-| `gl_alloc` | `(len: u32) -> ptr: u32` | Reserves `len` bytes. Returns 0 when `len` exceeds `MAX_REQUEST_BYTES`. |
-| `gl_call` | `(ptr: u32, len: u32) -> u64` | Runs one request and consumes (frees) the request buffer. |
-| `gl_free` | `(ptr: u32, len: u32)` | Releases a buffer from `gl_alloc` or a `gl_call` response. |
+| gl_alloc | `(len: u32) -> ptr: u32` | Reserves len bytes. Returns 0 when len exceeds MAX_REQUEST_BYTES. |
+| gl_call | `(ptr: u32, len: u32) -> u64` | Runs one request and consumes (frees) the request buffer. |
+| gl_free | `(ptr: u32, len: u32)` | Releases a buffer from gl_alloc or a gl_call response. |
 
 ## Call protocol
 
@@ -95,12 +95,12 @@ Without `dialect` the router sniffs the content by content, not by extension.
 | `capabilities` | ABI version, crate version, authorities and revisions, dialects, op list |
 | `sniff` | Route text to a dialect and owning engine |
 | `parse` | Parse a document; returns dialect, quad count and state id |
-| `convert` | Re-serialize a document to another RDF dialect (`to`) |
+| `convert` | Re-serialize a document to another RDF dialect (to) |
 | `canonical` | RDFC-1.0 canonical N-Quads and `sha256:` state id |
 | `sparql` | Run a SPARQL query (`query`) over `data` |
 | `shacl` | Validate `data` against shapes |
 | `shex` | Validate `data` against ShEx |
-| `n3` | Notation3 reasoning over `text` |
+| n3 | Notation3 reasoning over `text` |
 | `entail` | RDF/RDFS/OWL-RL/D entailment |
 | `datalog` | Datalog evaluation |
 | `hooks` | Run a knowledge-hook pack over `data` |
@@ -117,8 +117,8 @@ result struct in AshGraphLaw; `call/2` stays available for raw requests. See the
 
 | Field | Since | Meaning |
 |---|---|---|
-| `abi`, `abi_version`, `crate`, `authorities`, `rdf_dialects`, `other_dialects`, `ops` | v26.9.28 | as before |
-| `registry_schema`, `registry_sha256`, `surface_sha256` | v26.9.29 | registry identity; absent on older engines |
+| abi, abi_version, crate, authorities, rdf_dialects, other_dialects, ops | v26.9.28 | as before |
+| registry_schema, registry_sha256, surface_sha256 | v26.9.29 | registry identity; absent on older engines |
 
 For an engine older than v26.9.29 the host computes `surface_sha256` from the live response and
 treats `registry_sha256` as UNKNOWN. The digest rule is canonical JSON (sorted keys, compact,
@@ -134,16 +134,16 @@ integers only); `AshGraphLaw.Capability.CanonicalJSON` implements it.
 
 Steps:
 
-| `step` | Members |
+| step | Members |
 |---|---|
 | `shacl` | `shapes` (Turtle) |
-| `n3` | `rules` |
-| `rdfs`, `owl-rl` | none |
-| `hooks` | `pack` (data spec) |
+| n3 | rules |
+| rdfs, owl-rl | none |
+| `hooks` | pack (data spec) |
 | `plan` | `plan`: `{"actions": [{"name","pre","pre_not"?,"add","del"}], "goal", "goal_not"?}`, N-Triples strings |
 | `record-receipts` | none; writes receipts produced so far into the state |
-| `require-receipt` | `step_name`; refuses unless that step's receipt is recorded (presence only) |
-| `require-signed-receipt` | `step_name`, `trusted_keys` (hex Ed25519 public keys) |
+| `require-receipt` | step_name; refuses unless that step's receipt is recorded (presence only) |
+| `require-signed-receipt` | step_name, trusted_keys (hex Ed25519 public keys) |
 
 Success members: `states` (state ids, start first), `receipts` (each with `step`, `parent`,
 `child`, `added`, `authority`, `revision`, and where applicable `lease_id`, `plan_sha256`,
@@ -185,12 +185,12 @@ Checked before parsing or heavy work; over-limit input returns `kind: "ResourceL
 
 | `limit` | Constant | Value |
 |---|---|---|
-| `request_bytes` | `MAX_REQUEST_BYTES` | 16 MiB |
-| `json_depth` | `MAX_JSON_DEPTH` | 64 |
-| `plan_actions` | `MAX_PLAN_ACTIONS` | 1,000 |
-| `atoms_per_field` | `MAX_ATOMS_PER_FIELD` | 10,000 |
-| `policy_entries` | `MAX_POLICY_ENTRIES` | 100,000 |
-| `n3_iterations` | `law::N3_MAX_ITERATIONS` | 4,000 |
+| request_bytes | MAX_REQUEST_BYTES | 16 MiB |
+| json_depth | MAX_JSON_DEPTH | 64 |
+| plan_actions | MAX_PLAN_ACTIONS | 1,000 |
+| atoms_per_field | MAX_ATOMS_PER_FIELD | 10,000 |
+| policy_entries | MAX_POLICY_ENTRIES | 100,000 |
+| n3_iterations | `law::N3_MAX_ITERATIONS` | 4,000 |
 
 ## Refusal details codes
 
@@ -198,15 +198,15 @@ Checked before parsing or heavy work; over-limit input returns `kind: "ResourceL
 
 | `details.code` | Fields |
 |---|---|
-| `NotAdmitted` | `violations: [{focus, path, component, message, severity}]` |
-| `PlanRefused` | `index`, `action`, `unmet`, `violated_absent` |
-| `PolicyRefused` | `policy_kind`, `state`, `action` |
-| `LeaseRefused` | `reason` (`expired`, `out_of_scope`, `ceiling`, `bad_signature`, `untrusted_key`, `clock_skew`), `lease_id`, `step` |
-| `UnverifiedLeaseRefused` | none (an unsigned `lease` without `unverified_lease: true`) |
-| `ReceiptRequired` | `step` |
-| `ReceiptRefused` | `step`, `reason` |
-| `Refused` | `kind` (`NotSemanticContent`, `Ambiguous`, `EngineRejected`, `Unsupported`, `ResourceLimit`) |
-| `ResourceLimit` | `limit`, `observed`, `max` |
+| NotAdmitted | `violations: [{focus, path, component, message, severity}]` |
+| PlanRefused | index, action, unmet, violated_absent |
+| PolicyRefused | policy_kind, state, action |
+| LeaseRefused | reason (expired, out_of_scope, ceiling, bad_signature, untrusted_key, clock_skew), lease_id, step |
+| UnverifiedLeaseRefused | none (an unsigned `lease` without `unverified_lease: true`) |
+| ReceiptRequired | step |
+| ReceiptRefused | step, reason |
+| `Refused` | kind (NotSemanticContent, Ambiguous, EngineRejected, Unsupported, ResourceLimit) |
+| ResourceLimit | limit, observed, max |
 
 The engine enums are `non_exhaustive`. `AshGraphLaw.Refusal.from_engine/2` resolves a refusal in
 this order: a `details.code` in the table (`NotAdmitted`, `PlanRefused`, `ReceiptRequired`,

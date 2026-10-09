@@ -29,8 +29,8 @@ built and validated client-side without the engine; the call itself runs on the 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
-| `query` | `string` | true | false | none | SPARQL query text. |
-| `base` | `string` | false | true | none | Base IRI. |
+| `query` | string | true | false | none | SPARQL query text. |
+| base | string | false | true | none | Base IRI. |
 
 ## Response
 
@@ -40,8 +40,8 @@ Selected when the wire field `kind` is `solutions`.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `variables` | `list<string>` | true | false | Projected variable names. |
-| `rows` | `list<list<term>>` | true | false | Solution rows; null marks an unbound cell. |
+| variables | `list<string>` | true | false | Projected variable names. |
+| rows | `list<list<term>>` | true | false | Solution rows; null marks an unbound cell. |
 
 ### Variant `graph`
 
@@ -49,8 +49,8 @@ Selected when the wire field `kind` is `graph`.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `nquads` | `string` | true | false | Constructed graph as N-Quads. |
-| `quads` | `integer` | true | false | Quad count of the constructed graph. |
+| nquads | string | true | false | Constructed graph as N-Quads. |
+| quads | integer | true | false | Quad count of the constructed graph. |
 
 ### Variant `boolean`
 
@@ -58,7 +58,7 @@ Selected when the wire field `kind` is `boolean`.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `value` | `boolean` | true | false | ASK result. |
+| `value` | boolean | true | false | ASK result. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

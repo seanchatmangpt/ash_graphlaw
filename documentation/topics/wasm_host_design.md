@@ -54,11 +54,11 @@ Parallelism comes from `AshGraphLaw.Pool`, which runs N independent hosts under 
 | UTF-8 | Text that is not valid UTF-8 is refused as `:invalid_encoding` by the ABI codec before the engine sees it |
 | Fuel | Fuel per call is `timeout_ms * fuel_per_ms` (default 5,000 * 1,000,000 = 5,000,000,000; instantiate 1,000,000,000); exhaustion is `:fuel_exhausted` |
 | Memory limit | Store limit 268,435,456 bytes; growth beyond it fails the call |
-| Store limits | `table_elements` 100,000, `instances` 10, `tables` 10, `memories` 4: growth beyond them is denied by wasmtime |
-| Response size | A response over `max_response_bytes` (33,554,432) is `:resource_limit` before it is copied out of engine memory; the engine buffer is still freed |
-| Queue | `max_queue` 64. Shed as `:saturated` at two points: by the caller (mailbox length read before enqueueing, against the caller's own limits; best-effort, concurrent callers can briefly exceed it) and by the host itself, which refuses a dequeued request without running it when its own configured `max_queue` callers are already waiting behind it |
-| Timeout | `timeout_ms` default 5,000; expiry is `:call_timeout` |
-| Null alloc | `gl_alloc` returning null is a resource-limit refusal |
+| Store limits | table_elements 100,000, instances 10, tables 10, memories 4: growth beyond them is denied by wasmtime |
+| Response size | A response over max_response_bytes (33,554,432) is :resource_limit before it is copied out of engine memory; the engine buffer is still freed |
+| Queue | max_queue 64. Shed as :saturated at two points: by the caller (mailbox length read before enqueueing, against the caller's own limits; best-effort, concurrent callers can briefly exceed it) and by the host itself, which refuses a dequeued request without running it when its own configured max_queue callers are already waiting behind it |
+| Timeout | timeout_ms default 5,000; expiry is :call_timeout |
+| Null alloc | gl_alloc returning null is a resource-limit refusal |
 | Request size | Encoded requests above 16 MiB are `:resource_limit` before the call |
 
 ## Recycle

@@ -12,9 +12,9 @@ What the library trusts, what it verifies, and what it leaves to the caller.
 
 | Item | Source | Never from |
 |---|---|---|
-| Trusted signer keys | resource `runtime` `trusted_keys` (hex Ed25519, 64 characters each) | caller context, call options |
-| Clock skew allowance | resource `runtime` `max_skew_secs` (default 60) | caller context |
-| Engine identity | `priv/graphlaw/MANIFEST.json` sha256 | `GRAPHLAW_WASM_PATH` or config alone: a path override is still pinned |
+| Trusted signer keys | resource runtime trusted_keys (hex Ed25519, 64 characters each) | caller context, call options |
+| Clock skew allowance | resource runtime max_skew_secs (default 60) | caller context |
+| Engine identity | `priv/graphlaw/MANIFEST.json` sha256 | GRAPHLAW_WASM_PATH or config alone: a path override is still pinned |
 | Lease | the caller presents it; the engine verifies it | the library never signs or issues one |
 
 `now_unix`, `lease` and `unverified_lease` from caller context are never forwarded to the engine on

@@ -23,10 +23,10 @@ original BEAM and verifies the restore by md5, then prints one verdict per entry
 
 | Verdict | Meaning |
 |---|---|
-| `mutant_killed` | a killer test failed under the mutant after the baseline was green: the guard is defended |
-| `mutant_survived` | every killer stayed green with the guard removed: the tests are vacuous for that guard |
-| `blocked` | the target does not resolve, or no killer file exists (typed code in the report) |
-| `unknown` | the baseline was not green, a run could not be read, or the BEAM could not be verifiably restored; never a pass |
+| mutant_killed | a killer test failed under the mutant after the baseline was green: the guard is defended |
+| mutant_survived | every killer stayed green with the guard removed: the tests are vacuous for that guard |
+| blocked | the target does not resolve, or no killer file exists (typed code in the report) |
+| unknown | the baseline was not green, a run could not be read, or the BEAM could not be verifiably restored; never a pass |
 
 `--require-killed` exits non-zero unless every selected verdict is `mutant_killed`.
 

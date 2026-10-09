@@ -41,7 +41,7 @@
 
 | `law!` | function | law!/2 |  |  |  |  |
 
-| `n3` | function | n3/2 |  |  |  |  |
+| n3 | function | n3/2 |  |  |  |  |
 
 | `n3!` | function | n3!/2 |  |  |  |  |
 
@@ -112,7 +112,7 @@
 
 | `law!` | function | law!/2 |  |  |  |  |
 
-| `n3` | function | n3/2 |  |  |  |  |
+| n3 | function | n3/2 |  |  |  |  |
 
 | `n3!` | function | n3!/2 |  |  |  |  |
 

@@ -13,7 +13,7 @@ no authority of its own.
 
 | Thing | What it is | Who produces it |
 |---|---|---|
-| Observation | The engine ran a step on an exact input and returned a result | `graphlaw.wasm` |
+| Observation | The engine ran a step on an exact input and returned a result | priv/graphlaw/graphlaw.wasm |
 | Evidence | An `AshGraphLaw.Evidence` binding that observation to an input digest | this library |
 | Authority | Permission to cause a consequence | outside this library |
 
