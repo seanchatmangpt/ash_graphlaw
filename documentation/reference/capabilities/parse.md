@@ -28,10 +28,10 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `text` | `string` | true | false | none | Text to parse. |
-| `dialect` | `string` | false | true | none | Dialect name; sniffed when omitted. |
-| `hint` | `string` | false | true | none | File extension or name hint for sniffing. |
-| `base` | `string` | false | true | none | Base IRI. |
+| `text` | string | true | false | none | Text to parse. |
+| `dialect` | string | false | true | none | Dialect name; sniffed when omitted. |
+| hint | string | false | true | none | File extension or name hint for sniffing. |
+| base | string | false | true | none | Base IRI. |
 
 ## Response
 
@@ -39,10 +39,10 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `dialect` | `string` | true | false | Dialect used (Rust variant name). |
-| `quads` | `integer` | false | false | Quad count; present for RDF dialects. |
-| `id` | `string` | false | false | Content-addressed state id; present for RDF dialects. |
-| `valid` | `boolean` | false | false | Syntax validity; present for non-RDF dialects. |
+| `dialect` | string | true | false | Dialect used (Rust variant name). |
+| quads | integer | false | false | Quad count; present for RDF dialects. |
+| id | string | false | false | Content-addressed state id; present for RDF dialects. |
+| valid | boolean | false | false | Syntax validity; present for non-RDF dialects. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

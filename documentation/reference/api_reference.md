@@ -29,7 +29,7 @@ function docs are in the module docs (`mix docs`).
 | `AshGraphLaw.Capability.API` | `<op>/2`, `<op>!/2` for each op, `run/3` by name |
 | `AshGraphLaw.Capability.Registry` | `schema/0`, `graphlaw_version/0`, `abi_version/0`, `digest/0`, `surface_digest/0`, `names/0`, `ops/0`, `op/1`, `module_for/1`, `rdf_dialects/0`, `other_dialects/0`, `law_steps/0`, `refusal_codes/0`, `limits/0`, `regimes/0` |
 | `AshGraphLaw.Result.<Op>` (13) | struct with one key per response field, `:raw`, and `:kind` for tagged ops; `from_map/1` |
-| `AshGraphLaw.Result.Term` | `type`, `value`, `datatype`, `lang`, `raw` |
+| `AshGraphLaw.Result.Term` | type, value, datatype, lang, raw |
 
 `law` decodes to `AshGraphLaw.Admitted`. Per-op pages are generated:
 [capabilities.md](capabilities.md).
@@ -50,7 +50,7 @@ function docs are in the module docs (`mix docs`).
 
 | Module | Kind |
 |---|---|
-| `AshGraphLaw.Resource` | Spark extension; sections `runtime`, `admission`, `capability` |
+| AshGraphLaw.Resource | Spark extension; sections `runtime`, `admission`, `capability` |
 | `AshGraphLaw.Change.Admit`, `.Change.Canonicalize` | Ash changes |
 | `AshGraphLaw.Validation.Admissible`, `.Validation.Shacl` | Ash validations |
 | `AshGraphLaw.Preparation.Admit` | Ash preparation |
@@ -63,7 +63,7 @@ function docs are in the module docs (`mix docs`).
 
 | Module | Role |
 |---|---|
-| `AshGraphLaw.Refusal` | typed refusal: `code`, `class`, `kind`, `engine`, `dialect`, `message`, `details`, `broken_term`, `raw`; `new/3`, `build/3`, `from_engine/2`, `codes/0` |
+| `AshGraphLaw.Refusal` | typed refusal: code, class, kind, engine, dialect, message, details, broken_term, raw; new/3, build/3, from_engine/2, codes/0 |
 | `AshGraphLaw.Error`, `.Error.Refused` | Splode error wrapper; `refusals/1`, `codes/1`, `refused?/1` |
 | `AshGraphLaw.Admitted`, `.Receipt`, `.Standing` | law result, receipt, derived standing |
 | `AshGraphLaw.Evidence`, `.Projection.Origin` | admission evidence and projection provenance |

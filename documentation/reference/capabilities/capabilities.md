@@ -34,16 +34,16 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `abi` | `integer` | true | false | ABI revision (legacy alias of abi_version). |
-| `abi_version` | `integer` | true | false | ABI revision. |
-| `crate` | `string` | true | false | GraphLaw crate version. |
-| `authorities` | `list<object>` | true | false | Semantic authority map: {capability, authority, revision}. |
+| abi | integer | true | false | ABI revision (legacy alias of abi_version). |
+| `abi_version` | integer | true | false | ABI revision. |
+| crate | string | true | false | GraphLaw crate version. |
+| authorities | `list<object>` | true | false | Semantic authority map: {capability, authority, revision}. |
 | `rdf_dialects` | `list<string>` | true | false | RDF dialect wire names. |
 | `other_dialects` | `list<string>` | true | false | Non-RDF dialect wire names. |
 | `ops` | `list<string>` | true | false | ABI op names in registry order. |
-| `registry_schema` | `string` | false | false | Registry schema id; absent on engines older than v26.9.29. |
-| `registry_sha256` | `string` | false | false | Registry digest; absent on engines older than v26.9.29. |
-| `surface_sha256` | `string` | false | false | Surface digest; absent on engines older than v26.9.29. |
+| registry_schema | string | false | false | Registry schema id; absent on engines older than v26.9.29. |
+| registry_sha256 | string | false | false | Registry digest; absent on engines older than v26.9.29. |
+| surface_sha256 | string | false | false | Surface digest; absent on engines older than v26.9.29. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

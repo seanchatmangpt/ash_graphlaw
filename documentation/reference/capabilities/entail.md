@@ -29,7 +29,7 @@ built and validated client-side without the engine; the call itself runs on the 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
-| `regime` | `string` | true | false | none | Entailment regime. One of: `simple`, `rdf`, `rdfs`, `owl-rl`, `d` (informational). |
+| regime | string | true | false | none | Entailment regime. One of: simple, rdf, rdfs, owl-rl, d (informational). |
 
 ## Response
 
@@ -37,8 +37,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `nquads` | `string` | true | false | Closure as N-Quads. |
-| `added` | `integer` | true | false | Quads added by materialization. |
+| nquads | string | true | false | Closure as N-Quads. |
+| added | integer | true | false | Quads added by materialization. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

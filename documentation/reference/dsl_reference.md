@@ -28,8 +28,8 @@ it gets the struct defaults of `runtime` (see below), no admissions and no decla
 | Item | Kind | Cardinality | Struct |
 |---|---|---|---|
 | `runtime` | entity | singleton (at most one) | `AshGraphLaw.Dsl.Runtime` |
-| `admission` | entity | zero or more, unique by `name` | `AshGraphLaw.Dsl.Admission` |
-| `capability` | entity | zero or more, unique by `name` | `AshGraphLaw.Dsl.Capability` |
+| `admission` | entity | zero or more, unique by name | `AshGraphLaw.Dsl.Admission` |
+| `capability` | entity | zero or more, unique by name | `AshGraphLaw.Dsl.Capability` |
 
 ```elixir
 graphlaw do
@@ -50,10 +50,10 @@ Per-resource defaults for calls into the GraphLaw WASM engine. Takes no position
 
 | Field | Type | Default | Required | Meaning |
 |---|---|---|---|---|
-| `wasm_path` | `String.t()` | `nil` | no | Path to a `graphlaw.wasm` file. `nil` means the resolution order in `AshGraphLaw.WasmConfig` applies. |
-| `timeout_ms` | `integer` | `5000` | no | Per-call timeout in milliseconds. Must be greater than 0. |
-| `max_skew_secs` | `integer` | `60` | no | Largest tolerated lead of a signed lease's `issued_unix` over the verifier clock. Must be 0 or greater. |
-| `trusted_keys` | `[String.t()]` | `[]` | no | Hex Ed25519 public keys trusted for signed leases and receipts. Each entry must be 64 hex characters. These are the ONLY trust anchors: caller context cannot add, replace or extend them. |
+| `wasm_path` | `String.t()` | nil | no | Path to a priv/graphlaw/graphlaw.wasm file. nil means the resolution order in AshGraphLaw.WasmConfig applies. |
+| timeout_ms | integer | `5000` | no | Per-call timeout in milliseconds. Must be greater than 0. |
+| max_skew_secs | integer | `60` | no | Largest tolerated lead of a signed lease's issued_unix over the verifier clock. Must be 0 or greater. |
+| trusted_keys | `[String.t()]` | `[]` | no | Hex Ed25519 public keys trusted for signed leases and receipts. Each entry must be 64 hex characters. These are the ONLY trust anchors: caller context cannot add, replace or extend them. |
 
 ## Entity `admission`
 
@@ -62,19 +62,19 @@ The single positional argument is `name`, which is also the entity identifier.
 
 | Field | Type | Default | Required | Meaning |
 |---|---|---|---|---|
-| `name` | `atom` | none | yes | Unique within the resource. Actions refer to it by this atom. |
-| `step` | `atom`, one of the values below | none | yes | The GraphLaw `law` step to run. |
-| `ceiling` | `atom`, one of `:observe`, `:select`, `:construct` | `:construct` | no | Authority ceiling the caller's SIGNED lease must meet (`AshGraphLaw.Authority`); a bare atom grants only `:observe`. |
-| `law` | `module` | `nil` | no | Module implementing `AshGraphLaw.Law`; supplies step payloads. |
-| `projection` | `module` | `nil` | no | Module implementing `AshGraphLaw.Projection`; overrides the default projection. |
+| name | atom | none | yes | Unique within the resource. Actions refer to it by this atom. |
+| step | atom, one of the values below | none | yes | The GraphLaw `law` step to run. |
+| `ceiling` | atom, one of :observe, :select, :construct | `:construct` | no | Authority ceiling the caller's SIGNED lease must meet (`AshGraphLaw.Authority`); a bare atom grants only `:observe`. |
+| `law` | module | nil | no | Module implementing `AshGraphLaw.Law`; supplies step payloads. |
+| projection | module | nil | no | Module implementing `AshGraphLaw.Projection`; overrides the default projection. |
 
 ### `step` values
 
 | Value | Engine step | Needs a `law` module |
 |---|---|---|
 | `:shacl` | `shacl` (shapes Turtle in the step map) | yes |
-| `:n3` | `n3` (rules text) | yes |
-| `:rdfs` | `rdfs` entailment | no |
+| `:n3` | n3 (rules text) | yes |
+| `:rdfs` | rdfs entailment | no |
 | `:owl_rl` | `owl-rl` entailment | no |
 | `:hooks` | `hooks` (knowledge-hook pack) | yes |
 | `:plan` | `plan` (actions and goal) | yes |
@@ -104,9 +104,9 @@ Declares that the resource may run a typed GraphLaw op through the lifecycle mod
 
 | Field | Type | Default | Required | Meaning |
 |---|---|---|---|---|
-| `name` | `atom` | none | yes | An op name in `AshGraphLaw.Capability.Registry.names/0`, for example `:sparql`. |
-| `ceiling` | `atom`, one of `:observe`, `:select`, `:construct` | `:observe` | no | Ceiling this declaration carries. It must be at least `AshGraphLaw.Authority.op_ceiling/1` for the op: `:observe` for `capabilities sniff parse convert canonical sparql shacl shex policy`, `:construct` for `n3 entail datalog hooks law`. |
-| `doc` | `String.t()` | `nil` | no | Description. |
+| name | atom | none | yes | An op name in `AshGraphLaw.Capability.Registry.names/0`, for example `:sparql`. |
+| `ceiling` | atom, one of :observe, :select, :construct | `:observe` | no | Ceiling this declaration carries. It must be at least `AshGraphLaw.Authority.op_ceiling/1` for the op: `:observe` for `capabilities sniff parse convert canonical sparql shacl shex policy`, `:construct` for `n3 entail datalog hooks law`. |
+| doc | `String.t()` | nil | no | Description. |
 
 ```elixir
 graphlaw do
@@ -130,11 +130,11 @@ Whether the generated cheat sheet already lists this entity is UNKNOWN until
 
 | Code | Condition |
 |---|---|
-| `:duplicate_admission` | two admissions share a `name` |
+| `:duplicate_admission` | two admissions share a name |
 | `:missing_law_module` | a payload-bearing step has no `law` module |
-| `:invalid_trusted_key` | a `trusted_keys` entry is not 64 hex characters |
-| `:invalid_runtime_option` | `timeout_ms` is not above 0, or `max_skew_secs` is negative |
-| `:duplicate_capability` | two `capability` entities share a `name` (raised by `Contract`; no `duplicate_capability` row exists in `ontology.ttl`, so it is not in the closed refusal table) |
+| `:invalid_trusted_key` | a trusted_keys entry is not 64 hex characters |
+| `:invalid_runtime_option` | timeout_ms is not above 0, or max_skew_secs is negative |
+| `:duplicate_capability` | two capability entities share a name (raised by Contract; no duplicate_capability row exists in ontology.ttl, so it is not in the closed refusal table) |
 | `:unknown_capability` | a `capability` name is not in `Registry.names/0`, or the registry module is unavailable |
 | `:ceiling_unmet` | a `capability` ceiling is below the op's minimum |
 

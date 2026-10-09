@@ -24,66 +24,66 @@ observations: a decoded result is not standing and grants no authority.
 
 | Op | Summary | Refusal kinds | Typed API |
 |---|---|---|---|
-| [`capabilities`](capabilities/capabilities.md) | Report ABI version, crate version, semantic authorities, dialects, ops and registry digests. | `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.capabilities/2` |
-| [`sniff`](capabilities/sniff.md) | Route text to a dialect and owning engine without parsing it. | `Ambiguous`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.sniff/2` |
-| [`parse`](capabilities/parse.md) | Parse text with the owning engine; counts quads or validates syntax. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.parse/2` |
-| [`convert`](capabilities/convert.md) | Serialize parsed RDF text into another RDF dialect. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.convert/2` |
-| [`canonical`](capabilities/canonical.md) | Canonicalize a dataset to N-Quads and return its content-addressed id. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.canonical/2` |
-| [`sparql`](capabilities/sparql.md) | Evaluate a SPARQL query over a dataset. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.sparql/2` |
-| [`shacl`](capabilities/shacl.md) | Validate a dataset against SHACL shapes. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.shacl/2` |
-| [`shex`](capabilities/shex.md) | Validate a dataset against a ShEx schema and shape map. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.shex/2` |
-| [`n3`](capabilities/n3.md) | Run bounded Notation3 forward reasoning over a document. | `EngineRejected`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.n3/2` |
-| [`entail`](capabilities/entail.md) | Materialize an entailment regime over a dataset. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.entail/2` |
-| [`datalog`](capabilities/datalog.md) | Evaluate Datalog rules over triple facts to a fixpoint. | `EngineRejected`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.datalog/2` |
-| [`hooks`](capabilities/hooks.md) | Materialize a knowledge-hook pack over a dataset. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.hooks/2` |
-| [`law`](capabilities/law.md) | Run an ordered chain of law steps with receipts and optional lease authorization. | `Ambiguous`, `EngineRejected`, `NotSemanticContent`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.law/2` |
-| [`policy`](capabilities/policy.md) | Admit a FOND policy as strong-cyclic against a planning problem. | `EngineRejected`, `ResourceLimit`, `Unsupported` | `AshGraphLaw.Capability.API.policy/2` |
+| [`capabilities`](capabilities/capabilities.md) | Report ABI version, crate version, semantic authorities, dialects, ops and registry digests. | ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.capabilities/2` |
+| [`sniff`](capabilities/sniff.md) | Route text to a dialect and owning engine without parsing it. | Ambiguous, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.sniff/2` |
+| [`parse`](capabilities/parse.md) | Parse text with the owning engine; counts quads or validates syntax. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.parse/2` |
+| [`convert`](capabilities/convert.md) | Serialize parsed RDF text into another RDF dialect. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.convert/2` |
+| [`canonical`](capabilities/canonical.md) | Canonicalize a dataset to N-Quads and return its content-addressed id. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.canonical/2` |
+| [`sparql`](capabilities/sparql.md) | Evaluate a SPARQL query over a dataset. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.sparql/2` |
+| [`shacl`](capabilities/shacl.md) | Validate a dataset against SHACL shapes. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.shacl/2` |
+| [`shex`](capabilities/shex.md) | Validate a dataset against a ShEx schema and shape map. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.shex/2` |
+| [n3](capabilities/n3.md) | Run bounded Notation3 forward reasoning over a document. | EngineRejected, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.n3/2` |
+| [`entail`](capabilities/entail.md) | Materialize an entailment regime over a dataset. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.entail/2` |
+| [`datalog`](capabilities/datalog.md) | Evaluate Datalog rules over triple facts to a fixpoint. | EngineRejected, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.datalog/2` |
+| [`hooks`](capabilities/hooks.md) | Materialize a knowledge-hook pack over a dataset. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.hooks/2` |
+| [`law`](capabilities/law.md) | Run an ordered chain of law steps with receipts and optional lease authorization. | Ambiguous, EngineRejected, NotSemanticContent, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.law/2` |
+| [`policy`](capabilities/policy.md) | Admit a FOND policy as strong-cyclic against a planning problem. | EngineRejected, ResourceLimit, Unsupported | `AshGraphLaw.Capability.API.policy/2` |
 
 ## Dialects
 
 | Dialect | Kind | Response name | Media type | Aliases |
 |---|---|---|---|---|
-| `turtle` | rdf | `Turtle` | `text/turtle` | `ttl` |
-| `trig` | rdf | `TriG` | `application/trig` | none |
-| `ntriples` | rdf | `NTriples` | `application/n-triples` | `nt` |
-| `nquads` | rdf | `NQuads` | `application/n-quads` | `nq` |
-| `rdfxml` | rdf | `RdfXml` | `application/rdf+xml` | `owl`, `rdf` |
-| `jsonld` | rdf | `JsonLd` | `application/ld+json` | none |
-| `yamlld` | rdf | `YamlLd` | `application/ld+yaml` | none |
-| `trix` | rdf | `TriX` | `application/trix` | none |
-| `hextuples` | rdf | `HexTuples` | `application/x-hextuples` | `hext` |
-| `n3` | other | `N3` | none | none |
-| `sparql` | other | `Sparql` | none | `rq` |
-| `shexc` | other | `ShExC` | none | `shex` |
-| `shexj` | other | `ShExJ` | none | none |
+| turtle | rdf | Turtle | `text/turtle` | ttl |
+| trig | rdf | TriG | `application/trig` | none |
+| ntriples | rdf | `NTriples` | `application/n-triples` | nt |
+| nquads | rdf | NQuads | `application/n-quads` | nq |
+| rdfxml | rdf | RdfXml | `application/rdf+xml` | owl, rdf |
+| jsonld | rdf | JsonLd | `application/ld+json` | none |
+| yamlld | rdf | YamlLd | `application/ld+yaml` | none |
+| trix | rdf | TriX | `application/trix` | none |
+| hextuples | rdf | HexTuples | `application/x-hextuples` | hext |
+| n3 | other | N3 | none | none |
+| `sparql` | other | `Sparql` | none | rq |
+| shexc | other | ShExC | none | `shex` |
+| shexj | other | ShExJ | none | none |
 
 ## Law steps
 
 | Step | Ceiling |
 |---|---|
-| `shacl` | `observe` |
-| `n3` | `construct` |
-| `rdfs` | `construct` |
-| `owl-rl` | `construct` |
-| `hooks` | `construct` |
-| `plan` | `select` |
+| `shacl` | observe |
+| n3 | construct |
+| rdfs | construct |
+| `owl-rl` | construct |
+| `hooks` | construct |
+| `plan` | select |
 | `record-receipts` | none |
-| `require-receipt` | `observe` |
-| `require-signed-receipt` | `observe` |
+| `require-receipt` | observe |
+| `require-signed-receipt` | observe |
 
 ## Engine refusal codes
 
 | Code | Kind |
 |---|---|
 | `Refused` | none |
-| `ResourceLimit` | `ResourceLimit` |
-| `PlanRefused` | `EngineRejected` |
-| `ReceiptRequired` | `EngineRejected` |
-| `ReceiptRefused` | `EngineRejected` |
-| `LeaseRefused` | `EngineRejected` |
-| `NotAdmitted` | `EngineRejected` |
-| `UnverifiedLeaseRefused` | `Unsupported` |
-| `PolicyRefused` | `EngineRejected` |
+| ResourceLimit | ResourceLimit |
+| PlanRefused | EngineRejected |
+| ReceiptRequired | EngineRejected |
+| ReceiptRefused | EngineRejected |
+| LeaseRefused | EngineRejected |
+| NotAdmitted | EngineRejected |
+| UnverifiedLeaseRefused | Unsupported |
+| PolicyRefused | EngineRejected |
 
 ## Vocabularies
 

@@ -35,9 +35,9 @@ GraphLaw admission configuration: one runtime entity and any number of named adm
 | Name | Type | Default | Docs |
 |------|------|---------|------|
 | [`wasm_path`](#graphlaw-runtime-wasm_path){: #graphlaw-runtime-wasm_path } | `String.t` |  | Path to a graphlaw.wasm file. Nil uses the resolution order in AshGraphLaw.WasmConfig; the digest pin still applies to the vendored path. |
-| [`timeout_ms`](#graphlaw-runtime-timeout_ms){: #graphlaw-runtime-timeout_ms } | `integer` | `5000` | Per-call timeout in milliseconds. Must be positive. |
-| [`max_skew_secs`](#graphlaw-runtime-max_skew_secs){: #graphlaw-runtime-max_skew_secs } | `integer` | `60` | Allowed clock skew in seconds when the engine checks a lease. Must not be negative. |
-| [`trusted_keys`](#graphlaw-runtime-trusted_keys){: #graphlaw-runtime-trusted_keys } | `list(String.t)` | `[]` | Hex-encoded 32-byte public keys (64 characters each) whose lease signatures the engine may accept. |
+| [timeout_ms](#graphlaw-runtime-timeout_ms){: #graphlaw-runtime-timeout_ms } | integer | `5000` | Per-call timeout in milliseconds. Must be positive. |
+| [max_skew_secs](#graphlaw-runtime-max_skew_secs){: #graphlaw-runtime-max_skew_secs } | integer | `60` | Allowed clock skew in seconds when the engine checks a lease. Must not be negative. |
+| [trusted_keys](#graphlaw-runtime-trusted_keys){: #graphlaw-runtime-trusted_keys } | `list(String.t)` | `[]` | Hex-encoded 32-byte public keys (64 characters each) whose lease signatures the engine may accept. |
 
 
 
@@ -60,15 +60,15 @@ admission name
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [`name`](#graphlaw-admission-name){: #graphlaw-admission-name .spark-required} | `atom` |  | Unique name of the admission within the resource. |
+| [name](#graphlaw-admission-name){: #graphlaw-admission-name .spark-required} | atom |  | Unique name of the admission within the resource. |
 ### Options
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [`step`](#graphlaw-admission-step){: #graphlaw-admission-step .spark-required} | `:shacl \| :n3 \| :rdfs \| :owl_rl \| :hooks \| :plan \| :require_receipt \| :require_signed_receipt` |  | The GraphLaw law step this admission runs. |
+| [step](#graphlaw-admission-step){: #graphlaw-admission-step .spark-required} | `:shacl \| :n3 \| :rdfs \| :owl_rl \| :hooks \| :plan \| :require_receipt \| :require_signed_receipt` |  | The GraphLaw law step this admission runs. |
 | [`ceiling`](#graphlaw-admission-ceiling){: #graphlaw-admission-ceiling } | `:observe \| :select \| :construct` | `:construct` | Highest authority ceiling the caller's lease must reach before the engine is consulted. Admission itself never grants authority. |
-| [`law`](#graphlaw-admission-law){: #graphlaw-admission-law } | `module` |  | Module implementing AshGraphLaw.Law that supplies the step payload for this admission. |
-| [`projection`](#graphlaw-admission-projection){: #graphlaw-admission-projection } | `module` |  | Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default. |
+| [`law`](#graphlaw-admission-law){: #graphlaw-admission-law } | module |  | Module implementing AshGraphLaw.Law that supplies the step payload for this admission. |
+| [projection](#graphlaw-admission-projection){: #graphlaw-admission-projection } | module |  | Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default. |
 
 
 

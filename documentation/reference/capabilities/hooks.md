@@ -28,7 +28,7 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `pack` | `data_spec` | true | false | none | Hook pack as a data spec (kh: vocabulary). |
+| pack | `data_spec` | true | false | none | Hook pack as a data spec (kh: vocabulary). |
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
 
 ## Response
@@ -37,11 +37,11 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `id` | `string` | true | false | Content-addressed id of the materialized state. |
-| `rounds` | `integer` | true | false | Fixpoint rounds executed. |
-| `quads` | `integer` | true | false | Quad count of the materialized state. |
-| `nquads` | `string` | true | false | Materialized state as N-Quads. |
-| `firings` | `list<object>` | true | false | Hook firings: {hook, round, added, row}. |
+| id | string | true | false | Content-addressed id of the materialized state. |
+| rounds | integer | true | false | Fixpoint rounds executed. |
+| quads | integer | true | false | Quad count of the materialized state. |
+| nquads | string | true | false | Materialized state as N-Quads. |
+| firings | `list<object>` | true | false | Hook firings: {hook, round, added, row}. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

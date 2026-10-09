@@ -9,7 +9,7 @@ consumers (`ash_graphlaw`, `ggen_igniter`, `ash_a2a`) and to the marketplace pac
 | repo | origin | branch | HEAD | version | tags |
 |---|---|---|---|---| hosted CI (gh run list, 2026-10-02) |
 | graphlaw | seanchatmangpt/graphlaw | `graphlaw-registry-limits` | `5cfe87a` (2026-09-30) | 26.9.29 | `v26.9.29`, `v26.9.28`; releases v26.9.29 (Latest, 2026-10-01), v26.9.28 | CI + Release green on main merge (`36796733697`); earlier workflow_dispatch Release red |
-| ash_graphlaw | seanchatmangpt/ash_graphlaw | `main` | `15307b48` (2026-10-02) | committed 26.9.30; working tree carries the uncommitted 26.10.1 bump (mix.exs, CHANGELOG, CITATION, README, ontology.ttl) | NONE (no local, no remote tags) despite the 26.10.1 Hex publish | failing: `Flake Hunt` (schedule) + `CI` red on push `36899459547` (2026-10-01); OpenSSF green |
+| ash_graphlaw | seanchatmangpt/ash_graphlaw | main | `15307b48` (2026-10-02) | committed 26.9.30; working tree carries the uncommitted 26.10.1 bump (mix.exs, CHANGELOG, CITATION, README, ontology.ttl) | NONE (no local, no remote tags) despite the 26.10.1 Hex publish | failing: Flake Hunt (schedule) + CI red on push 36899459547 (2026-10-01); OpenSSF green |
 
 Branch facts that matter downstream:
 
@@ -27,19 +27,19 @@ Branch facts that matter downstream:
 |---|---|---|---|
 | graphlaw working-tree build `target/wasm32-wasip1/wasm/graphlaw_wasm.wasm` | `8bfff66c` | 6,657,549 | graphlaw-registry-limits (5cfe87a, **unpushed**), Cargo 26.9.29, WASI, ABI 1 |
 | graphlaw `target/wasm-abi/.../graphlaw_wasm.wasm` | `743c10ae` | — | same tree, different cargo profile (`wasm-abi`); dev artifact, not a pin |
-| graphlaw **v26.9.29 release asset** `graphlaw.wasm` | `7bb2a7e5` | — | published release (tag `0a38b68c`); the frozen v26.9.29 line |
-| graphlaw **v26.9.28 release asset** `graphlaw.wasm` | `30f6bc6e` | 6,457,658 | prior release |
+| graphlaw **v26.9.29 release asset** priv/graphlaw/graphlaw.wasm | `7bb2a7e5` | — | published release (tag `0a38b68c`); the frozen v26.9.29 line |
+| graphlaw **v26.9.28 release asset** priv/graphlaw/graphlaw.wasm | `30f6bc6e` | 6,457,658 | prior release |
 | **ash_graphlaw** `priv/graphlaw/graphlaw.wasm` | `7bb2a7e5` | — | byte-exact copy of the v26.9.29 release asset; `priv/graphlaw/MANIFEST.json` pins it by URL + sha, ABI 1 |
 | **ggen_igniter** `priv/graphlaw_wasm.wasm` | `8bfff66c` | 6,657,549 | byte-exact copy of the unpushed registry-limits build; pinned in `lib/ggen_igniter/engine/graphlaw.ex` `@wasm_sha256` |
-| **ash_a2a** `priv/graphlaw/praxis_graphlaw.wasm` | `187688d9` | 3,249,361 | **praxis-graphlaw v26.7.5** (built 2026-07-08 from praxis `bf96ea56`, wasm32-unknown-unknown, wbindgen string ABI; exports only `blake3_hex`/`graph_hash`/`validate_all`/`run_hooks`) — a different lineage entirely, two generations behind |
+| **ash_a2a** `priv/graphlaw/praxis_graphlaw.wasm` | `187688d9` | 3,249,361 | **praxis-graphlaw v26.7.5** (built 2026-07-08 from praxis bf96ea56, wasm32-unknown-unknown, wbindgen string ABI; exports only blake3_hex/graph_hash/validate_all/run_hooks) — a different lineage entirely, two generations behind |
 
 ## Capability registry lineage (sha256 of capability-registry.json)
 
 | surface | digest (first 8) | contents |
 |---|---|---|
-| v26.9.29 **release asset** (frozen; schema `graphlaw.capability-registry/1`, ABI 1) | `55d01c81` | 6 limits, no `models`, no `limit_meta` |
-| graphlaw working tree `registry/` (5cfe87a, unreleased) | `dcecf65b` | 15 limits + `limit_meta` (scope/unit/source) + `models`/`model_enums` |
-| **ash_graphlaw** `priv/graphlaw/capability-registry.json` | `55d01c81` | byte-identical to the v26.9.29 release (`diff` clean) |
+| v26.9.29 **release asset** (frozen; schema `graphlaw.capability-registry/1`, ABI 1) | `55d01c81` | 6 limits, no models, no limit_meta |
+| graphlaw working tree `registry/` (5cfe87a, unreleased) | dcecf65b | 15 limits + limit_meta (scope/unit/source) + models/model_enums |
+| **ash_graphlaw** `priv/graphlaw/capability-registry.json` | `55d01c81` | byte-identical to the v26.9.29 release (diff clean) |
 | marketplace pack `graphlaw-ash-capability-pack` 26.9.30 | (input, not vendored) | ontology vocabulary includes `gac:Limit` with scope/unit/source and `gac:Model*` — i.e. the **unreleased** registry-limits vocabulary |
 
 ## Drift verdicts (the LOOP question: same ABI/registry everywhere?)

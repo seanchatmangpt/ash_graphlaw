@@ -45,7 +45,7 @@
 
 | `selector` | type | @type selector :: :all | {:clause, pos_integer()} |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ id: String.t(), module: module(), function: atom(), arity: non_neg_integer(), operator: operator(), clauses: selector(), guard: String.t() | nil, description: String.t() | nil, killers: [String.t()] } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ id: String.t(), module: module(), function: atom(), arity: non_neg_integer(), operator: operator(), clauses: selector(), guard: String.t() | nil, description: String.t() | nil, killers: [String.t()] } |  |  |  |  |
 
 
 ### AshGraphLaw.Mutation.Catalog
@@ -97,7 +97,7 @@
 
 | `AshGraphLaw.Mutation.Verdict` | struct | defstruct mutation_id, target, verdict, code, detail, mutant_calls, applied, restored, baseline, mutant, killers: [], killer_files: [], missing_killers: [], killed_by: [] |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ mutation_id: String.t(), target: String.t(), verdict: verdict(), code: atom() | nil, detail: String.t() | nil, mutant_calls: non_neg_integer() | nil, applied: map() | nil, restored: map() | nil, baseline: map() | nil, mutant: map() | nil, killers: [String.t()], killer_files: [String.t()], missing_killers: [String.t()], killed_by: [String.t()] } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ mutation_id: String.t(), target: String.t(), verdict: verdict(), code: atom() | nil, detail: String.t() | nil, mutant_calls: non_neg_integer() | nil, applied: map() | nil, restored: map() | nil, baseline: map() | nil, mutant: map() | nil, killers: [String.t()], killer_files: [String.t()], missing_killers: [String.t()], killed_by: [String.t()] } |  |  |  |  |
 
 | `verdict` | type | @type verdict :: :mutant_killed | :mutant_survived | :blocked | :unknown |  |  |  |  |
 
@@ -144,7 +144,7 @@
 
 | `selector` | type | @type selector :: :all | {:clause, pos_integer()} |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ id: String.t(), module: module(), function: atom(), arity: non_neg_integer(), operator: operator(), clauses: selector(), guard: String.t() | nil, description: String.t() | nil, killers: [String.t()] } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ id: String.t(), module: module(), function: atom(), arity: non_neg_integer(), operator: operator(), clauses: selector(), guard: String.t() | nil, description: String.t() | nil, killers: [String.t()] } |  |  |  |  |
 
 | `entries` | function | entries/0 |  |  |  |  |
 
@@ -184,7 +184,7 @@
 
 | `AshGraphLaw.Mutation.Verdict` | struct | defstruct mutation_id, target, verdict, code, detail, mutant_calls, applied, restored, baseline, mutant, killers: [], killer_files: [], missing_killers: [], killed_by: [] |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ mutation_id: String.t(), target: String.t(), verdict: verdict(), code: atom() | nil, detail: String.t() | nil, mutant_calls: non_neg_integer() | nil, applied: map() | nil, restored: map() | nil, baseline: map() | nil, mutant: map() | nil, killers: [String.t()], killer_files: [String.t()], missing_killers: [String.t()], killed_by: [String.t()] } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ mutation_id: String.t(), target: String.t(), verdict: verdict(), code: atom() | nil, detail: String.t() | nil, mutant_calls: non_neg_integer() | nil, applied: map() | nil, restored: map() | nil, baseline: map() | nil, mutant: map() | nil, killers: [String.t()], killer_files: [String.t()], missing_killers: [String.t()], killed_by: [String.t()] } |  |  |  |  |
 
 | `verdict` | type | @type verdict :: :mutant_killed | :mutant_survived | :blocked | :unknown |  |  |  |  |
 

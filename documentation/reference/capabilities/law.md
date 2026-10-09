@@ -30,12 +30,12 @@ built and validated client-side without the engine; the call itself runs on the 
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
 | `steps` | `list<object>` | true | false | none | Ordered law steps; see law_steps. |
-| `signed_lease` | `object` | false | false | none | Signed lease {lease, attestation}; verified offline against trusted_keys. |
-| `lease` | `object` | false | false | none | Unsigned lease; refused unless unverified_lease is true. |
-| `trusted_keys` | `list<string>` | false | false | none | Hex Ed25519 public keys trusted to sign leases. |
-| `max_skew_secs` | `integer` | false | true | none | Clock skew tolerance for signed leases in seconds. |
-| `unverified_lease` | `boolean` | false | false | none | Accept an unsigned lease; proves nothing about its issuer. |
-| `now_unix` | `integer` | false | false | none | Caller clock in unix seconds; used only with an unverified lease. |
+| signed_lease | object | false | false | none | Signed lease {lease, attestation}; verified offline against trusted_keys. |
+| `lease` | object | false | false | none | Unsigned lease; refused unless unverified_lease is true. |
+| trusted_keys | `list<string>` | false | false | none | Hex Ed25519 public keys trusted to sign leases. |
+| max_skew_secs | integer | false | true | none | Clock skew tolerance for signed leases in seconds. |
+| unverified_lease | boolean | false | false | none | Accept an unsigned lease; proves nothing about its issuer. |
+| now_unix | integer | false | false | none | Caller clock in unix seconds; used only with an unverified lease. |
 
 ## Response
 
@@ -43,9 +43,9 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `states` | `list<string>` | true | false | State ids after each step, starting with the input. |
-| `receipts` | `list<object>` | true | false | Receipts, one per transition. |
-| `nquads` | `string` | true | false | Final state as N-Quads. |
+| states | `list<string>` | true | false | State ids after each step, starting with the input. |
+| receipts | `list<object>` | true | false | Receipts, one per transition. |
+| nquads | string | true | false | Final state as N-Quads. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

@@ -12,15 +12,15 @@ Keys under `config :ash_graphlaw`, environment variables, and the `runtime` DSL 
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
-| `start_pool` | boolean | `false` | Start `AshGraphLaw.Pool` under the application. |
-| `pool` | keyword | `[]` | Options forwarded to `AshGraphLaw.Pool.start_link/1` (`size`, host options). |
+| start_pool | boolean | false | Start `AshGraphLaw.Pool` under the application. |
+| pool | keyword | `[]` | Options forwarded to `AshGraphLaw.Pool.start_link/1` (`size`, host options). |
 | `wasm_path` | string | none | Path to the engine. Still pinned to the manifest digest. |
 
 ## Environment
 
 | Variable | Meaning |
 |---|---|
-| `GRAPHLAW_WASM_PATH` | Engine path; outranks `config :ash_graphlaw, :wasm_path`. Still pinned. |
+| GRAPHLAW_WASM_PATH | Engine path; outranks `config :ash_graphlaw, :wasm_path`. Still pinned. |
 
 Path resolution order: `opts[:wasm_path]`, `GRAPHLAW_WASM_PATH`, application config,
 `priv/graphlaw/graphlaw.wasm` in the app dir. An explicit `opts[:wasm_path]` different from the
@@ -33,17 +33,17 @@ default. `fuel` defaults to `timeout_ms * fuel_per_ms`.
 
 | Key | Default |
 |---|---|
-| `timeout_ms` | `5_000` |
-| `fuel_per_ms` | `1_000_000` |
-| `instantiate_fuel` | `1_000_000_000` |
-| `memory_limit_bytes` | `268_435_456` |
-| `recycle_bytes` | `134_217_728` |
-| `max_queue` | `64` |
-| `max_response_bytes` | `33_554_432` |
-| `table_elements` | `100_000` |
-| `instances` | `10` |
-| `tables` | `10` |
-| `memories` | `4` |
+| timeout_ms | `5_000` |
+| fuel_per_ms | `1_000_000` |
+| instantiate_fuel | `1_000_000_000` |
+| memory_limit_bytes | `268_435_456` |
+| recycle_bytes | `134_217_728` |
+| max_queue | `64` |
+| max_response_bytes | `33_554_432` |
+| table_elements | `100_000` |
+| instances | `10` |
+| tables | `10` |
+| memories | `4` |
 
 ## Call options
 
@@ -54,10 +54,10 @@ default. `fuel` defaults to `timeout_ms * fuel_per_ms`.
 
 | Field | Default |
 |---|---|
-| `wasm_path` | `nil` |
-| `timeout_ms` | `5000` |
-| `max_skew_secs` | `60` |
-| `trusted_keys` | `[]` |
+| `wasm_path` | nil |
+| timeout_ms | `5000` |
+| max_skew_secs | `60` |
+| trusted_keys | `[]` |
 
 Trust anchors come only from `trusted_keys`; caller context cannot add to them. See
 [DSL reference](dsl_reference.md).

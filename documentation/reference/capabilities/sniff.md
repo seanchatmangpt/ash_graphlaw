@@ -28,8 +28,8 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `text` | `string` | true | false | none | Text to route. |
-| `hint` | `string` | false | true | none | File extension or name hint. |
+| `text` | string | true | false | none | Text to route. |
+| hint | string | false | true | none | File extension or name hint. |
 
 ## Response
 
@@ -37,8 +37,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `dialect` | `string` | true | false | Sniffed dialect (Rust variant name). |
-| `engine` | `string` | true | false | Owning engine (PurRdf or Eyeron). |
+| `dialect` | string | true | false | Sniffed dialect (Rust variant name). |
+| `engine` | string | true | false | Owning engine (PurRdf or Eyeron). |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

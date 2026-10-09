@@ -36,9 +36,9 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `id` | `string` | true | false | Content-addressed state id. |
-| `nquads` | `string` | true | false | Canonical N-Quads. |
-| `quads` | `integer` | true | false | Quad count. |
+| id | string | true | false | Content-addressed state id. |
+| nquads | string | true | false | Canonical N-Quads. |
+| quads | integer | true | false | Quad count. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

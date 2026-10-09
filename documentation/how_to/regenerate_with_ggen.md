@@ -12,9 +12,9 @@ Change a generated file by changing its source, then run the sync.
 
 | Source | Projects |
 |---|---|
-| `ontology.ttl` (including the `GENERATED-REGISTRY` block) | refusal table, DSL structs, manifest, capability modules |
-| `queries/*.rq`, `templates/*.tmpl`, `ggen.toml` | local templates: root API, refusal, `mix.exs`, README |
-| `graphlaw-ash-capability-pack` (vendored under `vendor/ggen-marketplace/packs/`) | `AshGraphLaw.Capability.*`, `AshGraphLaw.Result.*`, `capabilities.md` reference |
+| ontology.ttl (including the GENERATED-REGISTRY block) | refusal table, DSL structs, manifest, capability modules |
+| queries/*.rq, templates/*.tmpl, ggen.toml | local templates: root API, refusal, mix.exs, README |
+| `graphlaw-ash-capability-pack` (vendored under `vendor/ggen-marketplace/packs/`) | AshGraphLaw.Capability.*, AshGraphLaw.Result.*, documentation/reference/capabilities.md reference |
 
 Do not edit a projection. `scripts/ggen_sync.sh --list-projections` prints every generated path.
 
@@ -39,7 +39,7 @@ difference.
 |---|---|
 | 0 | ok |
 | 2 | `vendor/` missing |
-| 3 | pin mismatch between `ontology.ttl` and `vendor/ggen-marketplace/.pin` |
+| 3 | pin mismatch between ontology.ttl and vendor/ggen-marketplace/.pin |
 | 4 | `ggen sync run` failed |
 | 5 | `mix format` failed |
 | 6 | non-deterministic projections (`--check`) |

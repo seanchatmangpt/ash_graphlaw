@@ -28,11 +28,11 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `text` | `string` | true | false | none | Text to convert. |
-| `to` | `string` | true | false | none | Target RDF dialect name. |
-| `dialect` | `string` | false | true | none | Source dialect name; sniffed when omitted. |
-| `hint` | `string` | false | true | none | File extension or name hint for sniffing. |
-| `base` | `string` | false | true | none | Base IRI. |
+| `text` | string | true | false | none | Text to convert. |
+| to | string | true | false | none | Target RDF dialect name. |
+| `dialect` | string | false | true | none | Source dialect name; sniffed when omitted. |
+| hint | string | false | true | none | File extension or name hint for sniffing. |
+| base | string | false | true | none | Base IRI. |
 
 ## Response
 
@@ -40,8 +40,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `text` | `string` | true | false | Serialized output. |
-| `id` | `string` | true | false | Content-addressed id of the source state. |
+| `text` | string | true | false | Serialized output. |
+| id | string | true | false | Content-addressed id of the source state. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

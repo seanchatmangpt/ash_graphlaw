@@ -13,15 +13,15 @@ Every GraphLaw op and native module is either `GENERATED` by a pack artifact or
 
 | Kind | Subject | Status | Artifacts | Reason | Note |
 |---|---|---|---|---|---|
-| module | `LawState` | UNSUPPORTED | none | `generator-capability` | LawState parse/step behavior (law.rs) has no generator; typed data is projected by the pack model templates. |
-| module | `ReceiptStore` | UNSUPPORTED | none | `generator-capability` | ReceiptStore persistence and replay (receipt_store.rs) has no generator; Receipt data is projected by the pack model templates. |
-| module | `attest` | UNSUPPORTED | none | `generator-capability` | Lease signing and signature verification (attest.rs) has no generator; typed Lease/SignedLease/Attestation data is projected by the pack model templates. |
-| module | `capability_intake` | UNSUPPORTED | none | `generator-capability` | capability_intake admission flow has no generator. |
+| module | LawState | UNSUPPORTED | none | `generator-capability` | LawState parse/step behavior (law.rs) has no generator; typed data is projected by the pack model templates. |
+| module | ReceiptStore | UNSUPPORTED | none | `generator-capability` | ReceiptStore persistence and replay (receipt_store.rs) has no generator; Receipt data is projected by the pack model templates. |
+| module | attest | UNSUPPORTED | none | `generator-capability` | Lease signing and signature verification (attest.rs) has no generator; typed Lease/SignedLease/Attestation data is projected by the pack model templates. |
+| module | capability_intake | UNSUPPORTED | none | `generator-capability` | capability_intake admission flow has no generator. |
 | module | `hooks` | UNSUPPORTED | none | `generator-capability` | Knowledge-hook firing (hooks.rs, kh: vocabulary) has no generator; hook data is projected by the pack model templates. |
 | module | `plan` | UNSUPPORTED | none | `generator-capability` | Plan admission and atom-cap enforcement (plan.rs) has no generator; Plan/Action data is projected by the pack model templates. |
 | module | `policy` | UNSUPPORTED | none | `generator-capability` | Policy validation (policy.rs) has no generator; PolicyProblem/Entry data is projected by the pack model templates. |
-| module | `qualification` | UNSUPPORTED | none | `generator-capability` | Qualification court execution (qualification.rs) has no generator. |
-| module | `smon` | UNSUPPORTED | none | `generator-capability` | smon runtime monitoring (smon.rs) has no generator. |
+| module | qualification | UNSUPPORTED | none | `generator-capability` | Qualification court execution (qualification.rs) has no generator. |
+| module | smon | UNSUPPORTED | none | `generator-capability` | smon runtime monitoring (smon.rs) has no generator. |
 | op | `canonical` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `capabilities` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `convert` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
@@ -29,7 +29,7 @@ Every GraphLaw op and native module is either `GENERATED` by a pack artifact or
 | op | `entail` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `hooks` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `law` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
-| op | `n3` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
+| op | n3 | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `parse` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `policy` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |
 | op | `shacl` | GENERATED | capability_doc.md, result_struct.ex, capability_module.ex | none | none |

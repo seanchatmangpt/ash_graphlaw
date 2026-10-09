@@ -48,7 +48,7 @@ generated registry and the typed modules:
 |---|---|
 | P1 | live ops equal `Registry.names/0`, in order |
 | P2 | live dialect lists equal the registry |
-| P3 | surface digest (and `registry_sha256` when reported) match |
+| P3 | surface digest (and registry_sha256 when reported) match |
 | P4, P5 | typed modules and API cover exactly the registry ops |
 | P6 | the admission DSL step enum equals the registry law steps |
 | P7 | every registry refusal code maps to a known atom |

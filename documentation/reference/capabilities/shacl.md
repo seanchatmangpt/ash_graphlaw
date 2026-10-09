@@ -29,8 +29,8 @@ built and validated client-side without the engine; the call itself runs on the 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
-| `shapes` | `string` | true | false | none | SHACL shapes graph as Turtle text. |
-| `base` | `string` | false | true | none | Base IRI. |
+| `shapes` | string | true | false | none | SHACL shapes graph as Turtle text. |
+| base | string | false | true | none | Base IRI. |
 
 ## Response
 
@@ -38,8 +38,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `conforms` | `boolean` | true | false | True when the data conforms. |
-| `results` | `list<object>` | true | false | Validation results: {focus, path, value, severity, component, shape, message}. |
+| `conforms` | boolean | true | false | True when the data conforms. |
+| results | `list<object>` | true | false | Validation results: {focus, path, value, severity, component, shape, message}. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 

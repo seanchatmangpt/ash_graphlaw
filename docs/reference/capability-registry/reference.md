@@ -35,7 +35,7 @@
 
 | `names` | function | names/0 |  |  |  |  |
 
-| `op` | function | op/1 |  |  |  |  |
+| op | function | op/1 |  |  |  |  |
 
 | `ops` | function | ops/0 |  |  |  |  |
 
@@ -65,7 +65,7 @@
 
 | `law_step` | type | @type law_step :: %{ name: String.t(), order: pos_integer(), ceiling: String.t() | nil, fields: [field()] } |  |  |  |  |
 
-| `op` | type | @type op :: %{ name: String.t(), order: pos_integer(), summary: String.t(), request: [field()], responses: [variant()], refusal_kinds: [String.t()], refusal_codes: [String.t()] } |  |  |  |  |
+| op | type | @type op :: %{ name: String.t(), order: pos_integer(), summary: String.t(), request: [field()], responses: [variant()], refusal_kinds: [String.t()], refusal_codes: [String.t()] } |  |  |  |  |
 
 | `refusal_code` | type | @type refusal_code :: %{ code: String.t(), order: pos_integer(), kind: String.t() | nil, fields: [field()] } |  |  |  |  |
 
@@ -104,7 +104,7 @@
 
 | `names` | function | names/0 |  |  |  |  |
 
-| `op` | function | op/1 |  |  |  |  |
+| op | function | op/1 |  |  |  |  |
 
 | `ops` | function | ops/0 |  |  |  |  |
 
@@ -134,7 +134,7 @@
 
 | `law_step` | type | @type law_step :: %{ name: String.t(), order: pos_integer(), ceiling: String.t() | nil, fields: [field()] } |  |  |  |  |
 
-| `op` | type | @type op :: %{ name: String.t(), order: pos_integer(), summary: String.t(), request: [field()], responses: [variant()], refusal_kinds: [String.t()], refusal_codes: [String.t()] } |  |  |  |  |
+| op | type | @type op :: %{ name: String.t(), order: pos_integer(), summary: String.t(), request: [field()], responses: [variant()], refusal_kinds: [String.t()], refusal_codes: [String.t()] } |  |  |  |  |
 
 | `refusal_code` | type | @type refusal_code :: %{ code: String.t(), order: pos_integer(), kind: String.t() | nil, fields: [field()] } |  |  |  |  |
 

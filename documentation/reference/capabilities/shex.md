@@ -29,10 +29,10 @@ built and validated client-side without the engine; the call itself runs on the 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
-| `schema` | `string` | true | false | none | ShEx schema text. |
-| `schema_dialect` | `string` | false | true | `"shexc"` | Schema syntax. One of: `shexc`, `shexj` (informational). |
-| `map` | `string` | true | false | none | Shape map text. |
-| `base` | `string` | false | true | none | Base IRI. |
+| `schema` | string | true | false | none | ShEx schema text. |
+| schema_dialect | string | false | true | `"shexc"` | Schema syntax. One of: shexc, shexj (informational). |
+| map | string | true | false | none | Shape map text. |
+| base | string | false | true | none | Base IRI. |
 
 ## Response
 
@@ -40,7 +40,7 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `conforms` | `boolean` | true | false | True when every map entry is conformant. |
+| `conforms` | boolean | true | false | True when every map entry is conformant. |
 | `entries` | `list<object>` | true | false | Shape map entries: {node, shape, status, reason}. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.

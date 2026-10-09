@@ -119,7 +119,7 @@
 
 | `code` | type | @type code :: :not_admitted | :plan_refused | :receipt_required | :lease_refused | :resource_limit | :policy_refused | :engine_refused | :engine_unclassified | :wasm_not_vendored | :wasm_unreadable | :wasm_invalid | :wasm_digest_mismatch | :wasm_import_surface_mismatch | :wasm_missing_export | :abi_version_mismatch | :instantiation_failed | :abi_failure | :call_trapped | :call_exited | :call_timeout | :saturated | :host_not_started | :fuel_exhausted | :invalid_encoding | :invalid_json | :malformed_response | :unknown_admission | :duplicate_admission | :missing_law_module | :invalid_runtime_option | :invalid_trusted_key | :ceiling_unmet | :projection_failed | :law_module_failed | :unsupported_step | :invalid_capability_request | :unknown_capability | :capability_not_declared | :capability_parity_drift | :capability_response_undecodable |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ code: code(), class: class(), kind: String.t() | nil, engine: String.t() | nil, dialect: String.t() | nil, message: String.t(), details: map(), broken_term: broken_term(), raw: map() | nil } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ code: code(), class: class(), kind: String.t() | nil, engine: String.t() | nil, dialect: String.t() | nil, message: String.t(), details: map(), broken_term: broken_term(), raw: map() | nil } |  |  |  |  |
 
 
 
@@ -238,7 +238,7 @@
 
 | `code` | type | @type code :: :not_admitted | :plan_refused | :receipt_required | :lease_refused | :resource_limit | :policy_refused | :engine_refused | :engine_unclassified | :wasm_not_vendored | :wasm_unreadable | :wasm_invalid | :wasm_digest_mismatch | :wasm_import_surface_mismatch | :wasm_missing_export | :abi_version_mismatch | :instantiation_failed | :abi_failure | :call_trapped | :call_exited | :call_timeout | :saturated | :host_not_started | :fuel_exhausted | :invalid_encoding | :invalid_json | :malformed_response | :unknown_admission | :duplicate_admission | :missing_law_module | :invalid_runtime_option | :invalid_trusted_key | :ceiling_unmet | :projection_failed | :law_module_failed | :unsupported_step | :invalid_capability_request | :unknown_capability | :capability_not_declared | :capability_parity_drift | :capability_response_undecodable |  |  |  |  |
 
-| `t` | type | @type t :: %__MODULE__{ code: code(), class: class(), kind: String.t() | nil, engine: String.t() | nil, dialect: String.t() | nil, message: String.t(), details: map(), broken_term: broken_term(), raw: map() | nil } |  |  |  |  |
+| t | type | @type t :: %__MODULE__{ code: code(), class: class(), kind: String.t() | nil, engine: String.t() | nil, dialect: String.t() | nil, message: String.t(), details: map(), broken_term: broken_term(), raw: map() | nil } |  |  |  |  |
 
 
 <!-- ============================================================= -->
