@@ -102,3 +102,5 @@ falls below 0.90 with the S3 merge in place), this ACCEPTED baseline is
 refuted and this doc must be refreshed. Extraction is not bit-stable
 run-to-run; standing is bound to the committed inputs
 (`ash_graphlaw.inputs.json`, sha256 `dc59abfa…`) plus the pinned extractor.
+
+Gated under the module-level denominator law (ggen-marketplace docs/sjira/v26.10.8/DENOMINATOR-SCOPE-DECISION.md @0f3d840ff); per-function coverage figures are the report-only layer. As-of 2026-10-09.
