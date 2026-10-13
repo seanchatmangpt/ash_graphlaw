@@ -30,6 +30,8 @@ defmodule AshGraphLaw.ParityTest do
 
   defp status(report, id), do: report["checks"] |> Enum.find(&(&1["id"] == id)) |> Map.fetch!("status")
 
+  defp priv(name), do: Path.join(Application.app_dir(:ash_graphlaw, "priv/graphlaw"), name)
+
   describe "positive control" do
     test "an engine that answers with the exact registry surface passes P1, P2 and P3" do
       report = :exact |> run_variant() |> report_of()
@@ -54,7 +56,7 @@ defmodule AshGraphLaw.ParityTest do
       # R2 (live runtime ABI identity vs the pinned MANIFEST abi_version)
       # joined the additive tail: the committed parity.ex check list is
       # authoritative (E6 lane, v26.10.2 loop closure).
-      assert Parity.check_ids() == ~w(P1 P2 P3 P4 P5 P6 P7 P8 P9 R1 R2)
+      assert Parity.check_ids() == ~w(P1 P2 P3 P4 P5 P6 P7 P8 P9 R1 R2 R3)
 
       for check <- report["checks"] do
         assert is_binary(check["title"]) and check["status"] in ["pass", "drift", "not_run"]
@@ -114,6 +116,64 @@ defmodule AshGraphLaw.ParityTest do
 
       assert {:error, message} = Parity.write_report(%{"schema" => "x"}, Path.join(file, "sub"))
       assert is_binary(message)
+    end
+  end
+
+  describe "R3: the release-pin identity (library == manifest == ontology tag)" do
+    @manifest_version_pattern ~s("graphlaw_version": "26.9.29")
+    @ontology_tag_pattern "gac:graphlawVersion \"26.9.29\""
+
+    defp copied(dir, src, name) do
+      dst = Path.join(dir, name)
+      File.write!(dst, File.read!(src))
+      dst
+    end
+
+    defp bumped(path, pattern, replacement) do
+      String.replace(File.read!(path), pattern, replacement) |> then(&File.write!(path, &1))
+    end
+
+    defp run_r3(engine, manifest, ontology) do
+      Parity.run(
+        wasm_path: engine,
+        examples: false,
+        manifest_path: manifest,
+        ontology_path: ontology
+      )
+    end
+
+    test "passes when every surface carries the same release" do
+      dir = ParityFixtures.scratch_dir!("r3-ok")
+      engine = ParityFixtures.write_engine!(:exact, dir)
+      manifest = copied(dir, priv("MANIFEST.json"), "MANIFEST.json")
+      ontology = copied(dir, priv("capability-registry.ttl"), "capability-registry.ttl")
+
+      assert {:ok, report} = run_r3(engine, manifest, ontology)
+      assert status(report, "R3") == "pass"
+    end
+
+    test "a manifest-only bump fails the court" do
+      dir = ParityFixtures.scratch_dir!("r3-manifest")
+      engine = ParityFixtures.write_engine!(:exact, dir)
+      manifest = copied(dir, priv("MANIFEST.json"), "MANIFEST.json")
+      ontology = copied(dir, priv("capability-registry.ttl"), "capability-registry.ttl")
+
+      bumped(manifest, @manifest_version_pattern, ~s("graphlaw_version": "26.9.30"))
+
+      assert {:error, %{report: report}} = run_r3(engine, manifest, ontology)
+      assert status(report, "R3") == "drift"
+    end
+
+    test "an ontology-tag-only bump fails the court" do
+      dir = ParityFixtures.scratch_dir!("r3-ontology")
+      engine = ParityFixtures.write_engine!(:exact, dir)
+      manifest = copied(dir, priv("MANIFEST.json"), "MANIFEST.json")
+      ontology = copied(dir, priv("capability-registry.ttl"), "capability-registry.ttl")
+
+      bumped(ontology, @ontology_tag_pattern, ~s(gac:graphlawVersion "26.9.30"))
+
+      assert {:error, %{report: report}} = run_r3(engine, manifest, ontology)
+      assert status(report, "R3") == "drift"
     end
   end
 end

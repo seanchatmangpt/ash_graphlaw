@@ -29,8 +29,9 @@ defmodule AshGraphLaw.Parity do
   | `P9` | every `priv/graphlaw/op-examples.json` example reproduces through the typed API against the live engine (`not_run` under `examples: false`) |
   | `R1` | the vendored `priv/graphlaw/capability-registry.json` digest, recomputed by `CanonicalJSON`, equals `Registry.digest/0` |
   | `R2` | live runtime ABI identity equals the pinned `priv/graphlaw/MANIFEST.json` `abi_version` |
+  | `R3` | the library release pin `AshGraphLaw.graphlaw_release/0` equals the pinned `priv/graphlaw/MANIFEST.json` `graphlaw_version` AND the ontology release tag (`gac:graphlawVersion` in `priv/graphlaw/capability-registry.ttl`) — a partial pin bump fails the court |
 
-  `R1` and `R2` are additive checks beyond P1..P9.
+  `R1`, `R2` and `R3` are additive checks beyond P1..P9.
 
   ## Result
 
@@ -45,7 +46,8 @@ defmodule AshGraphLaw.Parity do
     * `:wasm_path`, `:bytes`, `:expected_sha256`, `:fuel`, `:timeout_ms` - forwarded to the host;
     * `:examples` - run P9 (default `true`);
     * `:registry` - registry module (default `AshGraphLaw.Capability.Registry`);
-    * `:examples_path`, `:registry_json_path`, `:manifest_path` - override vendored `priv/graphlaw` files.
+    * `:examples_path`, `:registry_json_path`, `:manifest_path`, `:ontology_path` - override
+      vendored `priv/graphlaw` files.
   """
 
   alias AshGraphLaw.Host
@@ -70,7 +72,8 @@ defmodule AshGraphLaw.Parity do
     {"P8", "no supported op requires AshGraphLaw.call/2", "admission_vacuous"},
     {"P9", "every op example reproduces through the typed API on the live engine", "R_missing_replay"},
     {"R1", "vendored registry JSON digest equals Registry.digest/0", "R_missing_identity"},
-    {"R2", "live runtime ABI equals pinned manifest abi_version", "R_missing_identity"}
+    {"R2", "live runtime ABI equals pinned manifest abi_version", "R_missing_identity"},
+    {"R3", "library release equals manifest graphlaw_version equals the ontology release tag", "R_missing_identity"}
   ]
 
   @typedoc "One check result inside a report."
@@ -188,7 +191,8 @@ defmodule AshGraphLaw.Parity do
       check("P8", fn -> p8(reg) end),
       check("P9", fn -> p9(reg, host, opts) end),
       check("R1", fn -> r1(reg, opts) end),
-      check("R2", fn -> r2(live, opts) end)
+      check("R2", fn -> r2(live, opts) end),
+      check("R3", fn -> r3(reg, opts) end)
     ]
   end
 
@@ -534,6 +538,60 @@ defmodule AshGraphLaw.Parity do
       verdict(is_integer(expected) and live_abi == expected, evidence)
     else
       other -> {"drift", %{"path" => path, "unreadable" => inspect(other, limit: 5)}}
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # R3: release-pin identity (library == manifest == ontology tag)
+  # ---------------------------------------------------------------------------
+
+  defp r3(reg, opts) do
+    manifest_path = Keyword.get(opts, :manifest_path) || priv_file("MANIFEST.json")
+    ontology_path = Keyword.get(opts, :ontology_path) || priv_file("capability-registry.ttl")
+
+    with {:ok, manifest_raw} <- File.read(manifest_path),
+         {:ok, %{"graphlaw_version" => manifest_version}} <- Jason.decode(manifest_raw),
+         {:ok, ontology_raw} <- File.read(ontology_path),
+         ontology_version when is_binary(ontology_version) <- ontology_release_tag(ontology_raw) do
+      library_version = AshGraphLaw.graphlaw_release()
+
+      versions = %{
+        "library" => library_version,
+        "manifest" => manifest_version,
+        "ontology" => ontology_version,
+        "registry" => reg.graphlaw_version
+      }
+
+      unique = versions |> Map.values() |> Enum.uniq()
+      evidence = %{"versions" => versions, "mismatched" => mismatched_versions(versions)}
+
+      verdict(length(unique) == 1, evidence)
+    else
+      {:error, reason} ->
+        {"drift",
+         %{
+           "manifest_path" => manifest_path,
+           "ontology_path" => ontology_path,
+           "unreadable" => inspect(reason, limit: 5)
+         }}
+
+      other ->
+        {"drift",
+         %{"manifest_path" => manifest_path, "ontology_path" => ontology_path, "unreadable" => inspect(other, limit: 5)}}
+    end
+  end
+
+  defp mismatched_versions(versions) do
+    expected = versions["manifest"]
+
+    for {surface, version} <- versions, version != expected, do: %{surface => version}
+  end
+
+  # The ontology release tag: `gac:graphlawVersion "x.y.z"` in the vendored registry ontology.
+  defp ontology_release_tag(raw) do
+    case Regex.run(~r/gac:graphlawVersion\s+"([^"]+)"/, raw) do
+      [_, version] -> version
+      _ -> nil
     end
   end
 
