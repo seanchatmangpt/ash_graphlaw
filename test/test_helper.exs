@@ -48,4 +48,26 @@ excluded =
       [:wasm | excluded]
   end
 
+# Composition tests tagged `:ash_graphql` / `:ash_json_api` exercise REAL
+# AshGraphql/AshJsonApi introspection against the shared fixture. Those libraries
+# are optional here (not deps of this repo); when absent, the tagged tests are
+# EXCLUDED with a NAMED, PRINTED reason -- never run against a stubbed
+# extension, which would defeat the only thing they exist to establish.
+optional_extensions = [
+  {:ash_graphql, AshGraphql.Resource},
+  {:ash_json_api, AshJsonApi.Resource}
+]
+
+excluded =
+  Enum.reduce(optional_extensions, excluded, fn {tag, module}, acc ->
+    case Code.ensure_loaded(module) do
+      {:module, _} ->
+        acc
+
+      {:error, _reason} ->
+        IO.puts(:stderr, "[compose] EXCLUDING :#{tag} -- #{inspect(module)} not loaded (optional dep absent)")
+        [tag | acc]
+    end
+  end)
+
 ExUnit.start(exclude: excluded, capture_log: true)
