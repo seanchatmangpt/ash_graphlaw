@@ -26,7 +26,7 @@ defmodule AshGraphLaw.CastleOcelProjectionTest do
 
   defp refused_outcomes do
     Refusal.codes()
-    |> Enum.filter(&!(Refusal.class_of(&1) in @observation_classes))
+    |> Enum.filter(&(!(Refusal.class_of(&1) in @observation_classes)))
   end
 
   defp observation_outcomes do
@@ -202,9 +202,9 @@ defmodule AshGraphLaw.CastleOcelProjectionTest do
           ])
 
         assert Map.keys(ours) |> Enum.sort() == Map.keys(theirs) |> Enum.sort()
-        assert MapSet.new(Map.keys(ours["events"] |> hd())) |> MapSet.equal?(
-                 MapSet.new(theirs["events"] |> hd() |> Map.keys())
-               )
+
+        assert MapSet.new(Map.keys(ours["events"] |> hd()))
+               |> MapSet.equal?(MapSet.new(theirs["events"] |> hd() |> Map.keys()))
 
         for key <- ["objectTypes", "eventTypes", "objects", "events"] do
           assert is_map_key(ours, key)

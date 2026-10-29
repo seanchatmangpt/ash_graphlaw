@@ -41,14 +41,14 @@ defmodule AshGraphLaw.Integration.Capability.CapabilitiesTest do
       assert %Result{} = API.capabilities!(%{}, opts)
     end
 
-    test "registry_sha256, when the engine reports it, equals the vendored registry digest", %{opts: opts} do
+    test "registry_blake3, when the engine reports it, equals the vendored registry digest", %{opts: opts} do
       {:ok, %Result{} = result} = API.capabilities(%{}, opts)
 
-      if is_binary(result.registry_sha256) do
-        assert result.registry_sha256 == Registry.digest()
+      if is_binary(result.registry_blake3) do
+        assert result.registry_blake3 == Registry.digest()
         assert result.registry_schema == Registry.schema()
       else
-        assert result.registry_sha256 == nil
+        assert result.registry_blake3 == nil
       end
     end
 

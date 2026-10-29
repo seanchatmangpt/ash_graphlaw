@@ -58,8 +58,11 @@ defmodule AshGraphLaw.Integration.Capability.CanonicalTest do
     end
 
     test "unparsable data is an engine refusal", %{opts: opts} do
-      assert_refusal(API.canonical(%{data: %{text: "not rdf at all {{{", dialect: "turtle"}}, opts), :engine_refused,
-        kind: "EngineRejected"
+      # v26.10.28 engine: unparsable RDF with N3 formula syntax is a tier mismatch
+      # (kind "TierMismatch"), which the library classifies as :engine_unclassified.
+      assert_refusal(API.canonical(%{data: %{text: "not rdf at all {{{", dialect: "turtle"}}, opts),
+        :engine_unclassified,
+        kind: "TierMismatch"
       )
     end
 

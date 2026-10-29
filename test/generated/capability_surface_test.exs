@@ -18,8 +18,8 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
   alias AshGraphLaw.Result.Term
 
   @registry_op_count 14
-  @registry_digest "sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16"
-  @surface_digest "sha256:fcee74ee068940f9e9879ccd41371807f469d63950c8f63b095117391dbc8e28"
+  @registry_digest "blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d"
+  @surface_digest "blake3:da96e1375a76610b5d91aedb9b01d5ac0807b0f850ce4440628c37a3b96b9ee9"
 
   # name, capability module, generated result module (nil when overridden), tag field (nil when
   # untagged), response field keys, required request field names, minimal valid args
@@ -30,18 +30,7 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
       function: :capabilities,
       result: AshGraphLaw.Result.Capabilities,
       tag_field: nil,
-      keys: [
-        :abi,
-        :abi_version,
-        :crate,
-        :authorities,
-        :rdf_dialects,
-        :other_dialects,
-        :ops,
-        :registry_schema,
-        :registry_sha256,
-        :surface_sha256
-      ],
+      keys: [:abi, :abi_version, :crate, :authorities, :rdf_dialects, :other_dialects, :ops, :registry_schema, :registry_blake3, :surface_blake3],
       required: [],
       args: []
     },
@@ -178,16 +167,78 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
   ]
 
   # model name, generated module, declared field keys, required field keys
-  @models []
+  @models [
+    %{
+      name: "Lease",
+      module: AshGraphLaw.Model.Lease,
+      keys: [:id, :holder, :ceiling, :scope, :expires_unix, :issued_unix],
+      required: ["id", "holder", "ceiling", "scope", "expires_unix", "issued_unix"]
+    },
+    %{
+      name: "SignedLease",
+      module: AshGraphLaw.Model.SignedLease,
+      keys: [:lease, :attestation],
+      required: ["lease", "attestation"]
+    },
+    %{
+      name: "Receipt",
+      module: AshGraphLaw.Model.Receipt,
+      keys: [:parent, :child, :step, :authority, :revision, :added, :lease_id, :plan_blake3, :subject_blake3],
+      required: ["parent", "child", "step", "authority", "revision", "added"]
+    },
+    %{
+      name: "Attestation",
+      module: AshGraphLaw.Model.Attestation,
+      keys: [:payload_blake3, :key_id, :signature],
+      required: ["payload_blake3", "key_id", "signature"]
+    },
+    %{
+      name: "Plan",
+      module: AshGraphLaw.Model.Plan,
+      keys: [:actions, :goal, :goal_not],
+      required: ["actions", "goal", "goal_not"]
+    },
+    %{
+      name: "Action",
+      module: AshGraphLaw.Model.Action,
+      keys: [:name, :pre, :pre_not, :add, :del],
+      required: ["name", "pre", "pre_not", "add", "del"]
+    },
+    %{
+      name: "PolicyEntry",
+      module: AshGraphLaw.Model.PolicyEntry,
+      keys: [:state, :action, :outcomes],
+      required: ["state", "action", "outcomes"]
+    },
+    %{
+      name: "PolicyOutcome",
+      module: AshGraphLaw.Model.PolicyOutcome,
+      keys: [:state, :probability_ppm],
+      required: ["state", "probability_ppm"]
+    }
+  ]
 
   # limit name, value, scope
   @limits [
-    {:max_atoms_per_field, 10000, ""},
-    {:max_json_depth, 64, ""},
-    {:max_plan_actions, 1000, ""},
-    {:max_policy_entries, 100_000, ""},
-    {:max_request_bytes, 16_777_216, ""},
-    {:n3_max_iterations, 4000, ""}
+    {:hooks_max_firings, 10000, "hooks"},
+    {:hooks_max_rounds, 64, "hooks"},
+    {:hooks_max_state_quads, 1000000, "hooks"},
+    {:max_atoms_per_field, 10000, "abi"},
+    {:max_json_depth, 64, "abi"},
+    {:max_outstanding_alloc_bytes, 16777216, "wasm"},
+    {:max_plan_actions, 1000, "abi"},
+    {:max_plan_total_atoms, 100000, "plan"},
+    {:max_policy_entries, 100000, "abi"},
+    {:max_request_bytes, 16777216, "abi"},
+    {:n3_max_backward_depth, 32, "n3"},
+    {:n3_max_backward_solutions_per_goal, 1024, "n3"},
+    {:n3_max_derived_facts, 500000, "n3"},
+    {:n3_max_iterations, 4000000, "n3"},
+    {:n3_max_match_steps, 200000, "n3"},
+    {:n3_max_term_bytes, 65536, "n3"},
+    {:n3_max_term_depth, 64, "n3"},
+    {:n3_max_total_bytes, 268435456, "n3"},
+    {:n3_max_total_steps, 50000000, "n3"}
   ]
 
   describe "positive control: the registry surface is present" do

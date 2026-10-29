@@ -28,8 +28,8 @@ defmodule AshGraphLaw.EngineLoadTest do
                ~w(gl_alloc gl_call gl_free memory)
     end
 
-    test "the pin is the GraphLaw v26.9.29 release asset digest (literal control)" do
-      assert EngineLoad.pinned_sha256() == "7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0"
+    test "the pin is the GraphLaw v26.10.28 release asset digest (literal control)" do
+      assert EngineLoad.pinned_sha256() == "34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08"
     end
 
     test "the pin equals the sha256 recorded in the shipped MANIFEST.json" do
@@ -105,8 +105,8 @@ defmodule AshGraphLaw.EngineLoadTest do
                EngineLoad.admit(WasmFixtures.forbidden_wasi_import(), @unpinned)
 
       assert refusal.details.unexpected == []
-      assert refusal.details.unexpected_functions == ["wasi_snapshot_preview1.path_open"]
-      refute "path_open" in refusal.details.allowed_functions
+      assert refusal.details.unexpected_functions == ["wasi_snapshot_preview1.fd_advise"]
+      refute "fd_advise" in refusal.details.allowed_functions
       assert "fd_write" in refusal.details.allowed_functions
     end
 

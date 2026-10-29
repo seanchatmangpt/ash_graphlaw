@@ -24,11 +24,11 @@ defmodule AshGraphLaw.Ash.CalculationCanonicalIdTest do
 
   defp seed(resource, title), do: resource |> Ash.Changeset.for_create(:seed, %{title: title}) |> Ash.create!()
 
-  test "positive control: the id is a sha256 digest and is stable across loads" do
+  test "positive control: the id is a blake3 digest and is stable across loads" do
     note = seed(Note, "hello")
     first = Ash.load!(note, :canonical_id).canonical_id
     second = Ash.load!(note, :canonical_id).canonical_id
-    assert "sha256:" <> hex = first
+    assert "blake3:" <> hex = first
     assert hex =~ ~r/\A[0-9a-f]{64}\z/
     assert first == second
   end
@@ -46,7 +46,7 @@ defmodule AshGraphLaw.Ash.CalculationCanonicalIdTest do
     a = seed(Note, "same")
     b = seed(Note, "same")
     id_a = Ash.load!(a, :default_canonical_id).default_canonical_id
-    assert "sha256:" <> _ = id_a
+    assert "blake3:" <> _ = id_a
     assert id_a == Ash.load!(a, :default_canonical_id).default_canonical_id
     assert id_a != Ash.load!(b, :default_canonical_id).default_canonical_id
   end
@@ -59,7 +59,7 @@ defmodule AshGraphLaw.Ash.CalculationCanonicalIdTest do
   end
 
   test "a declared canonical capability is allowed" do
-    assert "sha256:" <> _ = Ash.load!(seed(CanonOnly, "x"), :canonical_id).canonical_id
+    assert "blake3:" <> _ = Ash.load!(seed(CanonOnly, "x"), :canonical_id).canonical_id
   end
 
   test "a resource that does not declare canonical is refused before the engine is called" do

@@ -15,9 +15,9 @@ defmodule AshGraphLaw.Test.ParityFixtures do
     * `:dropped_op` - the last op is missing from `ops`;
     * `:reordered` - the first two ops are swapped;
     * `:extra_dialect` - an rdf dialect the registry does not know;
-    * `:bad_registry_sha` - a well-formed but wrong `registry_sha256`;
+    * `:bad_registry_sha` - a well-formed but wrong `registry_blake3`;
     * `:bad_abi` - the runtime reports an ABI different from the pinned manifest;
-    * `:legacy` - an engine older than v26.9.29: no registry fields at all.
+    * `:legacy` - an engine older than v26.10.28: no registry fields at all.
   """
 
   alias AshGraphLaw.Test.WasmFixtures
@@ -47,8 +47,8 @@ defmodule AshGraphLaw.Test.ParityFixtures do
       "rdf_dialects" => rdf,
       "other_dialects" => other,
       "registry_schema" => apply(@registry, :schema, []),
-      "registry_sha256" => apply(@registry, :digest, []),
-      "surface_sha256" => apply(@registry, :surface_digest, [])
+      "registry_blake3" => apply(@registry, :digest, []),
+      "surface_blake3" => apply(@registry, :surface_digest, [])
     }
 
     apply_variant(variant, base)
@@ -56,7 +56,7 @@ defmodule AshGraphLaw.Test.ParityFixtures do
 
   @doc "A wrong but well-formed digest, distinct from the registry's."
   @spec wrong_digest() :: String.t()
-  def wrong_digest, do: "sha256:" <> String.duplicate("0", 64)
+  def wrong_digest, do: "blake3:" <> String.duplicate("0", 64)
 
   @doc "The wasm bytes of the scripted engine for `variant`."
   @spec engine(variant()) :: binary()
@@ -87,9 +87,9 @@ defmodule AshGraphLaw.Test.ParityFixtures do
     do: %{base | "ops" => [second, first | rest]}
 
   defp apply_variant(:extra_dialect, base), do: Map.update!(base, "rdf_dialects", &(&1 ++ ["notarealdialect"]))
-  defp apply_variant(:bad_registry_sha, base), do: %{base | "registry_sha256" => wrong_digest()}
+  defp apply_variant(:bad_registry_sha, base), do: %{base | "registry_blake3" => wrong_digest()}
   defp apply_variant(:bad_abi, base), do: %{base | "abi" => 999, "abi_version" => 999}
 
   defp apply_variant(:legacy, base),
-    do: Map.drop(base, ["registry_schema", "registry_sha256", "surface_sha256"])
+    do: Map.drop(base, ["registry_schema", "registry_blake3", "surface_blake3"])
 end

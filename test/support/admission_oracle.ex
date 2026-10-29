@@ -18,7 +18,7 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
   then lease object, then trusted keys); non-hex `trusted_keys` -> `{:unsupported,
   :trusted_keys}`;
   2. attestation shape (fixed-length hex fields) -> else `{:unsupported, :attestation}`;
-  3. `payload_sha256` over the canonical payload mismatch -> `{:lease_refused, "bad_signature"}`;
+  3. `payload_blake3` over the canonical payload mismatch -> `{:lease_refused, "bad_signature"}`;
   4. key_id not among the trusted keys -> `{:lease_refused, "untrusted_key"}`;
   5. Ed25519 signature failure -> `{:lease_refused, "bad_signature"}`;
   6. skew: `issued_unix > now + max_skew_secs` -> `{:lease_refused, "clock_skew"}`;
@@ -274,7 +274,7 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
       },
       %{
         id: "signed-digest-short",
-        args: malformed_att_args(%{"payload_sha256" => String.duplicate("a", 63)}),
+        args: malformed_att_args(%{"payload_blake3" => String.duplicate("a", 63)}),
         expected: {:unsupported, :attestation}
       },
       %{
@@ -506,8 +506,8 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
         %{
           "lease" => body,
           "attestation" => %{
-            "key_id" => sha256_hex(pub),
-            "payload_sha256" => sha256_hex(payload),
+            "key_id" => blake3_hex(pub),
+            "payload_blake3" => blake3_hex(payload),
             "signature" => hex_sign(payload, priv)
           }
         }
@@ -528,7 +528,7 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
 
     attestation =
       signed["attestation"]
-      |> Map.put("payload_sha256", sha256_hex("not the payload"))
+      |> Map.put("payload_blake3", blake3_hex("not the payload"))
 
     Map.merge(chain_a_args(), %{"signed_lease" => %{"lease" => signed["lease"], "attestation" => attestation}})
     |> Map.merge(%{"trusted_keys" => trusted_keys(), "max_skew_secs" => 60})
@@ -537,7 +537,7 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
   defp swapped_key_id_args do
     {untrusted_pub, _} = keypair(:untrusted)
     signed = sign_lease(ceiling: "construct", expires_unix: @far_future, issued_unix: 0)
-    attestation = Map.put(signed["attestation"], "key_id", sha256_hex(untrusted_pub))
+    attestation = Map.put(signed["attestation"], "key_id", blake3_hex(untrusted_pub))
 
     Map.merge(chain_a_args(), %{"signed_lease" => %{"lease" => signed["lease"], "attestation" => attestation}})
     |> Map.merge(%{"trusted_keys" => trusted_keys(), "max_skew_secs" => 60})
@@ -634,8 +634,8 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
     %{
       "lease" => body,
       "attestation" => %{
-        "key_id" => sha256_hex(pub),
-        "payload_sha256" => sha256_hex(payload),
+        "key_id" => blake3_hex(pub),
+        "payload_blake3" => blake3_hex(payload),
         "signature" => hex_sign(payload, priv)
       }
     }
@@ -671,5 +671,18 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
     :eddsa |> :crypto.sign(:none, payload, [priv, :ed25519]) |> Base.encode16(case: :lower)
   end
 
-  defp sha256_hex(bytes), do: :sha256 |> :crypto.hash(bytes) |> Base.encode16(case: :lower)
+  defp blake3_hex(bytes) do
+    path = Path.join(System.tmp_dir!(), "ash-graphlaw-oracle-#{System.unique_integer([:positive])}")
+
+    try do
+      File.write!(path, bytes)
+
+      case System.cmd("b3sum", [path], stderr_to_stdout: true) do
+        {out, 0} -> out |> String.split() |> List.first()
+        {out, code} -> raise "b3sum failed (exit #{code}): #{String.trim(out)}"
+      end
+    after
+      File.rm(path)
+    end
+  end
 end

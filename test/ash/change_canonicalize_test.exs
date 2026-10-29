@@ -26,7 +26,7 @@ defmodule AshGraphLaw.Ash.ChangeCanonicalizeTest do
 
   test "positive control: the canonical id is written to the attribute and persisted" do
     note = canonicalize("hello")
-    assert "sha256:" <> hex = note.graph_id
+    assert "blake3:" <> hex = note.graph_id
     assert hex =~ ~r/\A[0-9a-f]{64}\z/
     assert Ash.get!(Note, note.id).graph_id == note.graph_id
   end
@@ -43,7 +43,7 @@ defmodule AshGraphLaw.Ash.ChangeCanonicalizeTest do
 
   test "the id does not depend on the attribute's previous value" do
     note = canonicalize("hello")
-    assert "sha256:" <> _ = note.graph_id
+    assert "blake3:" <> _ = note.graph_id
 
     assert {:ok, again} = note |> Ash.Changeset.for_update(:recanonicalize, %{}) |> Ash.update()
     assert again.graph_id == note.graph_id

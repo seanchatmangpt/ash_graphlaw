@@ -124,8 +124,8 @@ defmodule AshGraphLaw.Test.CapabilityCase do
 
   @doc "Typed refusal atom for an engine `details.code` (`nil` = generic engine refusal)."
   @spec expected_code(String.t() | nil) :: atom()
+  def expected_code("TierMismatch"), do: :engine_unclassified
   def expected_code(nil), do: :engine_refused
-  def expected_code("Refused"), do: :engine_refused
   def expected_code("NotAdmitted"), do: :not_admitted
   def expected_code("PlanRefused"), do: :plan_refused
   def expected_code("ReceiptRequired"), do: :receipt_required

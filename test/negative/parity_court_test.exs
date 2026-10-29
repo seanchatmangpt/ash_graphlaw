@@ -79,7 +79,7 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
     assert status(report, "P1") == "pass"
   end
 
-  test "a mismatched registry_sha256 is capability_parity_drift at P3 only among P1..P3" do
+  test "a mismatched registry_blake3 is capability_parity_drift at P3 only among P1..P3" do
     {refusal, report} = drift!(:bad_registry_sha)
 
     assert "P3" in report["drift"]
@@ -87,8 +87,8 @@ defmodule AshGraphLaw.ParityCourtNegativeTest do
     assert status(report, "P1") == "pass"
     assert status(report, "P2") == "pass"
     p3 = Enum.find(report["checks"], &(&1["id"] == "P3"))
-    assert p3["evidence"]["mismatched"] == ["live_registry_sha256"]
-    assert p3["evidence"]["live_registry_sha256"] == ParityFixtures.wrong_digest()
+    assert p3["evidence"]["mismatched"] == ["live_registry_blake3"]
+    assert p3["evidence"]["live_registry_blake3"] == ParityFixtures.wrong_digest()
   end
 
   test "a live ABI mismatch is refused at R2 even when capability identity is otherwise canonical" do

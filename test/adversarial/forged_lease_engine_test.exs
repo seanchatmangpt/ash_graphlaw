@@ -60,7 +60,7 @@ defmodule AshGraphLaw.Adversarial.ForgedLeaseEngineTest do
       truncated_signature:
         put_attestation(genuine, "signature", binary_part(genuine["attestation"]["signature"], 0, 64)),
       wrong_payload_digest:
-        put_attestation(genuine, "payload_sha256", flip_hex(genuine["attestation"]["payload_sha256"])),
+        put_attestation(genuine, "payload_blake3", flip_hex(genuine["attestation"]["payload_blake3"])),
       wrong_key_id: put_attestation(genuine, "key_id", flip_hex(genuine["attestation"]["key_id"])),
       key_id_of_untrusted_signer:
         put_attestation(genuine, "key_id", Lease.signed(:construct, signer: :untrusted)["attestation"]["key_id"]),

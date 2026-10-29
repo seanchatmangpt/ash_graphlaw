@@ -59,7 +59,7 @@ defmodule AshGraphLaw.Negative.EngineLoadNegativeTest do
     assert {:ok, _} = EngineLoad.admit(WasmFixtures.admissible_surface(), expected_sha256: :unpinned)
 
     for {bytes, offender} <- [
-          {WasmFixtures.forbidden_wasi_import(), "wasi_snapshot_preview1.path_open"},
+          {WasmFixtures.forbidden_wasi_import(), "wasi_snapshot_preview1.fd_advise"},
           {WasmFixtures.wrong_type_wasi_import(), "wasi_snapshot_preview1.fd_write"}
         ] do
       assert {:error, %Refusal{code: :wasm_import_surface_mismatch} = refusal} =

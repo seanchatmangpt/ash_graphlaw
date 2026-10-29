@@ -7,8 +7,8 @@ defmodule AshGraphLaw.Test.Lease do
   UNSUPPORTED(generator-capability): test-only builder of REAL signed GraphLaw leases.
 
   Leases are signed with real Ed25519 (`:crypto`) over the canonical payload the engine verifies
-  (graphlaw `attest.rs`): the sorted-key JSON of the lease, `payload_sha256` = sha256(payload),
-  `key_id` = sha256(raw public key). Nothing here is a stand-in for verification. UNSUPPORTED(engine-capability):
+  (graphlaw `attest.rs`): the sorted-key JSON of the lease, `payload_blake3` = blake3(payload),
+  `key_id` = blake3(raw public key). Nothing here is a stand-in for verification. UNSUPPORTED(engine-capability):
   the pinned v26.9.28 engine does not verify signature, signer or expiry (it ignores lease keys);
   the leases are well-formed so a verifying engine could check them.
 
@@ -57,8 +57,8 @@ defmodule AshGraphLaw.Test.Lease do
     %{
       "lease" => lease,
       "attestation" => %{
-        "key_id" => sha256_hex(pub),
-        "payload_sha256" => sha256_hex(payload),
+        "key_id" => blake3_hex(pub),
+        "payload_blake3" => blake3_hex(payload),
         "signature" => :eddsa |> :crypto.sign(:none, payload, [priv, :ed25519]) |> Base.encode16(case: :lower)
       }
     }
@@ -77,5 +77,20 @@ defmodule AshGraphLaw.Test.Lease do
     :crypto.generate_key(:eddsa, :ed25519, :binary.copy(<<seed>>, 32))
   end
 
-  defp sha256_hex(bytes), do: :sha256 |> :crypto.hash(bytes) |> Base.encode16(case: :lower)
+  # BLAKE3 as lowercase hex (graphlaw `attest.rs` `blake3_hex`), via the external `b3sum`
+  # binary the library itself uses (CanonicalJSON.blake3/1). Chicago: a real hasher.
+  defp blake3_hex(bytes) do
+    path = Path.join(System.tmp_dir!(), "ash-graphlaw-lease-#{System.unique_integer([:positive])}")
+
+    try do
+      File.write!(path, bytes)
+
+      case System.cmd("b3sum", [path], stderr_to_stdout: true) do
+        {out, 0} -> out |> String.split() |> List.first()
+        {out, code} -> raise "b3sum failed (exit #{code}): #{String.trim(out)}"
+      end
+    after
+      File.rm(path)
+    end
+  end
 end

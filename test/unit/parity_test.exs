@@ -70,12 +70,12 @@ defmodule AshGraphLaw.ParityTest do
       refute report["standing"] == "ALIVE"
     end
 
-    test "an engine older than v26.9.29 (no registry fields) reports registry_sha256 UNKNOWN, not drift" do
+    test "an engine older than v26.10.28 (no registry fields) reports registry_blake3 UNKNOWN, not drift" do
       report = :legacy |> run_variant() |> report_of()
       p3 = Enum.find(report["checks"], &(&1["id"] == "P3"))
 
       assert p3["status"] == "pass"
-      assert p3["evidence"]["live_registry_sha256"] == "UNKNOWN"
+      assert p3["evidence"]["live_registry_blake3"] == "UNKNOWN"
     end
   end
 
@@ -120,8 +120,8 @@ defmodule AshGraphLaw.ParityTest do
   end
 
   describe "R3: the release-pin identity (library == manifest == ontology tag)" do
-    @manifest_version_pattern ~s("graphlaw_version": "26.9.29")
-    @ontology_tag_pattern "gac:graphlawVersion \"26.9.29\""
+    @manifest_version_pattern ~s("graphlaw_version": "26.10.28")
+    @ontology_tag_pattern "gac:graphlawVersion \"26.10.28\""
 
     defp copied(dir, src, name) do
       dst = Path.join(dir, name)

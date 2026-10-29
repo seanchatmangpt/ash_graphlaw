@@ -42,7 +42,7 @@ defmodule AshGraphLaw.Mutation.CatalogCompletenessTest do
     "AGL-MUT-013" => ~r/"construct"|"Construct"/,
     "AGL-MUT-014" => ~r/signed_lease/,
     "AGL-MUT-015" => ~r/capability_parity_drift/,
-    "AGL-MUT-016" => ~r/registry_sha256/
+    "AGL-MUT-016" => ~r/registry_blake3/
   }
 
   defp root, do: File.cwd!()

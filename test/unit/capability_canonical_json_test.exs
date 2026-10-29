@@ -27,7 +27,7 @@ defmodule AshGraphLaw.Unit.CapabilityCanonicalJSONTest do
   }
   @registry_digest "sha256:fc9009ad3b9add8ed2478fa03a4f0d1c9f7d05cdcadd5ff3e0bec74835416fea"
 
-  @surface_sha "sha256:2135437c74048c17d6e8a227e5e9822e05c1d9a813b721192ab4388657a88475"
+  @surface_sha "blake3:8b53c483622716563c1212325793f136d5e9742c7a2a2787b488ce69ab53f408"
 
   describe "positive control" do
     test "encode sorts keys and matches the python vector byte for byte" do
@@ -105,7 +105,7 @@ defmodule AshGraphLaw.Unit.CapabilityCanonicalJSONTest do
         "other_dialects" => ["n3"]
       }
 
-      assert CanonicalJSON.surface_digest(response) == @surface_sha
+      assert CanonicalJSON.surface_digest(response) == @surface_sha # blake3 (v26.10.28+)
     end
 
     test "surface_digest/1 accepts op and dialect maps and atom keys" do
@@ -128,7 +128,7 @@ defmodule AshGraphLaw.Unit.CapabilityCanonicalJSONTest do
     end
 
     test "surface_digest/1 never raises on an empty or malformed source" do
-      assert "sha256:" <> hex = CanonicalJSON.surface_digest(%{})
+      assert "blake3:" <> hex = CanonicalJSON.surface_digest(%{})
       assert byte_size(hex) == 64
       assert is_binary(CanonicalJSON.surface_digest(%{"ops" => "nope", "rdf_dialects" => 3}))
     end
@@ -142,12 +142,12 @@ defmodule AshGraphLaw.Unit.CapabilityCanonicalJSONTest do
   describe "cross-language conformance with the graphlaw registry" do
     @registry_path Path.expand("../../../graphlaw/registry/capability-registry.json", __DIR__)
 
-    test "digest of the emitted registry equals its stored registry_sha256 (when present)" do
+    test "digest of the emitted registry equals its stored registry_blake3 (when present)" do
       case File.read(@registry_path) do
         {:ok, json} ->
           registry = Jason.decode!(json)
-          assert CanonicalJSON.digest(registry) == registry["registry_sha256"]
-          assert CanonicalJSON.surface_digest(registry) == registry["surface_sha256"]
+          assert CanonicalJSON.digest(registry) == registry["registry_blake3"]
+          assert CanonicalJSON.surface_digest(registry) == registry["surface_blake3"]
 
         {:error, _} ->
           # The python vectors above carry the conformance obligation until the registry is emitted.

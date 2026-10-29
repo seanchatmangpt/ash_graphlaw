@@ -55,12 +55,13 @@ defmodule AshGraphLaw.Test.WasmFixtures do
   end
 
   @doc """
-  A module with the full required export set whose only import is `wasi_snapshot_preview1.path_open`,
+  A module with the full required export set whose only import is `wasi_snapshot_preview1.fd_advise`,
   a WASI function outside the closed allowlist (the host gives the engine no filesystem).
+  `fd_advise` is outside the allowlist; `path_open` joined it in v26.10.28.
   """
   @spec forbidden_wasi_import() :: binary()
   def forbidden_wasi_import do
-    build([{@wasi, "path_open"}], ["gl_alloc", "gl_call", "gl_free", "memory"])
+    build([{@wasi, "fd_advise"}], ["gl_alloc", "gl_call", "gl_free", "memory"])
   end
 
   @doc """
