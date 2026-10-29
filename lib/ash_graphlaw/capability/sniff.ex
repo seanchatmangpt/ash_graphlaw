@@ -75,7 +75,7 @@ defmodule AshGraphLaw.Capability.Sniff do
       type: "string",
       required: true,
       nullable: false,
-      doc: "Owning engine (PurRdf or Eyeron).",
+      doc: "Owning engine (PurRdf or FrozenDuckdb).",
       enum: nil,
       default: nil
     }

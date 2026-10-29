@@ -249,23 +249,23 @@ defmodule AshGraphLaw.Parity do
 
   defp p3(reg, live) do
     computed = computed_surface_digest(live)
-    live_surface = Map.get(live, "surface_sha256")
-    live_registry = Map.get(live, "registry_sha256")
+    live_surface = Map.get(live, "surface_blake3") || Map.get(live, "surface_sha256")
+    live_registry = Map.get(live, "registry_blake3") || Map.get(live, "registry_sha256")
     live_schema = Map.get(live, "registry_schema")
 
     parts = [
-      {"computed_surface_sha256", same_digest?(computed, reg.surface_digest)},
-      {"live_surface_sha256", live_surface == nil or same_digest?(live_surface, reg.surface_digest)},
-      {"live_registry_sha256", live_registry == nil or same_digest?(live_registry, reg.digest)},
+      {"computed_surface_blake3", same_digest?(computed, reg.surface_digest)},
+      {"live_surface_blake3", live_surface == nil or same_digest?(live_surface, reg.surface_digest)},
+      {"live_registry_blake3", live_registry == nil or same_digest?(live_registry, reg.digest)},
       {"live_registry_schema", live_schema == nil or same_digest?(live_schema, reg.schema)}
     ]
 
     evidence = %{
-      "expected_surface_sha256" => reg.surface_digest,
-      "computed_surface_sha256" => computed,
-      "live_surface_sha256" => live_surface,
-      "expected_registry_sha256" => reg.digest,
-      "live_registry_sha256" => if(live_registry == nil, do: "UNKNOWN", else: live_registry),
+      "expected_surface_blake3" => reg.surface_digest,
+      "computed_surface_blake3" => computed,
+      "live_surface_blake3" => live_surface,
+      "expected_registry_blake3" => reg.digest,
+      "live_registry_blake3" => if(live_registry == nil, do: "UNKNOWN", else: live_registry),
       "mismatched" => for({name, false} <- parts, do: name)
     }
 
@@ -463,13 +463,25 @@ defmodule AshGraphLaw.Parity do
   defp example_failure(reg, host, %{"op" => op, "request" => request} = example) when is_map(request) do
     id = Map.get(example, "id")
 
-    with {:ok, module} <- reg.module_for.(op),
-         args = Map.delete(request, "op"),
-         result = module.run(args, server: host),
-         nil <- mismatch(result, example) do
-      nil
-    else
-      :error -> %{"id" => id, "problem" => "no capability module for op #{inspect(op)}"}
+    result =
+      with {:ok, module} <- reg.module_for.(op) do
+        case Map.get(example, "outcome") do
+          "ok" ->
+            # Success path: exercise the typed module (build_request -> call -> decode).
+            module.run(Map.delete(request, "op"), server: host)
+
+          _refused ->
+            # Refusal envelope: the recorded `refusal_kind`/`refusal_code` are ENGINE fields, so
+            # the live engine is ground truth. The typed module's client-side build_request
+            # validation (missing required fields, data-spec coercion) refuses or coerces before
+            # the engine is consulted, pre-empting the exact envelope the example records; drive
+            # `AshGraphLaw.call/2` so the raw request reaches the real engine bytes.
+            AshGraphLaw.call(request, server: host)
+        end
+      end
+
+    case mismatch(result, example) do
+      nil -> nil
       reason when is_binary(reason) -> %{"id" => id, "problem" => reason}
     end
   end
@@ -515,12 +527,13 @@ defmodule AshGraphLaw.Parity do
       evidence = %{
         "path" => path,
         "recomputed" => recomputed,
-        "declared" => Map.get(doc, "registry_sha256"),
+        "declared" => Map.get(doc, "registry_blake3") || Map.get(doc, "registry_sha256"),
         "registry_module" => reg.digest
       }
 
       verdict(
-        same_digest?(recomputed, reg.digest) and same_digest?(Map.get(doc, "registry_sha256"), reg.digest),
+        same_digest?(recomputed, reg.digest) and
+          same_digest?(Map.get(doc, "registry_blake3") || Map.get(doc, "registry_sha256"), reg.digest),
         evidence
       )
     else
@@ -696,8 +709,8 @@ defmodule AshGraphLaw.Parity do
       "schema" => @schema,
       "graphlaw_version" => reg.graphlaw_version,
       "registry_schema" => reg.schema,
-      "registry_sha256" => reg.digest,
-      "surface_sha256" => reg.surface_digest,
+      "registry_blake3" => reg.digest,
+      "surface_blake3" => reg.surface_digest,
       "engine" => engine,
       "checks" => checks
     }

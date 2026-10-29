@@ -1,14 +1,14 @@
 # Copyright 2026 ash_graphlaw contributors <https://github.com/seanchatmangpt/ash_graphlaw/graphs/contributors>
 # SPDX-License-Identifier: MIT
-# MESSAGE: the :admission entity's :step field is one_of exactly the eight steps (shacl n3 rdfs owl_rl
-# hooks plan require_receipt require_signed_receipt); its :ceiling field is one_of exactly observe,
+# MESSAGE: the :admission entity's :step field is one_of exactly the nine steps (shacl n3 rdfs owl_rl
+# sql hooks plan require_receipt require_signed_receipt); its :ceiling field is one_of exactly observe,
 # select, construct; every aex:EntitySchemaField has a non-empty fieldDoc. Any row = a violation.
 PREFIX aex: <http://seanchatmangpt.github.io/packs/ash-extension-core#>
 
 SELECT ?problem ?focus ?detail WHERE {
   {
     VALUES (?fname ?want) {
-      ("step" "shacl") ("step" "n3") ("step" "rdfs") ("step" "owl_rl") ("step" "hooks")
+      ("step" "shacl") ("step" "n3") ("step" "rdfs") ("step" "owl_rl") ("step" "sql") ("step" "hooks")
       ("step" "plan") ("step" "require_receipt") ("step" "require_signed_receipt")
       ("ceiling" "observe") ("ceiling" "select") ("ceiling" "construct")
     }
@@ -31,7 +31,7 @@ SELECT ?problem ?focus ?detail WHERE {
     FILTER (STR(?n) = ?fname)
     ?focus a aex:FieldOneOfValue ; aex:oneOfValueOf ?f ; aex:oneOfValueName ?vn .
     FILTER (CONCAT(?fname, "=", STR(?vn)) NOT IN (
-      "step=shacl", "step=n3", "step=rdfs", "step=owl_rl", "step=hooks", "step=plan",
+      "step=shacl", "step=n3", "step=rdfs", "step=owl_rl", "step=sql", "step=hooks", "step=plan",
       "step=require_receipt", "step=require_signed_receipt",
       "ceiling=observe", "ceiling=select", "ceiling=construct"))
     BIND("unexpected_one_of_value" AS ?problem)

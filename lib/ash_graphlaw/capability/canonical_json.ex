@@ -30,30 +30,60 @@ defmodule AshGraphLaw.Capability.CanonicalJSON do
     "sha256:" <> Base.encode16(:crypto.hash(:sha256, encode(term)), case: :lower)
   end
 
-  @doc """
-  Registry digest: `sha256/1` of the registry document with the `"registry_sha256"` key removed.
-  """
-  @spec digest(map()) :: String.t()
-  def digest(registry) when is_map(registry) do
-    registry
-    |> Map.drop(["registry_sha256", :registry_sha256])
-    |> sha256()
+  @doc ~s|`"blake3:<hex>"` of the canonical bytes of `term` (external `b3sum`).|
+  @spec blake3(json()) :: String.t()
+  def blake3(term) do
+    path = Path.join(System.tmp_dir!(), "ash-graphlaw-canonical-#{System.unique_integer([:positive])}")
+
+    try do
+      File.write!(path, encode(term))
+
+      case System.cmd("b3sum", [path], stderr_to_stdout: true) do
+        {out, 0} ->
+          "blake3:" <> (out |> String.split() |> List.first())
+
+        {out, code} ->
+          raise ArgumentError,
+            message: "b3sum failed (exit #{code}): #{String.trim(out)}"
+      end
+    after
+      File.rm(path)
+    end
   end
 
   @doc """
-  Surface digest: `sha256/1` of
+  Registry digest: `blake3/1` of the registry document with the `"registry_blake3"` key removed
+  (v26.10.28+ registries); registries of the `registry_sha256` era fall back to `sha256/1`.
+  """
+  @spec digest(map()) :: String.t()
+  def digest(registry) when is_map(registry) do
+    if Map.has_key?(registry, "registry_blake3") or Map.has_key?(registry, :registry_blake3) do
+      registry |> Map.drop(["registry_blake3", :registry_blake3]) |> blake3()
+    else
+      registry |> Map.drop(["registry_sha256", :registry_sha256]) |> sha256()
+    end
+  end
+
+  @doc """
+  Surface digest: `blake3/1` of
   `%{"abi_version", "ops", "other_dialects", "rdf_dialects"}` extracted from a `capabilities`
   response or a registry document (string or atom keys). Op and dialect entries may be names
   or maps carrying a `name`. Absent members contribute `[]` (`abi_version` contributes `nil`).
   """
   @spec surface_digest(map()) :: String.t()
   def surface_digest(source) when is_map(source) do
-    sha256(%{
+    surface = %{
       "abi_version" => fetch(source, "abi_version"),
       "ops" => names(fetch(source, "ops")),
       "other_dialects" => names(fetch(source, "other_dialects")),
       "rdf_dialects" => names(fetch(source, "rdf_dialects"))
-    })
+    }
+
+    legacy? =
+      (Map.has_key?(source, "surface_sha256") or Map.has_key?(source, :surface_sha256)) and
+        not (Map.has_key?(source, "surface_blake3") or Map.has_key?(source, :surface_blake3))
+
+    if legacy?, do: sha256(surface), else: blake3(surface)
   end
 
   defp fetch(map, key) do

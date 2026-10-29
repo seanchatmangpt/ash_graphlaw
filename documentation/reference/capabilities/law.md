@@ -30,12 +30,12 @@ built and validated client-side without the engine; the call itself runs on the 
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
 | `steps` | `list<object>` | true | false | none | Ordered law steps; see law_steps. |
-| signed_lease | object | false | false | none | Signed lease {lease, attestation}; verified offline against trusted_keys. |
-| `lease` | object | false | false | none | Unsigned lease; refused unless unverified_lease is true. |
-| trusted_keys | `list<string>` | false | false | none | Hex Ed25519 public keys trusted to sign leases. |
-| max_skew_secs | integer | false | true | none | Clock skew tolerance for signed leases in seconds. |
-| unverified_lease | boolean | false | false | none | Accept an unsigned lease; proves nothing about its issuer. |
-| now_unix | integer | false | false | none | Caller clock in unix seconds; used only with an unverified lease. |
+| `signed_lease` | `object` | false | false | none | Signed lease {lease, attestation}; verified offline against trusted_keys. |
+| `lease` | `object` | false | false | none | Unsigned lease; refused unless unverified_lease is true. |
+| `trusted_keys` | `list<string>` | false | false | none | Hex Ed25519 public keys trusted to sign leases. |
+| `max_skew_secs` | `integer` | false | true | none | Clock skew tolerance for signed leases in seconds. |
+| `unverified_lease` | `boolean` | false | false | none | Accept an unsigned lease; proves nothing about its issuer. |
+| `now_unix` | `integer` | false | false | none | Caller clock in unix seconds; used only with an unverified lease. |
 
 ## Response
 
@@ -43,9 +43,9 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| states | `list<string>` | true | false | State ids after each step, starting with the input. |
-| receipts | `list<object>` | true | false | Receipts, one per transition. |
-| nquads | string | true | false | Final state as N-Quads. |
+| `states` | `list<string>` | true | false | State ids after each step, starting with the input. |
+| `receipts` | `list<object>` | true | false | Receipts, one per transition. |
+| `nquads` | `string` | true | false | Final state as N-Quads. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 
@@ -60,9 +60,9 @@ A refusal is an observation about one exact input and never grants authority.
 
 ## Shared typed models and limits
 
-Typed models (see the [capability reference](../capabilities.md)): .
+Typed models (see the [capability reference](../capabilities.md)): `AshGraphLaw.Model.Lease`, `AshGraphLaw.Model.SignedLease`, `AshGraphLaw.Model.Receipt`, `AshGraphLaw.Model.Attestation`, `AshGraphLaw.Model.Plan`, `AshGraphLaw.Model.Action`, `AshGraphLaw.Model.PolicyEntry`, `AshGraphLaw.Model.PolicyOutcome`.
 
-Engine limits that can refuse any operation: `max_atoms_per_field`=10000, `max_json_depth`=64, `max_plan_actions`=1000, `max_policy_entries`=100000, `max_request_bytes`=16777216, `n3_max_iterations`=4000.
+Engine limits that can refuse any operation: `hooks_max_firings`=10000 (hooks), `hooks_max_rounds`=64 (hooks), `hooks_max_state_quads`=1000000 (hooks), `max_atoms_per_field`=10000 (abi), `max_json_depth`=64 (abi), `max_outstanding_alloc_bytes`=16777216 (wasm), `max_plan_actions`=1000 (abi), `max_plan_total_atoms`=100000 (plan), `max_policy_entries`=100000 (abi), `max_request_bytes`=16777216 (abi), `n3_max_backward_depth`=32 (n3), `n3_max_backward_solutions_per_goal`=1024 (n3), `n3_max_derived_facts`=500000 (n3), `n3_max_iterations`=4000000 (n3), `n3_max_match_steps`=200000 (n3), `n3_max_term_bytes`=65536 (n3), `n3_max_term_depth`=64 (n3), `n3_max_total_bytes`=268435456 (n3), `n3_max_total_steps`=50000000 (n3).
 
 ## See Also
 

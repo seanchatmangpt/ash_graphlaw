@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
   `[capability_parity_drift] <ids>` and `[wasm_not_vendored]`.
 - Check ids are frozen: `P1` to `P9` and `R1`. Do not hardcode the op count; compare with the
   registry.
-- Engine pin `v26.9.29` carries the registry. Any drift against it is reported and stays
+- Engine pin `v26.10.28` carries the registry. Any drift against it is reported and stays
   reported. Do not mask it.
 - When the registry changes: `scripts/vendor_registry.sh`, `scripts/import_registry.sh`,
   `scripts/ggen_sync.sh`, then the court.

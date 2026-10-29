@@ -1,0 +1,124 @@
+
+defmodule NotificationExtension.Resource.Receipt do
+  @moduledoc """
+  Idempotency-keyed receipt ledger for `NotificationExtension.Resource.ReceiptedAction`.
+
+  One row per idempotency key. A row carries the request `fingerprint` (the
+  digest of resource, action, subject and params) so a repeat key with a
+  different request is detectable as a conflict rather than silently replayed.
+
+  Status lifecycle: `:pending` (admitted, action not yet sealed) ->
+  `:sealed` (action succeeded, `result` recorded) or `:failed` (action
+  errored, key re-admittable).
+  """
+
+  use Agent
+
+  @table :notification_extension_receipts
+
+  @enforce_keys [:idempotency_key, :fingerprint, :resource, :action, :status]
+  defstruct [
+    :idempotency_key,
+    :fingerprint,
+    :resource,
+    :action,
+    :subject_id,
+    :status,
+    :result,
+    :error,
+    :admitted_at,
+    :finished_at
+  ]
+
+  @type status :: :pending | :sealed | :failed | :replayed
+  @type t :: %__MODULE__{
+          idempotency_key: String.t(),
+          fingerprint: String.t(),
+          resource: module(),
+          action: atom(),
+          subject_id: term(),
+          status: status(),
+          result: term(),
+          error: term(),
+          admitted_at: DateTime.t() | nil,
+          finished_at: DateTime.t() | nil
+        }
+
+  @doc "Starts the Agent that owns the receipt table."
+  def start_link(_opts \\ []) do
+    Agent.start_link(
+      fn -> :ets.new(@table, [:named_table, :public, :set, read_concurrency: true]) end,
+      name: __MODULE__
+    )
+  end
+
+  @doc "Returns `{:ok, receipt}` or `{:ok, nil}` when the key was never admitted."
+  @spec find_by_key(String.t()) :: {:ok, t() | nil}
+  def find_by_key(idempotency_key) do
+    ensure_started!()
+
+    case :ets.lookup(@table, idempotency_key) do
+      [{^idempotency_key, receipt}] -> {:ok, receipt}
+      [] -> {:ok, nil}
+    end
+  end
+
+  @doc "Records a `:pending` receipt for `idempotency_key`."
+  @spec admit!(String.t(), String.t(), module(), atom(), term()) :: t()
+  def admit!(idempotency_key, fingerprint, resource, action, subject_id \\ nil) do
+    ensure_started!()
+
+    receipt = %__MODULE__{
+      idempotency_key: idempotency_key,
+      fingerprint: fingerprint,
+      resource: resource,
+      action: action,
+      subject_id: subject_id,
+      status: :pending,
+      admitted_at: DateTime.utc_now()
+    }
+
+    put(receipt)
+  end
+
+  @doc "Seals a pending receipt with the action's result."
+  @spec seal!(t(), term()) :: t()
+  def seal!(%__MODULE__{status: :pending} = receipt, result) do
+    put(%{receipt | status: :sealed, result: result, finished_at: DateTime.utc_now()})
+  end
+
+  @doc "Marks a pending receipt failed; the key may be admitted again."
+  @spec fail!(t(), term()) :: t()
+  def fail!(%__MODULE__{status: :pending} = receipt, error) do
+    put(%{receipt | status: :failed, error: error, finished_at: DateTime.utc_now()})
+  end
+
+  @doc "Deletes every receipt. Intended for test isolation."
+  def reset! do
+    ensure_started!()
+    :ets.delete_all_objects(@table)
+    :ok
+  end
+
+  defp put(%__MODULE__{idempotency_key: key} = receipt) do
+    true = :ets.insert(@table, {key, receipt})
+    receipt
+  end
+
+  defp ensure_started! do
+    case Process.whereis(__MODULE__) do
+      nil ->
+        case start_link() do
+          {:ok, pid} ->
+            Process.unlink(pid)
+            :ok
+
+          {:error, {:already_started, _pid}} ->
+            :ok
+        end
+
+      _pid ->
+        :ok
+    end
+  end
+end

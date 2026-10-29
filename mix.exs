@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
+
 defmodule AshGraphLaw.MixProject do
   @moduledoc false
   use Mix.Project

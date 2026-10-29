@@ -20,12 +20,25 @@ defmodule AshGraphLaw.Capability.Limits do
         }
 
   @limits [
-    %{name: :max_atoms_per_field, value: 10000, scope: "", unit: "", source: ""},
-    %{name: :max_json_depth, value: 64, scope: "", unit: "", source: ""},
-    %{name: :max_plan_actions, value: 1000, scope: "", unit: "", source: ""},
-    %{name: :max_policy_entries, value: 100_000, scope: "", unit: "", source: ""},
-    %{name: :max_request_bytes, value: 16_777_216, scope: "", unit: "", source: ""},
-    %{name: :n3_max_iterations, value: 4000, scope: "", unit: "", source: ""}
+    %{name: :hooks_max_firings, value: 10000, scope: "hooks", unit: "firings", source: "src/hooks.rs"},
+    %{name: :hooks_max_rounds, value: 64, scope: "hooks", unit: "rounds", source: "src/hooks.rs"},
+    %{name: :hooks_max_state_quads, value: 1000000, scope: "hooks", unit: "quads", source: "src/hooks.rs"},
+    %{name: :max_atoms_per_field, value: 10000, scope: "abi", unit: "count", source: "src/abi.rs"},
+    %{name: :max_json_depth, value: 64, scope: "abi", unit: "count", source: "src/abi.rs"},
+    %{name: :max_outstanding_alloc_bytes, value: 16777216, scope: "wasm", unit: "bytes", source: "src/abi.rs"},
+    %{name: :max_plan_actions, value: 1000, scope: "abi", unit: "count", source: "src/abi.rs"},
+    %{name: :max_plan_total_atoms, value: 100000, scope: "plan", unit: "count", source: "src/plan.rs"},
+    %{name: :max_policy_entries, value: 100000, scope: "abi", unit: "count", source: "src/abi.rs"},
+    %{name: :max_request_bytes, value: 16777216, scope: "abi", unit: "bytes", source: "src/abi.rs"},
+    %{name: :n3_max_backward_depth, value: 32, scope: "n3", unit: "count", source: "src/law.rs"},
+    %{name: :n3_max_backward_solutions_per_goal, value: 1024, scope: "n3", unit: "count", source: "src/law.rs"},
+    %{name: :n3_max_derived_facts, value: 500000, scope: "n3", unit: "count", source: "src/law.rs"},
+    %{name: :n3_max_iterations, value: 4000000, scope: "n3", unit: "count", source: "src/law.rs"},
+    %{name: :n3_max_match_steps, value: 200000, scope: "n3", unit: "steps", source: "src/law.rs"},
+    %{name: :n3_max_term_bytes, value: 65536, scope: "n3", unit: "bytes", source: "src/law.rs"},
+    %{name: :n3_max_term_depth, value: 64, scope: "n3", unit: "count", source: "src/law.rs"},
+    %{name: :n3_max_total_bytes, value: 268435456, scope: "n3", unit: "bytes", source: "src/law.rs"},
+    %{name: :n3_max_total_steps, value: 50000000, scope: "n3", unit: "steps", source: "src/law.rs"}
   ]
 
   @doc "Every limit in name order."
@@ -45,27 +58,79 @@ defmodule AshGraphLaw.Capability.Limits do
   @spec in_scope(String.t()) :: [limit()]
   def in_scope(scope), do: Enum.filter(@limits, &(&1.scope == scope))
 
-  @doc "Limit `max_atoms_per_field`."
+  @doc "Limit `hooks_max_firings` (firings), scope `hooks`."
+  @spec hooks_max_firings() :: non_neg_integer()
+  def hooks_max_firings, do: 10000
+
+  @doc "Limit `hooks_max_rounds` (rounds), scope `hooks`."
+  @spec hooks_max_rounds() :: non_neg_integer()
+  def hooks_max_rounds, do: 64
+
+  @doc "Limit `hooks_max_state_quads` (quads), scope `hooks`."
+  @spec hooks_max_state_quads() :: non_neg_integer()
+  def hooks_max_state_quads, do: 1000000
+
+  @doc "Limit `max_atoms_per_field` (count), scope `abi`."
   @spec max_atoms_per_field() :: non_neg_integer()
   def max_atoms_per_field, do: 10000
 
-  @doc "Limit `max_json_depth`."
+  @doc "Limit `max_json_depth` (count), scope `abi`."
   @spec max_json_depth() :: non_neg_integer()
   def max_json_depth, do: 64
 
-  @doc "Limit `max_plan_actions`."
+  @doc "Limit `max_outstanding_alloc_bytes` (bytes), scope `wasm`."
+  @spec max_outstanding_alloc_bytes() :: non_neg_integer()
+  def max_outstanding_alloc_bytes, do: 16777216
+
+  @doc "Limit `max_plan_actions` (count), scope `abi`."
   @spec max_plan_actions() :: non_neg_integer()
   def max_plan_actions, do: 1000
 
-  @doc "Limit `max_policy_entries`."
+  @doc "Limit `max_plan_total_atoms` (count), scope `plan`."
+  @spec max_plan_total_atoms() :: non_neg_integer()
+  def max_plan_total_atoms, do: 100000
+
+  @doc "Limit `max_policy_entries` (count), scope `abi`."
   @spec max_policy_entries() :: non_neg_integer()
-  def max_policy_entries, do: 100_000
+  def max_policy_entries, do: 100000
 
-  @doc "Limit `max_request_bytes`."
+  @doc "Limit `max_request_bytes` (bytes), scope `abi`."
   @spec max_request_bytes() :: non_neg_integer()
-  def max_request_bytes, do: 16_777_216
+  def max_request_bytes, do: 16777216
 
-  @doc "Limit `n3_max_iterations`."
+  @doc "Limit `n3_max_backward_depth` (count), scope `n3`."
+  @spec n3_max_backward_depth() :: non_neg_integer()
+  def n3_max_backward_depth, do: 32
+
+  @doc "Limit `n3_max_backward_solutions_per_goal` (count), scope `n3`."
+  @spec n3_max_backward_solutions_per_goal() :: non_neg_integer()
+  def n3_max_backward_solutions_per_goal, do: 1024
+
+  @doc "Limit `n3_max_derived_facts` (count), scope `n3`."
+  @spec n3_max_derived_facts() :: non_neg_integer()
+  def n3_max_derived_facts, do: 500000
+
+  @doc "Limit `n3_max_iterations` (count), scope `n3`."
   @spec n3_max_iterations() :: non_neg_integer()
-  def n3_max_iterations, do: 4000
+  def n3_max_iterations, do: 4000000
+
+  @doc "Limit `n3_max_match_steps` (steps), scope `n3`."
+  @spec n3_max_match_steps() :: non_neg_integer()
+  def n3_max_match_steps, do: 200000
+
+  @doc "Limit `n3_max_term_bytes` (bytes), scope `n3`."
+  @spec n3_max_term_bytes() :: non_neg_integer()
+  def n3_max_term_bytes, do: 65536
+
+  @doc "Limit `n3_max_term_depth` (count), scope `n3`."
+  @spec n3_max_term_depth() :: non_neg_integer()
+  def n3_max_term_depth, do: 64
+
+  @doc "Limit `n3_max_total_bytes` (bytes), scope `n3`."
+  @spec n3_max_total_bytes() :: non_neg_integer()
+  def n3_max_total_bytes, do: 268435456
+
+  @doc "Limit `n3_max_total_steps` (steps), scope `n3`."
+  @spec n3_max_total_steps() :: non_neg_integer()
+  def n3_max_total_steps, do: 50000000
 end

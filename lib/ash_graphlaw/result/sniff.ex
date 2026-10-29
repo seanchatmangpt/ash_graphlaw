@@ -12,7 +12,7 @@ defmodule AshGraphLaw.Result.Sniff do
   One key per response field of the registry (`:raw` is reserved and never a registry field):
 
   - `:dialect` (`string`): Sniffed dialect (Rust variant name).
-  - `:engine` (`string`): Owning engine (PurRdf or Eyeron).
+  - `:engine` (`string`): Owning engine (PurRdf or FrozenDuckdb).
 
   `:raw` is the entire decoded response map (including `"ok"`), so `from_map(m).raw == m` for every
   `m`, including responses that carry fields this version does not model. `from_map/1` never raises:

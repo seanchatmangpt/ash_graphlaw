@@ -29,8 +29,8 @@ built and validated client-side without the engine; the call itself runs on the 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
 | `data` | `data_spec` | true | false | none | Data to operate on: an object {text, dialect?, hint?, base?}; the dialect is sniffed when omitted. |
-| `shapes` | string | true | false | none | SHACL shapes graph as Turtle text. |
-| base | string | false | true | none | Base IRI. |
+| `shapes` | `string` | true | false | none | SHACL shapes graph as Turtle text. |
+| `base` | `string` | false | true | none | Base IRI. |
 
 ## Response
 
@@ -38,8 +38,8 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `conforms` | boolean | true | false | True when the data conforms. |
-| results | `list<object>` | true | false | Validation results: {focus, path, value, severity, component, shape, message}. |
+| `conforms` | `boolean` | true | false | True when the data conforms. |
+| `results` | `list<object>` | true | false | Validation results: {focus, path, value, severity, component, shape, message}. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 
@@ -54,9 +54,9 @@ A refusal is an observation about one exact input and never grants authority.
 
 ## Shared typed models and limits
 
-Typed models (see the [capability reference](../capabilities.md)): .
+Typed models (see the [capability reference](../capabilities.md)): `AshGraphLaw.Model.Lease`, `AshGraphLaw.Model.SignedLease`, `AshGraphLaw.Model.Receipt`, `AshGraphLaw.Model.Attestation`, `AshGraphLaw.Model.Plan`, `AshGraphLaw.Model.Action`, `AshGraphLaw.Model.PolicyEntry`, `AshGraphLaw.Model.PolicyOutcome`.
 
-Engine limits that can refuse any operation: `max_atoms_per_field`=10000, `max_json_depth`=64, `max_plan_actions`=1000, `max_policy_entries`=100000, `max_request_bytes`=16777216, `n3_max_iterations`=4000.
+Engine limits that can refuse any operation: `hooks_max_firings`=10000 (hooks), `hooks_max_rounds`=64 (hooks), `hooks_max_state_quads`=1000000 (hooks), `max_atoms_per_field`=10000 (abi), `max_json_depth`=64 (abi), `max_outstanding_alloc_bytes`=16777216 (wasm), `max_plan_actions`=1000 (abi), `max_plan_total_atoms`=100000 (plan), `max_policy_entries`=100000 (abi), `max_request_bytes`=16777216 (abi), `n3_max_backward_depth`=32 (n3), `n3_max_backward_solutions_per_goal`=1024 (n3), `n3_max_derived_facts`=500000 (n3), `n3_max_iterations`=4000000 (n3), `n3_max_match_steps`=200000 (n3), `n3_max_term_bytes`=65536 (n3), `n3_max_term_depth`=64 (n3), `n3_max_total_bytes`=268435456 (n3), `n3_max_total_steps`=50000000 (n3).
 
 ## See Also
 

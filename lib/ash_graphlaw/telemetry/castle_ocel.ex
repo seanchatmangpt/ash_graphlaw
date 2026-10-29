@@ -229,7 +229,7 @@ defmodule AshGraphLaw.Telemetry.CastleOcel do
     %{
       "objectTypes" =>
         events
-        |> Enum.map(&object_binding(&1) |> elem(0))
+        |> Enum.map(&(object_binding(&1) |> elem(0)))
         |> Enum.uniq()
         |> Enum.sort()
         |> Enum.map(&Map.new([{"name", &1}, {"attributes", []}])),

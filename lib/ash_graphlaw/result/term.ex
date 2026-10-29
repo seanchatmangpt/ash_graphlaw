@@ -5,7 +5,7 @@
 
 defmodule AshGraphLaw.Result.Term do
   @moduledoc ~S"""
-  A SPARQL-JSON-like term in a decoded result (registry `sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16`).
+  A SPARQL-JSON-like term in a decoded result (registry `blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d`).
 
   The wire object `{"type": ..., "value": ..., "datatype": ..., "xml:lang": ...}` becomes
   `%AshGraphLaw.Result.Term{type: ..., value: ..., datatype: ..., lang: ..., raw: original_map}`.

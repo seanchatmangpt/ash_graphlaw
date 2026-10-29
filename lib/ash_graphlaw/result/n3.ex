@@ -11,7 +11,7 @@ defmodule AshGraphLaw.Result.N3 do
 
   One key per response field of the registry (`:raw` is reserved and never a registry field):
 
-  - `:derived` (`any`): Reasoner output; shape is owned by Eyeron.
+  - `:derived` (`any`): Reasoner output; shape is owned by purrdf::n3.
 
   `:raw` is the entire decoded response map (including `"ok"`), so `from_map(m).raw == m` for every
   `m`, including responses that carry fields this version does not model. `from_map/1` never raises:

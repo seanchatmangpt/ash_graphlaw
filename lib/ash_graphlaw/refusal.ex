@@ -126,22 +126,22 @@ defmodule AshGraphLaw.Refusal do
   ## Classes
 
 
+    * `:blocked_resource` - 11 code(s)
     * `:refused_admission` - 4 code(s)
     * `:refused_authority` - 4 code(s)
-    * `:blocked_resource` - 11 code(s)
+    * `:refused_identity` - 4 code(s)
     * `:refused_structure` - 15 code(s)
     * `:unsupported` - 2 code(s)
-    * `:refused_identity` - 4 code(s)
 
   ## Failure-taxonomy terms
 
 
-    * `:mu_on_O` - 16 code(s)
     * `:R_missing_authority` - 4 code(s)
     * `:R_missing_consequence` - 11 code(s)
-    * `:R_missing_standing` - 1 code(s)
     * `:R_missing_identity` - 6 code(s)
+    * `:R_missing_standing` - 1 code(s)
     * `:admission_vacuous` - 2 code(s)
+    * `:mu_on_O` - 16 code(s)
   """
 
   @codes [
@@ -188,21 +188,21 @@ defmodule AshGraphLaw.Refusal do
   ]
 
   @classes [
+    :blocked_resource,
     :refused_admission,
     :refused_authority,
-    :blocked_resource,
+    :refused_identity,
     :refused_structure,
-    :unsupported,
-    :refused_identity
+    :unsupported
   ]
 
   @broken_terms [
-    :mu_on_O,
     :R_missing_authority,
     :R_missing_consequence,
-    :R_missing_standing,
     :R_missing_identity,
-    :admission_vacuous
+    :R_missing_standing,
+    :admission_vacuous,
+    :mu_on_O
   ]
 
   # UNSUPPORTED(generator-capability): engine error payload -> code policy.
@@ -216,6 +216,9 @@ defmodule AshGraphLaw.Refusal do
     # Real engine codes (graphlaw src/abi.rs) that are refusals of the same two families.
     "ReceiptRefused" => :receipt_required,
     "UnverifiedLeaseRefused" => :lease_refused,
+    # DuckDB substrate failure (graphlaw src/duckdb_op.rs, RefusalKind::DuckDb, docs/refusals.md
+    # `DuckDb` row): typed diagnostic refusal of the refused_structure family.
+    "DuckDb" => :engine_refused,
     # Generic engine refusal; the engine kind is carried separately in `details.kind`.
     "Refused" => :engine_refused
   }
@@ -275,21 +278,21 @@ defmodule AshGraphLaw.Refusal do
 
   @typedoc "Closed union of refusal classes."
   @type class ::
-          :refused_admission
+          :blocked_resource
+          | :refused_admission
           | :refused_authority
-          | :blocked_resource
+          | :refused_identity
           | :refused_structure
           | :unsupported
-          | :refused_identity
 
   @typedoc "Chatman failure-taxonomy term a refusal witnesses."
   @type broken_term ::
-          :mu_on_O
-          | :R_missing_authority
+          :R_missing_authority
           | :R_missing_consequence
-          | :R_missing_standing
           | :R_missing_identity
+          | :R_missing_standing
           | :admission_vacuous
+          | :mu_on_O
 
   @typedoc "A typed refusal: closed `code`, its `class` and `broken_term`, engine provenance and `details`."
   @type t :: %__MODULE__{
@@ -444,119 +447,46 @@ defmodule AshGraphLaw.Refusal do
       true
   """
   @spec doc_of(code()) :: String.t()
-  def doc_of(:not_admitted),
-    do:
-      "The engine evaluated the admission steps and refused the input: at least one step (SHACL, N3, RDFS, OWL-RL, hooks) did not admit it."
-
-  def doc_of(:plan_refused),
-    do:
-      "The engine\'s plan step refused: the submitted plan violates a precondition or goal it can verify against the data."
-
-  def doc_of(:receipt_required),
-    do:
-      "A require_receipt step found no receipt for the required step, so the transition has no receipted admission behind it."
-
-  def doc_of(:lease_refused),
-    do:
-      "The engine refused the supplied lease: it is unsigned, expired, outside the allowed clock skew, or signed by an untrusted key."
-
-  def doc_of(:resource_limit),
-    do:
-      "The engine hit a resource limit (input size, fuel, or memory) before it could decide; nothing was admitted or refused."
-
-  def doc_of(:policy_refused),
-    do:
-      "The engine refused the request under its policy: the requested authority ceiling or operation is not permitted."
-
-  def doc_of(:engine_refused),
-    do:
-      "The engine refused the request for a structural reason (malformed op, data, or steps) reported under its error kind."
-
-  def doc_of(:engine_unclassified),
-    do:
-      "The engine returned a refusal variant this library does not know; it is carried verbatim and classified unsupported rather than guessed."
-
-  def doc_of(:wasm_not_vendored),
-    do:
-      "No GraphLaw WASM binary exists at the resolved path; run mix ash_graphlaw.vendor to fetch the pinned release asset."
-
+  def doc_of(:not_admitted), do: "The engine evaluated the admission steps and refused the input: at least one step (SHACL, N3, RDFS, OWL-RL, hooks) did not admit it."
+  def doc_of(:plan_refused), do: "The engine\'s plan step refused: the submitted plan violates a precondition or goal it can verify against the data."
+  def doc_of(:receipt_required), do: "A require_receipt step found no receipt for the required step, so the transition has no receipted admission behind it."
+  def doc_of(:lease_refused), do: "The engine refused the supplied lease: it is unsigned, expired, outside the allowed clock skew, or signed by an untrusted key."
+  def doc_of(:resource_limit), do: "The engine hit a resource limit (input size, fuel, or memory) before it could decide; nothing was admitted or refused."
+  def doc_of(:policy_refused), do: "The engine refused the request under its policy: the requested authority ceiling or operation is not permitted."
+  def doc_of(:engine_refused), do: "The engine refused the request for a structural reason (malformed op, data, or steps) reported under its error kind."
+  def doc_of(:engine_unclassified), do: "The engine returned a refusal variant this library does not know; it is carried verbatim and classified unsupported rather than guessed."
+  def doc_of(:wasm_not_vendored), do: "No GraphLaw WASM binary exists at the resolved path; run mix ash_graphlaw.vendor to fetch the pinned release asset."
   def doc_of(:wasm_unreadable), do: "The GraphLaw WASM file exists at the resolved path but could not be read."
   def doc_of(:wasm_invalid), do: "The bytes at the WASM path do not compile as a WebAssembly module."
-
-  def doc_of(:wasm_digest_mismatch),
-    do:
-      "The sha256 of the WASM bytes differs from the pinned digest, so the module is not the admitted GraphLaw release."
-
-  def doc_of(:wasm_import_surface_mismatch),
-    do:
-      "The module imports something other than the wasi_snapshot_preview1 surface, so it is not the pinned GraphLaw shape."
-
+  def doc_of(:wasm_digest_mismatch), do: "The sha256 of the WASM bytes differs from the pinned digest, so the module is not the admitted GraphLaw release."
+  def doc_of(:wasm_import_surface_mismatch), do: "The module imports something other than the wasi_snapshot_preview1 surface, so it is not the pinned GraphLaw shape."
   def doc_of(:wasm_missing_export), do: "The module lacks a required export (gl_alloc, gl_call, gl_free, or memory)."
-
-  def doc_of(:abi_version_mismatch),
-    do: "The engine reports an ABI version different from the version this library was built for."
-
-  def doc_of(:instantiation_failed),
-    do: "The WASM module passed admission but could not be instantiated by the runtime."
-
-  def doc_of(:abi_failure),
-    do:
-      "A GraphLaw ABI call violated its contract, for example a bad pointer or a failed allocation; the instance is recycled."
-
+  def doc_of(:abi_version_mismatch), do: "The engine reports an ABI version different from the version this library was built for."
+  def doc_of(:instantiation_failed), do: "The WASM module passed admission but could not be instantiated by the runtime."
+  def doc_of(:abi_failure), do: "A GraphLaw ABI call violated its contract, for example a bad pointer or a failed allocation; the instance is recycled."
   def doc_of(:call_trapped), do: "The WASM call trapped while executing; the instance is recycled."
   def doc_of(:call_exited), do: "The WASM program exited during the call; the instance is recycled."
   def doc_of(:call_timeout), do: "The call did not finish within the configured timeout_ms."
   def doc_of(:saturated), do: "The host queue is full (max_queue), so the request was shed instead of waiting."
   def doc_of(:host_not_started), do: "No GraphLaw host process is running under the requested server name."
   def doc_of(:fuel_exhausted), do: "The call used up its fuel budget before the engine returned."
-
-  def doc_of(:invalid_encoding),
-    do: "The request contained a string that is not valid UTF-8 and was refused before reaching the engine."
-
+  def doc_of(:invalid_encoding), do: "The request contained a string that is not valid UTF-8 and was refused before reaching the engine."
   def doc_of(:invalid_json), do: "A request could not be encoded as JSON, or an engine response was not valid JSON."
   def doc_of(:malformed_response), do: "The engine response was valid JSON but lacked the expected envelope fields."
   def doc_of(:unknown_admission), do: "The named admission is not declared in the resource\'s graphlaw section."
   def doc_of(:duplicate_admission), do: "Two admissions in one resource share the same name."
-
-  def doc_of(:missing_law_module),
-    do: "An admission uses a step that needs a payload but declares no law module, so it would admit vacuously."
-
-  def doc_of(:invalid_runtime_option),
-    do: "A graphlaw runtime option is out of range: timeout_ms must be positive and max_skew_secs non-negative."
-
-  def doc_of(:invalid_trusted_key),
-    do: "A trusted key is not a 64-character hexadecimal public key, so lease signatures cannot be checked against it."
-
-  def doc_of(:ceiling_unmet),
-    do:
-      "The lease in the changeset context does not reach the ceiling the admission requires; refused before the engine is called."
-
+  def doc_of(:missing_law_module), do: "An admission uses a step that needs a payload but declares no law module, so it would admit vacuously."
+  def doc_of(:invalid_runtime_option), do: "A graphlaw runtime option is out of range: timeout_ms must be positive and max_skew_secs non-negative."
+  def doc_of(:invalid_trusted_key), do: "A trusted key is not a 64-character hexadecimal public key, so lease signatures cannot be checked against it."
+  def doc_of(:ceiling_unmet), do: "The lease in the changeset context does not reach the ceiling the admission requires; refused before the engine is called."
   def doc_of(:projection_failed), do: "The projection module could not produce N-Triples data for the subject."
   def doc_of(:law_module_failed), do: "The law module raised or returned a value that is not a list of step maps."
-
-  def doc_of(:unsupported_step),
-    do: "The admission step is not supported by this library version or by the pinned engine release."
-
-  def doc_of(:invalid_capability_request),
-    do:
-      "A typed capability request failed client-side validation before the engine was called: unknown top-level keys, missing required fields, or a value whose type does not match the registry field type."
-
-  def doc_of(:unknown_capability),
-    do:
-      "The named capability is not in the vendored GraphLaw capability registry, so no typed request can be built for it."
-
-  def doc_of(:capability_not_declared),
-    do:
-      "The resource declares at least one capability in its graphlaw section but not this one, so the op is refused before the engine is called."
-
-  def doc_of(:capability_parity_drift),
-    do:
-      "The live engine, the vendored capability registry, the typed module set or the admission DSL disagree about the supported capability set; the parity court refuses."
-
-  def doc_of(:capability_response_undecodable),
-    do:
-      "The engine returned a capability response that is not a JSON object, so it cannot be decoded into a typed result; the raw value is preserved on the refusal."
-
+  def doc_of(:unsupported_step), do: "The admission step is not supported by this library version or by the pinned engine release."
+  def doc_of(:invalid_capability_request), do: "A typed capability request failed client-side validation before the engine was called: unknown top-level keys, missing required fields, or a value whose type does not match the registry field type."
+  def doc_of(:unknown_capability), do: "The named capability is not in the vendored GraphLaw capability registry, so no typed request can be built for it."
+  def doc_of(:capability_not_declared), do: "The resource declares at least one capability in its graphlaw section but not this one, so the op is refused before the engine is called."
+  def doc_of(:capability_parity_drift), do: "The live engine, the vendored capability registry, the typed module set or the admission DSL disagree about the supported capability set; the parity court refuses."
+  def doc_of(:capability_response_undecodable), do: "The engine returned a capability response that is not a JSON object, so it cannot be decoded into a typed result; the raw value is preserved on the refusal."
   def doc_of(other), do: raise(ArgumentError, "unknown refusal code: #{inspect(other)}")
 
   @doc """
@@ -634,8 +564,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec receipt_required(String.t() | nil, map()) :: t()
-  def receipt_required(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:receipt_required, message, details)
+  def receipt_required(message \\ nil, details \\ %{}) when is_map(details), do: new(:receipt_required, message, details)
 
   @doc """
   Builds a `:lease_refused` refusal (class `:refused_authority`, source `engine`,
@@ -690,8 +619,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec engine_unclassified(String.t() | nil, map()) :: t()
-  def engine_unclassified(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:engine_unclassified, message, details)
+  def engine_unclassified(message \\ nil, details \\ %{}) when is_map(details), do: new(:engine_unclassified, message, details)
 
   @doc """
   Builds a `:wasm_not_vendored` refusal (class `:blocked_resource`, source `host`,
@@ -702,8 +630,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec wasm_not_vendored(String.t() | nil, map()) :: t()
-  def wasm_not_vendored(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:wasm_not_vendored, message, details)
+  def wasm_not_vendored(message \\ nil, details \\ %{}) when is_map(details), do: new(:wasm_not_vendored, message, details)
 
   @doc """
   Builds a `:wasm_unreadable` refusal (class `:blocked_resource`, source `host`,
@@ -736,8 +663,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec wasm_digest_mismatch(String.t() | nil, map()) :: t()
-  def wasm_digest_mismatch(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:wasm_digest_mismatch, message, details)
+  def wasm_digest_mismatch(message \\ nil, details \\ %{}) when is_map(details), do: new(:wasm_digest_mismatch, message, details)
 
   @doc """
   Builds a `:wasm_import_surface_mismatch` refusal (class `:refused_identity`, source `host`,
@@ -748,8 +674,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec wasm_import_surface_mismatch(String.t() | nil, map()) :: t()
-  def wasm_import_surface_mismatch(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:wasm_import_surface_mismatch, message, details)
+  def wasm_import_surface_mismatch(message \\ nil, details \\ %{}) when is_map(details), do: new(:wasm_import_surface_mismatch, message, details)
 
   @doc """
   Builds a `:wasm_missing_export` refusal (class `:refused_structure`, source `host`,
@@ -760,8 +685,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec wasm_missing_export(String.t() | nil, map()) :: t()
-  def wasm_missing_export(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:wasm_missing_export, message, details)
+  def wasm_missing_export(message \\ nil, details \\ %{}) when is_map(details), do: new(:wasm_missing_export, message, details)
 
   @doc """
   Builds a `:abi_version_mismatch` refusal (class `:refused_identity`, source `host`,
@@ -772,8 +696,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec abi_version_mismatch(String.t() | nil, map()) :: t()
-  def abi_version_mismatch(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:abi_version_mismatch, message, details)
+  def abi_version_mismatch(message \\ nil, details \\ %{}) when is_map(details), do: new(:abi_version_mismatch, message, details)
 
   @doc """
   Builds a `:instantiation_failed` refusal (class `:blocked_resource`, source `host`,
@@ -784,8 +707,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec instantiation_failed(String.t() | nil, map()) :: t()
-  def instantiation_failed(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:instantiation_failed, message, details)
+  def instantiation_failed(message \\ nil, details \\ %{}) when is_map(details), do: new(:instantiation_failed, message, details)
 
   @doc """
   Builds a `:abi_failure` refusal (class `:blocked_resource`, source `host`,
@@ -851,8 +773,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec host_not_started(String.t() | nil, map()) :: t()
-  def host_not_started(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:host_not_started, message, details)
+  def host_not_started(message \\ nil, details \\ %{}) when is_map(details), do: new(:host_not_started, message, details)
 
   @doc """
   Builds a `:fuel_exhausted` refusal (class `:blocked_resource`, source `host`,
@@ -874,8 +795,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec invalid_encoding(String.t() | nil, map()) :: t()
-  def invalid_encoding(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:invalid_encoding, message, details)
+  def invalid_encoding(message \\ nil, details \\ %{}) when is_map(details), do: new(:invalid_encoding, message, details)
 
   @doc """
   Builds a `:invalid_json` refusal (class `:refused_structure`, source `host`,
@@ -897,8 +817,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec malformed_response(String.t() | nil, map()) :: t()
-  def malformed_response(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:malformed_response, message, details)
+  def malformed_response(message \\ nil, details \\ %{}) when is_map(details), do: new(:malformed_response, message, details)
 
   @doc """
   Builds a `:unknown_admission` refusal (class `:refused_structure`, source `ash`,
@@ -909,8 +828,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec unknown_admission(String.t() | nil, map()) :: t()
-  def unknown_admission(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:unknown_admission, message, details)
+  def unknown_admission(message \\ nil, details \\ %{}) when is_map(details), do: new(:unknown_admission, message, details)
 
   @doc """
   Builds a `:duplicate_admission` refusal (class `:refused_structure`, source `ash`,
@@ -921,8 +839,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec duplicate_admission(String.t() | nil, map()) :: t()
-  def duplicate_admission(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:duplicate_admission, message, details)
+  def duplicate_admission(message \\ nil, details \\ %{}) when is_map(details), do: new(:duplicate_admission, message, details)
 
   @doc """
   Builds a `:missing_law_module` refusal (class `:refused_structure`, source `ash`,
@@ -933,8 +850,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec missing_law_module(String.t() | nil, map()) :: t()
-  def missing_law_module(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:missing_law_module, message, details)
+  def missing_law_module(message \\ nil, details \\ %{}) when is_map(details), do: new(:missing_law_module, message, details)
 
   @doc """
   Builds a `:invalid_runtime_option` refusal (class `:refused_structure`, source `ash`,
@@ -945,8 +861,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec invalid_runtime_option(String.t() | nil, map()) :: t()
-  def invalid_runtime_option(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:invalid_runtime_option, message, details)
+  def invalid_runtime_option(message \\ nil, details \\ %{}) when is_map(details), do: new(:invalid_runtime_option, message, details)
 
   @doc """
   Builds a `:invalid_trusted_key` refusal (class `:refused_authority`, source `ash`,
@@ -957,8 +872,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec invalid_trusted_key(String.t() | nil, map()) :: t()
-  def invalid_trusted_key(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:invalid_trusted_key, message, details)
+  def invalid_trusted_key(message \\ nil, details \\ %{}) when is_map(details), do: new(:invalid_trusted_key, message, details)
 
   @doc """
   Builds a `:ceiling_unmet` refusal (class `:refused_authority`, source `ash`,
@@ -980,8 +894,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec projection_failed(String.t() | nil, map()) :: t()
-  def projection_failed(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:projection_failed, message, details)
+  def projection_failed(message \\ nil, details \\ %{}) when is_map(details), do: new(:projection_failed, message, details)
 
   @doc """
   Builds a `:law_module_failed` refusal (class `:refused_structure`, source `ash`,
@@ -992,8 +905,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec law_module_failed(String.t() | nil, map()) :: t()
-  def law_module_failed(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:law_module_failed, message, details)
+  def law_module_failed(message \\ nil, details \\ %{}) when is_map(details), do: new(:law_module_failed, message, details)
 
   @doc """
   Builds a `:unsupported_step` refusal (class `:unsupported`, source `ash`,
@@ -1004,8 +916,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec unsupported_step(String.t() | nil, map()) :: t()
-  def unsupported_step(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:unsupported_step, message, details)
+  def unsupported_step(message \\ nil, details \\ %{}) when is_map(details), do: new(:unsupported_step, message, details)
 
   @doc """
   Builds a `:invalid_capability_request` refusal (class `:refused_structure`, source `ash`,
@@ -1016,8 +927,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec invalid_capability_request(String.t() | nil, map()) :: t()
-  def invalid_capability_request(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:invalid_capability_request, message, details)
+  def invalid_capability_request(message \\ nil, details \\ %{}) when is_map(details), do: new(:invalid_capability_request, message, details)
 
   @doc """
   Builds a `:unknown_capability` refusal (class `:refused_structure`, source `ash`,
@@ -1028,8 +938,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec unknown_capability(String.t() | nil, map()) :: t()
-  def unknown_capability(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:unknown_capability, message, details)
+  def unknown_capability(message \\ nil, details \\ %{}) when is_map(details), do: new(:unknown_capability, message, details)
 
   @doc """
   Builds a `:capability_not_declared` refusal (class `:refused_authority`, source `ash`,
@@ -1040,8 +949,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec capability_not_declared(String.t() | nil, map()) :: t()
-  def capability_not_declared(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:capability_not_declared, message, details)
+  def capability_not_declared(message \\ nil, details \\ %{}) when is_map(details), do: new(:capability_not_declared, message, details)
 
   @doc """
   Builds a `:capability_parity_drift` refusal (class `:refused_identity`, source `ash`,
@@ -1052,8 +960,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec capability_parity_drift(String.t() | nil, map()) :: t()
-  def capability_parity_drift(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:capability_parity_drift, message, details)
+  def capability_parity_drift(message \\ nil, details \\ %{}) when is_map(details), do: new(:capability_parity_drift, message, details)
 
   @doc """
   Builds a `:capability_response_undecodable` refusal (class `:refused_structure`, source `ash`,
@@ -1064,8 +971,7 @@ defmodule AshGraphLaw.Refusal do
   A nil or empty `message` defaults to the code's meaning; `details` is carried unchanged.
   """
   @spec capability_response_undecodable(String.t() | nil, map()) :: t()
-  def capability_response_undecodable(message \\ nil, details \\ %{}) when is_map(details),
-    do: new(:capability_response_undecodable, message, details)
+  def capability_response_undecodable(message \\ nil, details \\ %{}) when is_map(details), do: new(:capability_response_undecodable, message, details)
 
   @doc """
   Maps an engine error map (string keys, as decoded from the engine response) onto a refusal.

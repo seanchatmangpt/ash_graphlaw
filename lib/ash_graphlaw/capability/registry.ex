@@ -7,8 +7,8 @@ defmodule AshGraphLaw.Capability.Registry do
   @moduledoc ~S"""
   The GraphLaw capability registry as compile-time literals.
 
-  Generated from the registry `graphlaw.capability-registry/1` (GraphLaw `26.9.29`, ABI
-  `1`). `digest/0` is the registry's own `registry_sha256`; `surface_digest/0` is the
+  Generated from the registry `graphlaw.capability-registry/1` (GraphLaw `26.10.28`, ABI
+  `1`). `digest/0` is the registry's own `registry_blake3`; `surface_digest/0` is the
   SHA-256 over the canonical surface document (ABI version, op names, dialect names) that a live
   engine's `capabilities` response can be compared against.
 
@@ -69,10 +69,10 @@ defmodule AshGraphLaw.Capability.Registry do
         }
 
   @schema "graphlaw.capability-registry/1"
-  @graphlaw_version "26.9.29"
+  @graphlaw_version "26.10.28"
   @abi_version 1
-  @digest "sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16"
-  @surface_digest "sha256:fcee74ee068940f9e9879ccd41371807f469d63950c8f63b095117391dbc8e28"
+  @digest "blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d"
+  @surface_digest "blake3:da96e1375a76610b5d91aedb9b01d5ac0807b0f850ce4440628c37a3b96b9ee9"
 
   @names [
     "capabilities",
@@ -96,7 +96,8 @@ defmodule AshGraphLaw.Capability.Registry do
       name: "capabilities",
       order: 1,
       summary: "Report ABI version, crate version, semantic authorities, dialects, ops and registry digests.",
-      request: [],
+      request: [
+      ],
       responses: [
         %{
           tag: nil,
@@ -178,27 +179,27 @@ defmodule AshGraphLaw.Capability.Registry do
               type: "string",
               required: false,
               nullable: false,
-              doc: "Registry schema id; absent on engines older than v26.9.29.",
+              doc: "Registry schema id; absent on engines older than v26.10.28.",
               enum: nil,
               default: nil
             },
             %{
-              name: "registry_sha256",
+              name: "registry_blake3",
               order: 9,
               type: "string",
               required: false,
               nullable: false,
-              doc: "Registry digest; absent on engines older than v26.9.29.",
+              doc: "Registry digest; absent on engines older than v26.10.28.",
               enum: nil,
               default: nil
             },
             %{
-              name: "surface_sha256",
+              name: "surface_blake3",
               order: 10,
               type: "string",
               required: false,
               nullable: false,
-              doc: "Surface digest; absent on engines older than v26.9.29.",
+              doc: "Surface digest; absent on engines older than v26.10.28.",
               enum: nil,
               default: nil
             }
@@ -255,7 +256,7 @@ defmodule AshGraphLaw.Capability.Registry do
               type: "string",
               required: true,
               nullable: false,
-              doc: "Owning engine (PurRdf or Eyeron).",
+              doc: "Owning engine (PurRdf or FrozenDuckdb).",
               enum: nil,
               default: nil
             }
@@ -796,7 +797,7 @@ defmodule AshGraphLaw.Capability.Registry do
               type: "any",
               required: true,
               nullable: false,
-              doc: "Reasoner output; shape is owned by Eyeron.",
+              doc: "Reasoner output; shape is owned by purrdf::n3.",
               enum: nil,
               default: nil
             }
@@ -1132,16 +1133,7 @@ defmodule AshGraphLaw.Capability.Registry do
         }
       ],
       refusal_kinds: ["Ambiguous", "EngineRejected", "NotSemanticContent", "ResourceLimit", "Unsupported"],
-      refusal_codes: [
-        "LeaseRefused",
-        "NotAdmitted",
-        "PlanRefused",
-        "ReceiptRefused",
-        "ReceiptRequired",
-        "Refused",
-        "ResourceLimit",
-        "UnverifiedLeaseRefused"
-      ]
+      refusal_codes: ["LeaseRefused", "NotAdmitted", "PlanRefused", "ReceiptRefused", "ReceiptRequired", "Refused", "ResourceLimit", "UnverifiedLeaseRefused"]
     },
     %{
       name: "policy",
@@ -1324,8 +1316,16 @@ defmodule AshGraphLaw.Capability.Registry do
       kind: "other"
     },
     %{
-      name: "shexc",
+      name: "sql",
       order: 12,
+      aliases: [],
+      response_name: "SqlRdf",
+      media_type: "text/turtle",
+      kind: "other"
+    },
+    %{
+      name: "shexc",
+      order: 13,
       aliases: ["shex"],
       response_name: "ShExC",
       media_type: nil,
@@ -1333,7 +1333,7 @@ defmodule AshGraphLaw.Capability.Registry do
     },
     %{
       name: "shexj",
-      order: 13,
+      order: 14,
       aliases: [],
       response_name: "ShExJ",
       media_type: nil,
@@ -1380,17 +1380,26 @@ defmodule AshGraphLaw.Capability.Registry do
       name: "rdfs",
       order: 3,
       ceiling: "construct",
-      fields: []
+      fields: [
+      ]
     },
     %{
       name: "owl-rl",
       order: 4,
       ceiling: "construct",
-      fields: []
+      fields: [
+      ]
+    },
+    %{
+      name: "sql",
+      order: 5,
+      ceiling: "observe",
+      fields: [
+      ]
     },
     %{
       name: "hooks",
-      order: 5,
+      order: 6,
       ceiling: "construct",
       fields: [
         %{
@@ -1407,7 +1416,7 @@ defmodule AshGraphLaw.Capability.Registry do
     },
     %{
       name: "plan",
-      order: 6,
+      order: 7,
       ceiling: "select",
       fields: [
         %{
@@ -1424,13 +1433,14 @@ defmodule AshGraphLaw.Capability.Registry do
     },
     %{
       name: "record-receipts",
-      order: 7,
+      order: 8,
       ceiling: nil,
-      fields: []
+      fields: [
+      ]
     },
     %{
       name: "require-receipt",
-      order: 8,
+      order: 9,
       ceiling: "observe",
       fields: [
         %{
@@ -1447,7 +1457,7 @@ defmodule AshGraphLaw.Capability.Registry do
     },
     %{
       name: "require-signed-receipt",
-      order: 9,
+      order: 10,
       ceiling: "observe",
       fields: [
         %{
@@ -1675,14 +1685,32 @@ defmodule AshGraphLaw.Capability.Registry do
       ]
     },
     %{
-      code: "UnverifiedLeaseRefused",
+      code: "DuckDb",
       order: 8,
+      kind: "DuckDb",
+      fields: [
+        %{
+          name: "message",
+          order: 1,
+          type: "string",
+          required: true,
+          nullable: false,
+          doc: "Diagnostic text from the DuckDB substrate (ABI op `duckdb`; dispatches inside the graphlaw-wasm unit on every target (in-module, not host-only) but stays off the hashed 14-op table for digest stability).",
+          enum: nil,
+          default: nil
+        }
+      ]
+    },
+    %{
+      code: "UnverifiedLeaseRefused",
+      order: 9,
       kind: "Unsupported",
-      fields: []
+      fields: [
+      ]
     },
     %{
       code: "PolicyRefused",
-      order: 9,
+      order: 10,
       kind: "EngineRejected",
       fields: [
         %{
@@ -1720,7 +1748,7 @@ defmodule AshGraphLaw.Capability.Registry do
   ]
 
   @vocabulary %{
-    "engines" => ["PurRdf", "Eyeron"],
+    "engines" => ["PurRdf", "FrozenDuckdb"],
     "lease_ceilings" => ["observe", "select", "construct"],
     "lease_reasons" => ["expired", "out_of_scope", "ceiling", "bad_signature", "untrusted_key", "clock_skew"],
     "policy_refusal_kinds" => ["MissingEntry", "InventedOutcome", "BadMass", "DeadEnd", "Malformed"],
@@ -1730,12 +1758,25 @@ defmodule AshGraphLaw.Capability.Registry do
   }
 
   @limits %{
+    hooks_max_firings: 10000,
+    hooks_max_rounds: 64,
+    hooks_max_state_quads: 1000000,
     max_atoms_per_field: 10000,
     max_json_depth: 64,
+    max_outstanding_alloc_bytes: 16777216,
     max_plan_actions: 1000,
-    max_policy_entries: 100_000,
-    max_request_bytes: 16_777_216,
-    n3_max_iterations: 4000
+    max_plan_total_atoms: 100000,
+    max_policy_entries: 100000,
+    max_request_bytes: 16777216,
+    n3_max_backward_depth: 32,
+    n3_max_backward_solutions_per_goal: 1024,
+    n3_max_derived_facts: 500000,
+    n3_max_iterations: 4000000,
+    n3_max_match_steps: 200000,
+    n3_max_term_bytes: 65536,
+    n3_max_term_depth: 64,
+    n3_max_total_bytes: 268435456,
+    n3_max_total_steps: 50000000
   }
 
   @doc "The registry schema id, for example `\"graphlaw.capability-registry/1\"`."
@@ -1750,11 +1791,11 @@ defmodule AshGraphLaw.Capability.Registry do
   @spec abi_version() :: pos_integer()
   def abi_version, do: @abi_version
 
-  @doc "The registry digest literal (`\"sha256:<hex>\"`), the registry's own `registry_sha256`."
+  @doc "The registry digest literal (`\"blake3:<hex>\"`), the registry's own `registry_blake3`."
   @spec digest() :: String.t()
   def digest, do: @digest
 
-  @doc "The surface digest literal (`\"sha256:<hex>\"`) over ABI version, op names and dialect names."
+  @doc "The surface digest literal (`\"blake3:<hex>\"`) over ABI version, op names and dialect names."
   @spec surface_digest() :: String.t()
   def surface_digest, do: @surface_digest
 

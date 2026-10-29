@@ -65,6 +65,10 @@ PROJECTIONS=(
   lib/ash_graphlaw/capability/api.ex lib/ash_graphlaw/result/term.ex
   documentation/reference/capabilities.md test/generated/capability_surface_test.exs
   lib/ash_graphlaw/capability/limits.ex lib/ash_graphlaw/model/enums.ex documentation/reference/COVERAGE.md
+  lib/ash_graphlaw/model/action.ex lib/ash_graphlaw/model/attestation.ex
+  lib/ash_graphlaw/model/lease.ex lib/ash_graphlaw/model/plan.ex
+  lib/ash_graphlaw/model/policy_entry.ex lib/ash_graphlaw/model/policy_outcome.ex
+  lib/ash_graphlaw/model/receipt.ex lib/ash_graphlaw/model/signed_lease.ex
 )
 for op in "${CAPABILITY_OPS[@]}"; do
   PROJECTIONS+=("lib/ash_graphlaw/capability/$op.ex" "documentation/reference/capabilities/$op.md")

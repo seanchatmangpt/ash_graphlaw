@@ -35,7 +35,8 @@ defmodule AshGraphLaw.Capability.Capabilities do
 
   @op "capabilities"
 
-  @request_fields []
+  @request_fields [
+  ]
 
   @response_fields [
     %{
@@ -114,27 +115,27 @@ defmodule AshGraphLaw.Capability.Capabilities do
       type: "string",
       required: false,
       nullable: false,
-      doc: "Registry schema id; absent on engines older than v26.9.29.",
+      doc: "Registry schema id; absent on engines older than v26.10.28.",
       enum: nil,
       default: nil
     },
     %{
-      name: "registry_sha256",
+      name: "registry_blake3",
       order: 9,
       type: "string",
       required: false,
       nullable: false,
-      doc: "Registry digest; absent on engines older than v26.9.29.",
+      doc: "Registry digest; absent on engines older than v26.10.28.",
       enum: nil,
       default: nil
     },
     %{
-      name: "surface_sha256",
+      name: "surface_blake3",
       order: 10,
       type: "string",
       required: false,
       nullable: false,
-      doc: "Surface digest; absent on engines older than v26.9.29.",
+      doc: "Surface digest; absent on engines older than v26.10.28.",
       enum: nil,
       default: nil
     }

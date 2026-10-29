@@ -28,10 +28,10 @@ built and validated client-side without the engine; the call itself runs on the 
 
 | Field | Type | Required | Nullable | Default | Description |
 |---|---|---|---|---|---|
-| `text` | string | true | false | none | Text to parse. |
-| `dialect` | string | false | true | none | Dialect name; sniffed when omitted. |
-| hint | string | false | true | none | File extension or name hint for sniffing. |
-| base | string | false | true | none | Base IRI. |
+| `text` | `string` | true | false | none | Text to parse. |
+| `dialect` | `string` | false | true | none | Dialect name; sniffed when omitted. |
+| `hint` | `string` | false | true | none | File extension or name hint for sniffing. |
+| `base` | `string` | false | true | none | Base IRI. |
 
 ## Response
 
@@ -39,10 +39,10 @@ Untagged response.
 
 | Field | Type | Required | Nullable | Description |
 |---|---|---|---|---|
-| `dialect` | string | true | false | Dialect used (Rust variant name). |
-| quads | integer | false | false | Quad count; present for RDF dialects. |
-| id | string | false | false | Content-addressed state id; present for RDF dialects. |
-| valid | boolean | false | false | Syntax validity; present for non-RDF dialects. |
+| `dialect` | `string` | true | false | Dialect used (Rust variant name). |
+| `quads` | `integer` | false | false | Quad count; present for RDF dialects. |
+| `id` | `string` | false | false | Content-addressed state id; present for RDF dialects. |
+| `valid` | `boolean` | false | false | Syntax validity; present for non-RDF dialects. |
 
 The decoded result also carries `:raw`, the entire response map, so no engine field is lost.
 
@@ -57,9 +57,9 @@ A refusal is an observation about one exact input and never grants authority.
 
 ## Shared typed models and limits
 
-Typed models (see the [capability reference](../capabilities.md)): .
+Typed models (see the [capability reference](../capabilities.md)): `AshGraphLaw.Model.Lease`, `AshGraphLaw.Model.SignedLease`, `AshGraphLaw.Model.Receipt`, `AshGraphLaw.Model.Attestation`, `AshGraphLaw.Model.Plan`, `AshGraphLaw.Model.Action`, `AshGraphLaw.Model.PolicyEntry`, `AshGraphLaw.Model.PolicyOutcome`.
 
-Engine limits that can refuse any operation: `max_atoms_per_field`=10000, `max_json_depth`=64, `max_plan_actions`=1000, `max_policy_entries`=100000, `max_request_bytes`=16777216, `n3_max_iterations`=4000.
+Engine limits that can refuse any operation: `hooks_max_firings`=10000 (hooks), `hooks_max_rounds`=64 (hooks), `hooks_max_state_quads`=1000000 (hooks), `max_atoms_per_field`=10000 (abi), `max_json_depth`=64 (abi), `max_outstanding_alloc_bytes`=16777216 (wasm), `max_plan_actions`=1000 (abi), `max_plan_total_atoms`=100000 (plan), `max_policy_entries`=100000 (abi), `max_request_bytes`=16777216 (abi), `n3_max_backward_depth`=32 (n3), `n3_max_backward_solutions_per_goal`=1024 (n3), `n3_max_derived_facts`=500000 (n3), `n3_max_iterations`=4000000 (n3), `n3_max_match_steps`=200000 (n3), `n3_max_term_bytes`=65536 (n3), `n3_max_term_depth`=64 (n3), `n3_max_total_bytes`=268435456 (n3), `n3_max_total_steps`=50000000 (n3).
 
 ## See Also
 

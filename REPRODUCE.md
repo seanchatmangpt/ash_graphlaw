@@ -15,7 +15,7 @@ result here is UNKNOWN.
 | Input | Where | Value |
 |---|---|---|
 | Library version | `mix.exs`, `glx:packageVersion` | `26.9.30` |
-| Engine release | `glx:engineReleaseTag`, `priv/graphlaw/MANIFEST.json` | `v26.9.29`, sha256 `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0` |
+| Engine release | `glx:engineReleaseTag`, `priv/graphlaw/MANIFEST.json` | `v26.10.28`, sha256 `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08` |
 | Capability registry | `glx:registrySha256`, `priv/graphlaw/capability-registry.json` | `registry_sha256` of the vendored file |
 | Marketplace | `glx:marketplaceSha`, `vendor/ggen-marketplace/.pin` | commit that carries both packs |
 | Generator | `glx:ggenSha` | ggen commit the projections were produced with |

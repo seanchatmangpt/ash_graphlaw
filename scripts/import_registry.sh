@@ -9,12 +9,15 @@
 #
 # The statements of priv/graphlaw/capability-registry.ttl (prefix lines dropped; the gac:
 # prefix is declared once in the ontology.ttl header) go between the marker lines
-#   # BEGIN GENERATED-REGISTRY sha256:<registry_sha256>
+#   # BEGIN GENERATED-REGISTRY <digest>
 #   # END GENERATED-REGISTRY
 # When the markers are absent the block is appended at the end of the file. The
-# glx:registrySha256 literal on glx:AshGraphLawProject is rewritten to the same digest.
-# The digest is recomputed from priv/graphlaw/capability-registry.json (DIGEST RULE); the
-# import is REFUSED when it differs from the file's declared registry_sha256. Idempotent.
+# glx:registrySha256 (or glx:registryBlake3) literal on glx:AshGraphLawProject is rewritten
+# to the same digest.
+# The digest is recomputed from priv/graphlaw/capability-registry.json (DIGEST RULE), with
+# the rule selected by the key the file itself declares: blake3 ("registry_blake3", computed
+# with b3sum) or sha256 (legacy "registry_sha256"); the import is REFUSED when the recomputed
+# digest differs from the declared one. Idempotent.
 # --check writes nothing: exit 1 when ontology.ttl differs from the expected result.
 # In write mode the run also regenerates the A2A v1.0 capability cards in priv/graphlaw/cards/
 # via scripts/generate_capability_cards.py.
@@ -25,7 +28,7 @@ check=0
 case "${1:-}" in
   "") ;;
   --check) check=1 ;;
-  -h|--help) sed -n '5,17p' "$0"; exit 0 ;;
+  -h|--help) sed -n '5,20p' "$0"; exit 0 ;;
   *) echo "REFUSED(usage: unknown argument $1)" >&2; exit 2 ;;
 esac
 
@@ -44,12 +47,28 @@ json_path, ttl_path, onto_path, check = sys.argv[1], sys.argv[2], sys.argv[3], s
 def canonical(v):
     return json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
+def digest_of(v, key):
+    # Digest-rule-aware: the rule follows the key the file itself declares.
+    if key.endswith("_blake3"):
+        import subprocess
+        p = subprocess.run(["b3sum"], input=canonical(v).encode("utf-8"), capture_output=True)
+        if p.returncode != 0:
+            raise SystemExit("REFUSED(b3sum_failed: %s)" % p.stderr.decode().strip())
+        return "blake3:" + p.stdout.decode().split()[0]
+    return "sha256:" + hashlib.sha256(canonical(v).encode("utf-8")).hexdigest()
+
 with open(json_path, encoding="utf-8") as fh:
     doc = json.load(fh)
-body = {k: v for k, v in doc.items() if k != "registry_sha256"}
-digest = "sha256:" + hashlib.sha256(canonical(body).encode("utf-8")).hexdigest()
-if doc.get("registry_sha256") != digest:
-    raise SystemExit("REFUSED(registry_digest_mismatch: declared %s computed %s)" % (doc.get("registry_sha256"), digest))
+if "registry_blake3" in doc:
+    dkey = "registry_blake3"
+elif "registry_sha256" in doc:
+    dkey = "registry_sha256"
+else:
+    raise SystemExit("REFUSED(registry_digest_key_absent: no registry_blake3 or registry_sha256)")
+body = {k: v for k, v in doc.items() if k != dkey}
+digest = digest_of(body, dkey)
+if doc.get(dkey) != digest:
+    raise SystemExit("REFUSED(registry_digest_mismatch: declared %s computed %s)" % (doc.get(dkey), digest))
 
 with open(ttl_path, encoding="utf-8") as fh:
     ttl_lines = fh.read().splitlines()
@@ -84,10 +103,11 @@ else:
     new += "# Vendored GraphLaw capability registry (generated; scripts/import_registry.sh)\n"
     new += "#################################################################\n\n" + block
 
-sha_re = re.compile(r'(glx:registrySha256\s+)"[^"]*"')
-if not sha_re.search(new):
-    raise SystemExit("REFUSED(ontology_missing glx:registrySha256)")
-new = sha_re.sub(lambda m: m.group(1) + '"' + digest + '"', new, count=1)
+lit_re = re.compile(r'(glx:registryBlake3|glx:registrySha256)(\s+)"[^"]*"')
+if not lit_re.search(new):
+    raise SystemExit("REFUSED(ontology_missing glx:registryBlake3 or glx:registrySha256)")
+# Keep whichever predicate the ontology already carries; never mint a second one.
+new = lit_re.sub(lambda mm: mm.group(1) + mm.group(2) + '"' + digest + '"', new, count=1)
 
 if check:
     if new != text:

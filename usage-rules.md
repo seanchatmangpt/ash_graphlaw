@@ -5,8 +5,8 @@ SPDX-License-Identifier: MIT
 
 # Rules for working with AshGraphLaw
 
-AshGraphLaw is an Ash extension that hosts the GraphLaw WASM engine (release `v26.9.29`,
-ABI version 1; typed capability registry `26.9.29`) and lets an Ash action declare named admissions. GraphLaw derives and
+AshGraphLaw is an Ash extension that hosts the GraphLaw WASM engine (release `v26.10.28`,
+ABI version 1; typed capability registry `26.10.28`) and lets an Ash action declare named admissions. GraphLaw derives and
 validates; it never authorizes. Nothing in this library grants authority. Admission
 evidence is an observation bound to an exact input digest.
 

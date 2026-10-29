@@ -63,19 +63,30 @@ AUTHORITY_BOUNDARY = (
 def main() -> None:
     check = "--check" in sys.argv[1:]
     doc = json.loads(JSON_PATH.read_text(encoding="utf-8"))
-    body = {k: v for k, v in doc.items() if k != "registry_sha256"}
-    digest = (
-        "sha256:"
-        + hashlib.sha256(
-            json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode(
-                "utf-8"
-            )
-        ).hexdigest()
-    )
-    if doc.get("registry_sha256") != digest:
+    # Digest-rule-aware, mirroring scripts/import_registry.sh: the rule follows the key
+    # the file itself declares — blake3 ("registry_blake3", computed with b3sum over the
+    # canonical JSON minus the key) or sha256 (legacy "registry_sha256"); neither key is
+    # a typed refusal.
+    if "registry_blake3" in doc:
+        dkey = "registry_blake3"
+    elif "registry_sha256" in doc:
+        dkey = "registry_sha256"
+    else:
+        raise SystemExit("REFUSED(registry_digest_key_absent: no registry_blake3 or registry_sha256)")
+    body = {k: v for k, v in doc.items() if k != dkey}
+    canonical = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    if dkey == "registry_blake3":
+        import subprocess
+
+        p = subprocess.run(["b3sum"], input=canonical.encode("utf-8"), capture_output=True)
+        if p.returncode != 0:
+            raise SystemExit("REFUSED(b3sum_failed: %s)" % p.stderr.decode().strip())
+        digest = "blake3:" + p.stdout.decode().split()[0]
+    else:
+        digest = "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    if doc.get(dkey) != digest:
         raise SystemExit(
-            "REFUSED(registry_digest_mismatch: declared %s computed %s)"
-            % (doc.get("registry_sha256"), digest)
+            "REFUSED(registry_digest_mismatch: declared %s computed %s)" % (doc.get(dkey), digest)
         )
 
     version = str(doc["graphlaw_version"])

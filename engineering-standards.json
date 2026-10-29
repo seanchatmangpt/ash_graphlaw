@@ -4,7 +4,7 @@
   "repository": "seanchatmangpt/ash_graphlaw",
   "version": "26.10.8",
   "mode": "SEMANTIC_WORK",
-  "role": "AshGraphLaw host of the pinned GraphLaw WASM engine (v26.9.29)",
+  "role": "AshGraphLaw host of the pinned GraphLaw WASM engine (v26.10.28)",
   "root": {
     "repository": "seanchatmangpt/engineering-standards",
     "sha": "5a3bb6446aeaee2255a7523d4d8cebf6042960c3",

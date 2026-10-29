@@ -18,9 +18,9 @@ defmodule AshGraphLaw.Result.Capabilities do
   - `:rdf_dialects` (`list<string>`): RDF dialect wire names.
   - `:other_dialects` (`list<string>`): Non-RDF dialect wire names.
   - `:ops` (`list<string>`): ABI op names in registry order.
-  - `:registry_schema` (`string`): Registry schema id; absent on engines older than v26.9.29.
-  - `:registry_sha256` (`string`): Registry digest; absent on engines older than v26.9.29.
-  - `:surface_sha256` (`string`): Surface digest; absent on engines older than v26.9.29.
+  - `:registry_schema` (`string`): Registry schema id; absent on engines older than v26.10.28.
+  - `:registry_blake3` (`string`): Registry digest; absent on engines older than v26.10.28.
+  - `:surface_blake3` (`string`): Surface digest; absent on engines older than v26.10.28.
 
   `:raw` is the entire decoded response map (including `"ok"`), so `from_map(m).raw == m` for every
   `m`, including responses that carry fields this version does not model. `from_map/1` never raises:
@@ -38,8 +38,8 @@ defmodule AshGraphLaw.Result.Capabilities do
     :other_dialects,
     :ops,
     :registry_schema,
-    :registry_sha256,
-    :surface_sha256,
+    :registry_blake3,
+    :surface_blake3,
     :raw
   ]
 
@@ -52,8 +52,8 @@ defmodule AshGraphLaw.Result.Capabilities do
           other_dialects: term(),
           ops: term(),
           registry_schema: term(),
-          registry_sha256: term(),
-          surface_sha256: term(),
+          registry_blake3: term(),
+          surface_blake3: term(),
           raw: term()
         }
 
@@ -72,8 +72,8 @@ defmodule AshGraphLaw.Result.Capabilities do
       other_dialects: Decode.get(map, "other_dialects", "list<string>"),
       ops: Decode.get(map, "ops", "list<string>"),
       registry_schema: Decode.get(map, "registry_schema", "string"),
-      registry_sha256: Decode.get(map, "registry_sha256", "string"),
-      surface_sha256: Decode.get(map, "surface_sha256", "string"),
+      registry_blake3: Decode.get(map, "registry_blake3", "string"),
+      surface_blake3: Decode.get(map, "surface_blake3", "string"),
       raw: map
     }
   end

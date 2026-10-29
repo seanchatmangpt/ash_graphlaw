@@ -11,7 +11,12 @@ defmodule AshGraphLaw.Model.Enums do
   convenience that grants no authority.
   """
 
-  @enums %{}
+  @enums %{
+    "Ceiling" => ["observe", "select", "construct"],
+    "LeaseReason" => ["expired", "out_of_scope", "ceiling", "bad_signature", "untrusted_key", "clock_skew"],
+    "PolicyRefusalKind" => ["MissingEntry", "InventedOutcome", "BadMass", "DeadEnd", "Malformed"],
+    "ReceiptReason" => ["unattested", "bad_signature", "untrusted_key"]
+  }
 
   @doc "Every enum name mapped to its ordered informational values."
   @spec all() :: %{optional(String.t()) => [String.t()]}

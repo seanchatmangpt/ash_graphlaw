@@ -73,7 +73,7 @@ AshGraphLaw.Capability.API.sparql!(data: turtle_text, query: "SELECT * WHERE { ?
 - Raw stays lossless (`result.raw`), unknown response fields and enum values decode without
   failing, and refusals carry the whole engine error in `refusal.raw`.
 - Parity court: `mix ash_graphlaw.parity` fails on any drift between the live engine, the vendored
-  registry and the Elixir surface. Engine pin `v26.9.29`: parity against a pin older than the
+  registry and the Elixir surface. Engine pin `v26.10.28`: parity against a pin older than the
   registry is reported, never masked.
 - Registry pin: `scripts/vendor_registry.sh` and `scripts/import_registry.sh` carry the registry
   from the GraphLaw repository into `priv/graphlaw/` and `ontology.ttl` (`--check` in CI).
@@ -202,7 +202,7 @@ See the [DSL cheat sheet](documentation/dsls/DSL-AshGraphLaw.Resource.md) for ev
 
 ## Vendoring the engine
 
-The engine binary is pinned by release tag `v26.9.29` (asset `graphlaw.wasm`, ABI
+The engine binary is pinned by release tag `v26.10.28` (asset `graphlaw.wasm`, ABI
 1) and by SHA-256. Fetch and check it:
 
 ```bash
@@ -210,9 +210,9 @@ mix ash_graphlaw.vendor   # downloads graphlaw.wasm into priv/graphlaw/, checks 
 mix ash_graphlaw.verify   # re-checks the digest and the WASI import allowlist
 ```
 
-Source: `https://github.com/seanchatmangpt/graphlaw/releases/download/v26.9.29/graphlaw.wasm`
+Source: `https://github.com/seanchatmangpt/graphlaw/releases/download/v26.10.28/graphlaw.wasm`
 
-Expected SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`. A mismatch is refused; the binary is never used
+Expected SHA-256: `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08`. A mismatch is refused; the binary is never used
 unverified. See [vendor the wasm](documentation/how_to/vendor_the_wasm.md).
 
 ## Verification ladder
@@ -274,9 +274,9 @@ and the WASI import surface is allowlisted; the host never widens either.
 ## Manufactured provenance
 
 - ash_graphlaw: v26.10.8
-- GraphLaw court release: v26.9.29
+- GraphLaw court release: v26.10.28
 - GraphLaw ABI: 1
-- graphlaw.wasm SHA-256: `7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0`
+- graphlaw.wasm SHA-256: `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08`
 - ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
 - ggen-marketplace pin: `86735f4e2683cace11f92824af0ac3875ec5e3fb`
 

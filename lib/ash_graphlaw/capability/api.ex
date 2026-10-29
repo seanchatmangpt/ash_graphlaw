@@ -7,7 +7,7 @@ defmodule AshGraphLaw.Capability.API do
   @moduledoc ~S"""
   The complete typed GraphLaw capability API.
 
-  One function per registry operation (`14` in registry `sha256:8f3ef15bad35fc095e4a832b4cca945414e90152c485dc5a5a92d2ff0f804e16`), each
+  One function per registry operation (`14` in registry `blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d`), each
   `(args, opts \\ [])`:
 
   - `op(args, opts)` returns `{:ok, result}` or `{:error, %AshGraphLaw.Refusal{}}`.

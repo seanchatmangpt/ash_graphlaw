@@ -6,4 +6,4 @@ content_hash = "blake3:2d6f5edb0b07aed26cc9dc58a0d5155008d1f3ded1b236d7f9ed3a6d6
 
 [packs.graphlaw-ash-capability-pack]
 source = "path:vendor/ggen-marketplace/packs/graphlaw-ash-capability-pack"
-content_hash = "blake3:c3150ce3c61d4b749b820fd1a4ba6fe2250a93a301abd3173f38f26585c0694a"
+content_hash = "blake3:d2f252786e94760641d8d5f5243971015211394b65b9357dfad6402765f0381b"

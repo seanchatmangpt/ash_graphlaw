@@ -55,7 +55,7 @@ defmodule AshGraphLaw.Capability.N3 do
       type: "any",
       required: true,
       nullable: false,
-      doc: "Reasoner output; shape is owned by Eyeron.",
+      doc: "Reasoner output; shape is owned by purrdf::n3.",
       enum: nil,
       default: nil
     }

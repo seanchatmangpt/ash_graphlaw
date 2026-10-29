@@ -12,4 +12,4 @@ authors:
     given-names: Sean
 repository-code: "https://github.com/seanchatmangpt/ash_graphlaw"
 url: "https://hexdocs.pm/ash_graphlaw"
-abstract: "Ash extension that hosts the pinned GraphLaw WASM engine (v26.9.29, ABI version 1): the caller proposes, GraphLaw derives and validates, the library transports a typed success or typed refusal and never authorizes."
+abstract: "Ash extension that hosts the pinned GraphLaw WASM engine (v26.10.28, ABI version 1): the caller proposes, GraphLaw derives and validates, the library transports a typed success or typed refusal and never authorizes."

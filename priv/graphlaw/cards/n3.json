@@ -1,7 +1,7 @@
 {
   "name": "graphlaw-n3",
   "description": "Run bounded Notation3 forward reasoning over a document. Authority boundary: served by the digest-pinned graphlaw.wasm host, SELECT/CONSTRUCT only - it derives and validates, never authorizes, never carries DO.",
-  "version": "26.9.29",
+  "version": "26.10.28",
   "skills": [
     {
       "id": "graphlaw.n3.reason",

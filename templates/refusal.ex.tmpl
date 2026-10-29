@@ -112,6 +112,9 @@ defmodule AshGraphLaw.Refusal do
     # Real engine codes (graphlaw src/abi.rs) that are refusals of the same two families.
     "ReceiptRefused" => :receipt_required,
     "UnverifiedLeaseRefused" => :lease_refused,
+    # DuckDB substrate failure (graphlaw src/duckdb_op.rs, RefusalKind::DuckDb, docs/refusals.md
+    # `DuckDb` row): typed diagnostic refusal of the refused_structure family.
+    "DuckDb" => :engine_refused,
     # Generic engine refusal; the engine kind is carried separately in `details.kind`.
     "Refused" => :engine_refused
   }
