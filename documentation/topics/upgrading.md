@@ -38,12 +38,13 @@ mix ash_graphlaw.parity --evidence-dir tmp/evidence
 
 ## Bumping the engine pin
 
-The library pins GraphLaw `v26.9.28` while the registry describes `26.9.29`. Parity against the
-pinned engine may report drift; that is reported, never masked, and ends when the pin moves to the
-`v26.9.29` release asset. The pin bump is one serialized change: `glx:graphLawVersion`,
-`glx:engineReleaseTag`, `glx:wasmSha256`, `glx:wasmUrl` in `ontology.ttl`, then
-`scripts/ggen_sync.sh` (regenerates `MANIFEST.json` and `@graphlaw_release`). Take the sha256 from
-the published release asset, never from a local build. Then run `mix ash_graphlaw.parity` again.
+The library pins GraphLaw `v26.10.28`, and the registry the library generates from is the same
+release; the bump is coordinated. Update `glx:graphLawVersion`, `glx:engineReleaseTag`,
+`glx:wasmSha256` and `glx:wasmUrl` in `ontology.ttl` (sha256 from the published release asset,
+never from a local build), then re-vendor the registry with `scripts/vendor_registry.sh` and
+`scripts/import_registry.sh` (rewrites the `blake3:<registry_blake3>` GENERATED-REGISTRY marker and
+the `glx:registryBlake3` literal), then `scripts/ggen_sync.sh` (regenerates `MANIFEST.json` and
+`@graphlaw_release`). Then run `mix ash_graphlaw.parity` again; a drift is reported, never masked.
 
 ## From pre-release trees
 

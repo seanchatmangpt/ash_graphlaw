@@ -34,7 +34,7 @@ authorizes and never carries DO. A successful typed call is an observation, not 
 
 The cards are generated, never hand-edited. `scripts/import_registry.sh` (write mode)
 regenerates them from the registry JSON via
-`scripts/generate_capability_cards.py`, after the same `registry_sha256` digest check the
+`scripts/generate_capability_cards.py`, after the same `registry_blake3` (b3sum) digest check the
 registry splice uses. `scripts/import_registry.sh --check` also verifies card drift and
 exits non-zero on any difference. Stale cards (a capability removed from the registry) are
 deleted on the next write-mode run.

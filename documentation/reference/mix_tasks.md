@@ -53,8 +53,8 @@ It never skips. Run `mix ash_graphlaw.vendor` first.
 
 Failure raises `Mix.Error` with a bracketed code: `[capability_parity_drift] <check ids>`,
 `[wasm_not_vendored]`, `[invalid_options]`, `[evidence_unwritable]`, or another refusal code that
-blocked the run. A pass is `PARTIAL_ALIVE` for that engine and registry. Against the `v26.9.28`
-pin, drift is possible until the pin moves to a release carrying the registry.
+blocked the run. A pass is `PARTIAL_ALIVE` for that engine and registry. The pinned `v26.10.28`
+engine reports the blake3 registry digests, so `P3`'s registry field matches live.
 See [run the parity court](../how_to/run_the_parity_court.md).
 
 ## `mix ash_graphlaw.install`
@@ -73,15 +73,18 @@ generated `mix.exs`).
 
 `scripts/vendor_registry.sh [--check] [--from DIR]` copies `capability-registry.json`,
 `capability-registry.ttl` and `op-examples.json` from `../graphlaw/registry` (or `--from DIR`,
-or `GRAPHLAW_REGISTRY_DIR`) into `priv/graphlaw/`. It recomputes `registry_sha256` and
-`surface_sha256` with the canonical-JSON digest rule and refuses a copy that differs from the
-digests the file declares. `--check` writes nothing and exits 1 on a difference.
+or `GRAPHLAW_REGISTRY_DIR`) into `priv/graphlaw/`. It recomputes the digests the file declares —
+`registry_blake3` and `surface_blake3` (blake3, via `b3sum`), or the legacy
+`registry_sha256`/`surface_sha256` keys — over canonical JSON, and refuses a copy that differs from
+them. `--check` writes nothing and exits 1 on a difference.
 
 ## `scripts/import_registry.sh`
 
 `scripts/import_registry.sh [--check]` splices the registry TTL statements into `ontology.ttl`
-between `# BEGIN GENERATED-REGISTRY sha256:<registry_sha256>` and `# END GENERATED-REGISTRY`, and
-rewrites `glx:registrySha256`. Idempotent. `--check` writes nothing and exits 1 on a difference.
+between `# BEGIN GENERATED-REGISTRY blake3:<registry_blake3>` (or legacy
+`sha256:<registry_sha256>`) and `# END GENERATED-REGISTRY`, and rewrites the
+`glx:registryBlake3` literal (or legacy `glx:registrySha256`). Idempotent. `--check` writes nothing
+and exits 1 on a difference.
 
 ## `scripts/vendor_marketplace.sh`
 

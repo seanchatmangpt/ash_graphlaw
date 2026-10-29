@@ -38,7 +38,7 @@ function docs are in the module docs (`mix docs`).
 
 | Module | Role |
 |---|---|
-| `AshGraphLaw.Capability.CanonicalJSON` | `encode/1`, `sha256/1`, `digest/1`, `surface_digest/1` |
+| `AshGraphLaw.Capability.CanonicalJSON` | `encode/1`, `sha256/1`, `blake3/1`, `digest/1`, `surface_digest/1` |
 | `AshGraphLaw.Capability.Coerce` | `request/3`, `stringify/1`: argument normalization and validation |
 | `AshGraphLaw.Capability.Decode` | `ensure_map/1`, `value/2`, `variant/3`, `get/3` |
 | `AshGraphLaw.Telemetry` | `capability/3`, `events/0`; see [telemetry](telemetry.md) |

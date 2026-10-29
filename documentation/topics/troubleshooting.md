@@ -36,7 +36,7 @@ Symptom, cause, fix. Refusal codes are the closed table in
 |---|---|---|
 | `:wasm` tests skipped | engine not vendored | `mix ash_graphlaw.vendor` |
 | `mix ash_graphlaw.parity` raises `[wasm_not_vendored]` | the court never skips | vendor the engine |
-| parity reports P3 UNKNOWN for registry_sha256 | engine older than `v26.9.29` | expected against the `v26.9.28` pin |
+| parity reports P3 UNKNOWN for the registry digest | engine older than `v26.10.28` | vendor the pinned `v26.10.28` engine; expected only on a pre-`v26.10.28` pin |
 | Ash.bulk_update refused | admission is not atomic | `require_atomic? false`, `strategy: :stream` |
 | scripts/ggen_sync.sh exit 3 | vendored marketplace sha differs from ontology.ttl | `scripts/vendor_marketplace.sh` |
 | `ggen_sync.sh --check-ledger` exit 7 | a residue path is missing from HANDWRITTEN.md | add the row |

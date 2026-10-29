@@ -14,9 +14,13 @@ GraphLaw owns the capability registry: a Rust static table (`src/registry.rs`) e
 `registry/capability-registry.json`, `.ttl`, `op-examples.json` and their schemas. Schema id
 `graphlaw.capability-registry/1`. It lists the 14 ABI ops in order, each with request fields,
 response variants, refusal kinds and codes, plus dialects, regimes, lease vocabularies, law steps and
-limits. Two digests identify it: `surface_sha256` (abi version, ops, dialects) and `registry_sha256`
-(the whole document without its own digest key). Both are SHA-256 over canonical JSON (sorted keys,
-compact, integers only), so Rust and Elixir compute the same bytes.
+limits. Three digests travel with it: `registry_blake3` (the whole document without its own
+digest key), `surface_blake3` (abi version, ops, dialects) and `receipt_surface_blake3` (the
+receipt-minting surface; a registry-document field, not reported in the live `capabilities`
+response). The digest rule is key-following: blake3 via `b3sum` is the default; a registry of the
+`registry_sha256`/`surface_sha256` era is verified with SHA-256 instead. Either way the bytes are
+canonical JSON (sorted keys, compact, integers only), so the engine and the library compute the
+same digest.
 
 ## From registry to typed modules
 
@@ -48,7 +52,7 @@ generated registry and the typed modules:
 |---|---|
 | P1 | live ops equal `Registry.names/0`, in order |
 | P2 | live dialect lists equal the registry |
-| P3 | surface digest (and registry_sha256 when reported) match |
+| P3 | surface and registry digests match (declared digest key: blake3, or legacy sha256) |
 | P4, P5 | typed modules and API cover exactly the registry ops |
 | P6 | the admission DSL step enum equals the registry law steps |
 | P7 | every registry refusal code maps to a known atom |
@@ -60,10 +64,10 @@ A failing check is a failing court: `[capability_parity_drift] <ids>`. The court
 
 ## Status of this release
 
-The engine pin is `v26.9.28`; the registry is `26.9.29`. An engine older than `26.9.29` lacks
-`registry_sha256`, so `P3` reports it `UNKNOWN`. Parity against that pin has not been run for this
-documentation: UNKNOWN `<<RECEIPT:claim-5>>`. Drift, if any, is reported and ends when the pin is bumped
-to the `26.9.29` release asset. A pass is `PARTIAL_ALIVE`.
+The engine pin is `v26.10.28` (asset sha256 `34fd4ada…`), and the vendored registry is the same
+release (`26.10.28`), declaring blake3 digests. The engine reports `registry_blake3`/
+`surface_blake3`, so `P3`'s registry field matches live. Whether every check passes is what a court
+run shows; a drift is reported, never masked. A pass is `PARTIAL_ALIVE`.
 
 ## See Also
 

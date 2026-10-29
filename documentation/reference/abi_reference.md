@@ -15,9 +15,9 @@ generated from it (`registry/capability-registry.json`).
 | Item | Value |
 |---|---|
 | ABI_VERSION | `1` |
-| Pinned GraphLaw release | `v26.9.29` (intentional engine pin, see CHANGELOG 26.10.8) |
-| Pinned asset | priv/graphlaw/graphlaw.wasm, sha256 7bb2a7e5ebcef7584b0b960451272d56fa75414d76a12138d41e8973e126eee0 |
-| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29`; the same release this library pins |
+| Pinned GraphLaw release | `v26.10.28` |
+| Pinned asset | priv/graphlaw/graphlaw.wasm, sha256 34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08 |
+| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.10.28`; the same release this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
 `abi` field of the `capabilities` response with its own expectation and refuse a mismatch
@@ -118,11 +118,17 @@ result struct in AshGraphLaw; `call/2` stays available for raw requests. See the
 | Field | Since | Meaning |
 |---|---|---|
 | abi, abi_version, crate, authorities, rdf_dialects, other_dialects, ops | v26.9.28 | as before |
-| registry_schema, registry_sha256, surface_sha256 | v26.9.29 | registry identity; absent on older engines |
+| registry_schema, registry_sha256, surface_sha256 | v26.9.29 | registry identity (sha256 keys); absent on older engines |
+| registry_blake3, surface_blake3 | v26.10.28 | the same identity under the blake3 rule; these keys replace the sha256 keys |
 
-For an engine older than v26.9.29 the host computes `surface_sha256` from the live response and
-treats `registry_sha256` as UNKNOWN. The digest rule is canonical JSON (sorted keys, compact,
-integers only); `AshGraphLaw.Capability.CanonicalJSON` implements it.
+The digest rule is key-following: the digest the engine reports, and the digests
+`AshGraphLaw.Capability.CanonicalJSON.digest/1` and `surface_digest/1` compute, follow the key the
+document itself declares — blake3 via `b3sum` by default, SHA-256 for the legacy
+`registry_sha256`/`surface_sha256` keys — over canonical JSON (sorted keys, compact, integers
+only). For an engine older than v26.9.29 the host computes the surface digest from the live
+response and treats the registry digest as UNKNOWN. The vendored registry document additionally
+carries `receipt_surface_blake3` (with its `receipt_surface` document), a blake3 digest over the
+receipt-minting surface; it is not part of the `capabilities` response.
 
 ### `law` op
 

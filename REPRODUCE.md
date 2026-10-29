@@ -16,7 +16,7 @@ result here is UNKNOWN.
 |---|---|---|
 | Library version | `mix.exs`, `glx:packageVersion` | `26.9.30` |
 | Engine release | `glx:engineReleaseTag`, `priv/graphlaw/MANIFEST.json` | `v26.10.28`, sha256 `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08` |
-| Capability registry | `glx:registrySha256`, `priv/graphlaw/capability-registry.json` | `registry_sha256` of the vendored file |
+| Capability registry | `glx:registrySha256`, `priv/graphlaw/capability-registry.json` | `registry_blake3` (b3sum) of the vendored file, carried as the `blake3:` literal |
 | Marketplace | `glx:marketplaceSha`, `vendor/ggen-marketplace/.pin` | commit that carries both packs |
 | Generator | `glx:ggenSha` | ggen commit the projections were produced with |
 
@@ -46,8 +46,8 @@ mix hex.build
 ## Compare
 
 - `sha256sum priv/graphlaw/graphlaw.wasm` equals the pin above.
-- `tmp/evidence/parity_report.json` lists checks `P1` to `P9` and `R1`. Against the `v26.9.28`
-  engine a drift is a valid outcome; it is reported, not masked.
+- `tmp/evidence/parity_report.json` lists checks `P1` to `P9` and `R1`. A drift is reported,
+  not masked.
 - `scripts/ggen_sync.sh --check` prints one `sha256  path` line per projection; two runs must match.
 
 ## What a reproduction proves

@@ -26,12 +26,11 @@ failure raises `[capability_parity_drift] <check ids>`; a missing engine raises
 `[wasm_not_vendored] ...`. With `--evidence-dir`, `parity_report.json` (canonical JSON) is written
 in both cases.
 
-## Expected failure against the v26.9.28 pin
+## The pin
 
-The engine pin is `v26.9.28`; the registry is `v26.9.29`. The `capabilities` response of the
-pinned engine has no `registry_sha256`, so `P3` reports that field `UNKNOWN`. Whether other checks
-drift against that engine is UNKNOWN until the court is run. A drift is reported, never masked; the
-fix is the pin bump to the release that carries the registry.
+The engine pin is `v26.10.28`; the vendored registry is the same release and declares blake3
+digests. The pinned engine reports `registry_blake3` and `surface_blake3`, so `P3`'s registry field
+matches live. A drift is still reported, never masked.
 
 ## Standing
 
