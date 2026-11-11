@@ -18,16 +18,16 @@ defmodule AshGraphLaw.Parity do
 
   | id | claim |
   |----|-------|
-  | `P1` | live `capabilities.ops` equals `Registry.names/0`, in order |
+  | `P1` | live `capabilities.ops` equals `AshGraphLaw.Capability.Registry.names/0`, in order |
   | `P2` | live `rdf_dialects` and `other_dialects` equal the registry lists |
-  | `P3` | the surface digest computed from the live response equals `Registry.surface_digest/0`; a live `registry_sha256` equals `Registry.digest/0` (absent on engines older than v26.9.29: reported `UNKNOWN`, not a pass of that field) |
+  | `P3` | the surface digest computed from the live response equals `AshGraphLaw.Capability.Registry.surface_digest/0`; a live `registry_sha256` equals `AshGraphLaw.Capability.Registry.digest/0` (absent on engines older than v26.9.29: reported `UNKNOWN`, not a pass of that field) |
   | `P4` | every registry op has an `AshGraphLaw.Capability.<Op>` module exporting `op/0`, `build_request/1`, `decode/1`, `run/2`, and an API function |
   | `P5` | every `AshGraphLaw.Capability.*` op module maps to a registry op |
   | `P6` | the admission DSL step enum equals the registry `law_steps` (hyphen to underscore; `record-receipts` need not be exposed) |
   | `P7` | every registry `refusal_codes` entry maps through `AshGraphLaw.Refusal.from_engine/2` to a known atom, never `:engine_unclassified` |
   | `P8` | no supported op requires `AshGraphLaw.call/2` (every op has a typed `run/2` and API function) |
   | `P9` | every `priv/graphlaw/op-examples.json` example reproduces through the typed API against the live engine (`not_run` under `examples: false`) |
-  | `R1` | the vendored `priv/graphlaw/capability-registry.json` digest, recomputed by `CanonicalJSON`, equals `Registry.digest/0` |
+  | `R1` | the vendored `priv/graphlaw/capability-registry.json` digest, recomputed by `CanonicalJSON`, equals `AshGraphLaw.Capability.Registry.digest/0` |
   | `R2` | live runtime ABI identity equals the pinned `priv/graphlaw/MANIFEST.json` `abi_version` |
   | `R3` | the library release pin `AshGraphLaw.graphlaw_release/0` equals the pinned `priv/graphlaw/MANIFEST.json` `graphlaw_version` AND the ontology release tag (`gac:graphlawVersion` in `priv/graphlaw/capability-registry.ttl`) — a partial pin bump fails the court |
 

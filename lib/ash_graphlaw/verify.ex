@@ -1,6 +1,3 @@
-
-
-
 defmodule AshGraphLaw.Resource.Verify do
   @moduledoc """
   Verifier for `ash_graphlaw`: enforces 0 legality
@@ -14,12 +11,12 @@ defmodule AshGraphLaw.Resource.Verify do
       nil ->
         {:error,
          Spark.Error.DslError.exception(
-           message: "ash_graphlaw: transformer did not persist :ash_graphlaw_compiled -- Persist must run before Verify",
+           message:
+             "ash_graphlaw: transformer did not persist :ash_graphlaw_compiled -- Persist must run before Verify",
            path: []
          )}
 
       compiled ->
-
         # ash_r2rml's exact 2-branch shape (resource.ex:492-511): nil-check stays
         # inline (above), business validation delegates to a separate module's
         # validate function instead of an inline per-verifier chain.
@@ -34,9 +31,6 @@ defmodule AshGraphLaw.Resource.Verify do
                path: []
              )}
         end
-
     end
   end
-
-
 end

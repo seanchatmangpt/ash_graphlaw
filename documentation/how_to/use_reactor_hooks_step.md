@@ -52,7 +52,7 @@ step :shapes, AshGraphLaw.Reactor.Capability, op: "shacl" do
 end
 ```
 
-`op:` is validated when the step runs; a name outside `Registry.names/0` is `:unknown_capability`.
+`op:` is validated when the step runs; a name outside `AshGraphLaw.Capability.Registry.names/0` is `:unknown_capability`.
 Other options (`:server`, `:timeout`) are forwarded to the engine call.
 
 ## Compensation and retry

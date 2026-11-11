@@ -81,18 +81,18 @@ glx:importResults a rdf:Property ; rdfs:domain glx:WasiImport ; rdfs:comment "co
 #################################################################
 
 glx:AshGraphLawProject a glx:Project ;
-    glx:packageVersion "26.10.8" ;
-    glx:graphLawVersion "26.10.28" ;
-    glx:engineReleaseTag "v26.10.28" ;
+    glx:packageVersion "26.11.10" ;
+    glx:graphLawVersion "26.11.10" ;
+    glx:engineReleaseTag "v26.11.10" ;
     glx:maintainer "Sean Chatman" ;
     glx:repositoryUrl "https://github.com/seanchatmangpt/ash_graphlaw" ;
     glx:docsUrl "https://hexdocs.pm/ash_graphlaw" ;
-    glx:dateReleased "2026-10-08" ;
+    glx:dateReleased "2026-11-10" ;
     glx:coverageThreshold 80 ;
     glx:abiVersion 1 ;
-    glx:wasmSha256 "34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08" ;
+    glx:wasmSha256 "62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8" ;
     glx:wasmAsset "graphlaw.wasm" ;
-    glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.10.28/graphlaw.wasm" ;
+    glx:wasmUrl "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.11.10/graphlaw.wasm" ;
     glx:marketplaceSha "86735f4e2683cace11f92824af0ac3875ec5e3fb" ;
     glx:registryFile "priv/graphlaw/capability-registry.json" ;
     glx:registrySha256 "blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d" ;
@@ -189,7 +189,7 @@ glx:AshGraphLawGraphlawSection a aex:DslSection ;
     aex:sectionOf glx:AshGraphLawSpec ;
     aex:sectionName "graphlaw" ;
     aex:sectionOrder 1 ;
-    aex:sectionDescribe "GraphLaw admission configuration: one runtime entity and any number of named admissions." ;
+    aex:sectionDescribe "GraphLaw admission configuration: one runtime entity, named admissions, and declared capabilities." ;
     aex:singletonEntityKey "runtime" .
 
 # --- entity :runtime (singleton, no args) ---
@@ -757,12 +757,12 @@ glx:ResidueMixTasksAshGraphlawParity a glx:UnsupportedResidue ;
 # files on disk.
 #################################################################
 
-glx:BindingMixExsPackage a glx:VersionBinding ; glx:bindingPath "mix.exs" ; glx:bindingKind "package" ; glx:bindingValue "26.10.8" .
-glx:BindingReadmeMdPackage a glx:VersionBinding ; glx:bindingPath "README.md" ; glx:bindingKind "package" ; glx:bindingValue "26.10.8" .
-glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.md" ; glx:bindingKind "package" ; glx:bindingValue "26.10.8" .
-glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.10.8" .
-glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.10.8" .
-glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.10.28" .
+glx:BindingMixExsPackage a glx:VersionBinding ; glx:bindingPath "mix.exs" ; glx:bindingKind "package" ; glx:bindingValue "26.11.10" .
+glx:BindingReadmeMdPackage a glx:VersionBinding ; glx:bindingPath "README.md" ; glx:bindingKind "package" ; glx:bindingValue "26.11.10" .
+glx:BindingChangelogMdPackage a glx:VersionBinding ; glx:bindingPath "CHANGELOG.md" ; glx:bindingKind "package" ; glx:bindingValue "26.11.10" .
+glx:BindingCitationCffPackage a glx:VersionBinding ; glx:bindingPath "CITATION.cff" ; glx:bindingKind "package" ; glx:bindingValue "26.11.10" .
+glx:BindingEngineeringStandardsJsonPackage a glx:VersionBinding ; glx:bindingPath "engineering-standards.json" ; glx:bindingKind "package" ; glx:bindingValue "26.11.10" .
+glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath "priv/graphlaw/MANIFEST.json" ; glx:bindingKind "engine" ; glx:bindingValue "26.11.10" .
 
 #################################################################
 # Capability coverage ledger (consumer-supplied, graphlaw-ash-capability-pack gate 180)
@@ -3518,7 +3518,7 @@ glx:BindingPrivGraphlawManifestJsonEngine a glx:VersionBinding ; glx:bindingPath
     a gac:Registry ;
     gac:abiVersion 1 ;
     gac:dialectCount 14 ;
-    gac:graphlawVersion "26.10.28" ;
+    gac:graphlawVersion "26.11.10" ;
     gac:opCount 14 ;
     gac:receiptSurfaceBlake3 "blake3:11fb8f9ab810b8f387fb162da274cb53717752238b8d58b30fbb29e53042b5ca" ;
     gac:registryBlake3 "blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d" ;

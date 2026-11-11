@@ -21,21 +21,21 @@ defmodule AshGraphLaw.Mutation.Catalog do
   | id          | mutation                                                    | target |
   |-------------|-------------------------------------------------------------|--------|
   | AGL-MUT-001 | every refusal code classed `:refused_admission`             | `AshGraphLaw.Refusal.class_of/1` |
-  | AGL-MUT-002 | engine digest pin check skipped                             | `AshGraphLaw.EngineLoad.check_digest/2` |
-  | AGL-MUT-003 | engine import-surface check skipped                         | `AshGraphLaw.EngineLoad.check_imports/1` |
+  | AGL-MUT-002 | engine digest pin check skipped                             | `AshGraphLaw.EngineLoad` (digest check) |
+  | AGL-MUT-003 | engine import-surface check skipped                         | `AshGraphLaw.EngineLoad` (import check) |
   | AGL-MUT-004 | lease ceiling check always passes                           | `AshGraphLaw.Authority.check_ceiling/2` |
   | AGL-MUT-005 | change swallows the refusal (adds no error, no evidence)    | `AshGraphLaw.Change.Admit.run/2` |
-  | AGL-MUT-006 | projection emits sensitive arguments                        | `AshGraphLaw.Projection.Default.argument_slots/2` |
+  | AGL-MUT-006 | projection emits sensitive arguments                        | `AshGraphLaw.Projection.Default` (argument slots) |
   | AGL-MUT-007 | an admitted result is standing `:ALIVE`                     | `AshGraphLaw.Standing.of/1` |
-  | AGL-MUT-008 | duplicate admission names accepted                          | `AshGraphLaw.Contract.duplicate_refusals/1` |
+  | AGL-MUT-008 | duplicate admission names accepted                          | `AshGraphLaw.Contract` (duplicate admissions) |
   | AGL-MUT-009 | expected engine digest is always `:unpinned`                | `AshGraphLaw.WasmConfig.expected_sha256/1` |
-  | AGL-MUT-010 | invalid UTF-8 request text no longer refused                | `AshGraphLaw.ABI.classify_encode_error/1` |
-  | AGL-MUT-011 | payload steps no longer require a law module                | `AshGraphLaw.Contract.law_refusals/1` |
-  | AGL-MUT-012 | malformed trusted keys accepted                             | `AshGraphLaw.Contract.key_refusals/1` |
-  | AGL-MUT-013 | guards of the ceiling normalization negated                 | `AshGraphLaw.Authority.ceiling_of/1` |
+  | AGL-MUT-010 | invalid UTF-8 request text no longer refused                | `AshGraphLaw.ABI` (UTF-8 encode error) |
+  | AGL-MUT-011 | payload steps no longer require a law module                | `AshGraphLaw.Contract` (law step refusals) |
+  | AGL-MUT-012 | malformed trusted keys accepted                             | `AshGraphLaw.Contract` (key refusals) |
+  | AGL-MUT-013 | guards of the ceiling normalization negated                 | `AshGraphLaw.Authority` (ceiling rank guard) |
   | AGL-MUT-014 | every caller claims `:construct` without a signed lease     | `AshGraphLaw.Authority.claim/1` |
-  | AGL-MUT-015 | parity court accepts any list comparison (P1, P2)           | `AshGraphLaw.Parity.same_list?/2` |
-  | AGL-MUT-016 | parity court accepts any digest comparison (P3, R1)         | `AshGraphLaw.Parity.same_digest?/2` |
+  | AGL-MUT-015 | parity court accepts any list comparison (P1, P2)           | `AshGraphLaw.Parity` (list comparison court) |
+  | AGL-MUT-016 | parity court accepts any digest comparison (P3, R1)         | `AshGraphLaw.Parity` (digest comparison court) |
   """
 
   alias AshGraphLaw.Mutation

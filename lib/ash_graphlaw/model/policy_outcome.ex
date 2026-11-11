@@ -68,11 +68,11 @@ defmodule AshGraphLaw.Model.PolicyOutcome do
     declared =
       [
         "state",
-        "probability_ppm",
+        "probability_ppm"
       ]
       |> Enum.zip([
         model.state,
-        model.probability_ppm,
+        model.probability_ppm
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

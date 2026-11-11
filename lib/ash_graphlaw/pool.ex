@@ -107,7 +107,12 @@ defmodule AshGraphLaw.Pool do
         )
       end
 
-    Supervisor.init([{Registry, keys: :duplicate, name: @registry} | members], strategy: :rest_for_one)
+    Supervisor.init(
+      [{Registry, keys: :duplicate, name: @registry} | members],
+      strategy: :rest_for_one,
+      max_restarts: Keyword.get(opts, :max_restarts, 10),
+      max_seconds: Keyword.get(opts, :max_seconds, 10)
+    )
   end
 
   @doc "Pool size resolved from `opts[:size]`, then the scheduler count."
@@ -126,12 +131,22 @@ defmodule AshGraphLaw.Pool do
   """
   @spec request(map(), keyword()) :: {:ok, map()} | {:error, Refusal.t()}
   def request(request, opts \\ []) when is_map(request) do
+    do_request(request, opts, 1)
+  end
+
+  defp do_request(request, opts, retries_left) do
     case pick() || List.first(unavailable_members()) do
       nil ->
         {:error, Refusal.new(:host_not_started, "no AshGraphLaw.Host member is registered in the pool")}
 
       pid ->
-        AshGraphLaw.Host.request(pid, request, opts)
+        case AshGraphLaw.Host.request(pid, request, opts) do
+          {:error, %Refusal{code: :host_not_started}} when retries_left > 0 ->
+            do_request(request, opts, retries_left - 1)
+
+          result ->
+            result
+        end
     end
   end
 

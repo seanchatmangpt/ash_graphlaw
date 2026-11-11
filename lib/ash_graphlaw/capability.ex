@@ -8,7 +8,7 @@ defmodule AshGraphLaw.Capability do
   Behaviour implemented by every typed GraphLaw capability module.
 
   The surface is generated from the GraphLaw capability registry
-  (`graphlaw.capability-registry/1`, GraphLaw `26.10.28`, ABI `1`,
+  (`graphlaw.capability-registry/1`, GraphLaw `26.11.10`, ABI `1`,
   `14` capabilities, registry digest `blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d`). Each
   capability module `AshGraphLaw.Capability.<Op>` builds the request map for one
   wire operation, decodes the engine response into a result struct and runs the

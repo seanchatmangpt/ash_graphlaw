@@ -73,12 +73,12 @@ defmodule AshGraphLaw.Model.PolicyEntry do
       [
         "state",
         "action",
-        "outcomes",
+        "outcomes"
       ]
       |> Enum.zip([
         model.state,
         model.action,
-        encode_list(model.outcomes, &AshGraphLaw.Model.PolicyOutcome.to_map/1),
+        encode_list(model.outcomes, &AshGraphLaw.Model.PolicyOutcome.to_map/1)
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

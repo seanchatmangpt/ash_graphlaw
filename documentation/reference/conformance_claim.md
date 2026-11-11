@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # conformance_claim
 
-What release `26.9.30` claims, and what it does not.
+What release `26.11.10` claims, and what it does not.
 
 ## Claimed
 
@@ -25,7 +25,7 @@ What release `26.9.30` claims, and what it does not.
 - That the engine implements RDF, SPARQL, SHACL, ShEx, N3, Datalog, entailment or planning
   correctly. That is the upstream claim, tested in the GraphLaw repository. AshGraphLaw exposes
   those operations and reimplements none.
-- That parity holds against the pinned engine `v26.9.29` on the exact subject without a recorded run of `mix ash_graphlaw.parity`.
+- That parity holds against the pinned engine `v26.11.10` on the exact subject without a recorded run of `mix ash_graphlaw.parity`.
 - That the installer `--target` option works (`UNSUPPORTED`).
 - That any consequence was executed, or that this library signs leases.
 
@@ -33,13 +33,13 @@ What release `26.9.30` claims, and what it does not.
 
 | Item | Value |
 |---|---|
-| Library | `26.9.30` |
-| Engine pin | `v26.9.29` (intentional engine pin, see CHANGELOG 26.10.8), ABI version 1 |
-| Registry | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` |
-| Exact-SHA receipt | none: `<<RECEIPT:claim-4>>` |
+| Library | `26.11.10` |
+| Engine pin | `v26.11.10`, ABI version 1, sha256 `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8` |
+| Registry | `graphlaw.capability-registry/1`, GraphLaw `26.11.10` |
+| Exact-SHA receipt | recorded in `docs/jira/v26.11.10/RECEIPTS.md` |
 
 ## See Also
 
 - [Claims and evidence](claims_and_evidence.md)
 - [Support matrix](support_matrix.md)
-- [Assurance case](../assurance/ash-graphlaw-assurance-case-v26.9.29.md)
+- [Assurance case](../assurance/ash-graphlaw-assurance-case-v26.11.10.md)

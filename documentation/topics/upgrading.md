@@ -6,26 +6,23 @@ SPDX-License-Identifier: MIT
 
 # upgrading
 
-Moving to `26.9.29` and, separately, bumping the engine pin.
+Moving to `26.11.10` and bumping the engine pin.
 
-## To 26.9.29
+## To 26.11.10
 
 Nothing existing changes shape. `call/2`, `capabilities/1`, `sniff/3`, `law/3`, `hooks/3`, the
 `admission` entity and its steps, `Change.Admit`, `Validation.Admissible`, `Preparation.Admit`,
-`Law`, `Projection`, `Host`, `Pool`, `EngineLoad` and `WasmConfig` keep their behavior. Additions:
+`Law`, `Projection`, `Host`, `Pool`, `EngineLoad` and `WasmConfig` keep their behavior. Additions
+in v26.11.10 include:
 
 | Addition | Effect on existing code |
 |---|---|
-| typed capability modules, API, registry, result structs | none until you call them |
-| root delegates `parse/2 ... policy/2` and bang forms | new names on `AshGraphLaw` |
-| `capability` DSL entity | none unless you declare one |
-| refusal codes 36 to 40 | exhaustive case on Refusal.code needs new clauses |
-| `Refusal.raw` | new struct field, nil for client-side refusals |
-| telemetry `[:ash_graphlaw, :capability, ...]` | new events |
-| optional `:reactor` dependency | none unless you add it |
-
-Declaring one `capability` changes behavior for that resource: undeclared ops in lifecycle modules
-are then refused with `:capability_not_declared`. A resource that declares none is unchanged.
+| GraphLaw WASM v26.11.10 | Stripped ICU root, reduced initial linear memory footprint (-15.37 MiB) |
+| Standard Telemetry spans | `[:ash_graphlaw, :host, :call, :start | :stop]` events registered |
+| Enriched Refusal errors | Message formatting includes underlying details and `:field` mapping |
+| Hardened Pool supervision | Auto-reconnect and retry on transient host crashes |
+| Instant ResourceArc GC | Native linear memory reclamation in `Host.recycle/2` |
+| Zero-copy binary decoding | 64-bit BEAM pattern matching on ABI responses |
 
 ## Steps
 
@@ -38,7 +35,7 @@ mix ash_graphlaw.parity --evidence-dir tmp/evidence
 
 ## Bumping the engine pin
 
-The library pins GraphLaw `v26.10.28`, and the registry the library generates from is the same
+The library pins GraphLaw `v26.11.10`, and the registry the library generates from is the same
 release; the bump is coordinated. Update `glx:graphLawVersion`, `glx:engineReleaseTag`,
 `glx:wasmSha256` and `glx:wasmUrl` in `ontology.ttl` (sha256 from the published release asset,
 never from a local build), then re-vendor the registry with `scripts/vendor_registry.sh` and

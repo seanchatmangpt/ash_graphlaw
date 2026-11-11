@@ -36,7 +36,7 @@ defmodule AshGraphLaw.Evidence do
     * `:receipts` - engine receipts as string-keyed maps.
     * `:digest` - SHA-256 (hex) of the canonical evidence excluding this field.
     * `:wasm_sha256` - digest of the engine binary that answered, or `nil` when unknown.
-    * `:graphlaw_release` - engine release tag, for example `"v26.9.28"`.
+    * `:graphlaw_release` - engine release tag, for example `"v26.11.10"`.
     * `:lease` - `t:AshGraphLaw.Authority.identity/0` of the signed lease, or `nil`.
     * `:origin` - `t:AshGraphLaw.Projection.Origin.t/0` of the projected input, or `nil`. Only
       present in `to_map/1`, `canonical_json` and `digest/1` when set, so evidence without an

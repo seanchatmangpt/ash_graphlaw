@@ -28,8 +28,8 @@ defmodule AshGraphLaw.EngineLoadTest do
                ~w(gl_alloc gl_call gl_free memory)
     end
 
-    test "the pin is the GraphLaw v26.10.28 release asset digest (literal control)" do
-      assert EngineLoad.pinned_sha256() == "34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08"
+    test "the pin is the GraphLaw v26.11.10 release asset digest (literal control)" do
+      assert EngineLoad.pinned_sha256() == "62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8"
     end
 
     test "the pin equals the sha256 recorded in the shipped MANIFEST.json" do
@@ -224,7 +224,7 @@ defmodule AshGraphLaw.EngineLoadTest do
     test "a single flipped byte in the real engine is refused, never admitted as the pinned engine" do
       bytes = File.read!(AshGraphLaw.WasmConfig.wasm_path([]))
       last = byte_size(bytes) - 1
-      <<head::binary-size(last), byte>> = bytes
+      <<head::binary-size(^last), byte>> = bytes
       tampered = head <> <<Bitwise.bxor(byte, 0xFF)>>
 
       assert {:error, %Refusal{code: code}} = EngineLoad.admit(tampered, [])

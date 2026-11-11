@@ -24,13 +24,9 @@ defmodule AshGraphLaw.ABI do
   `:resource_limit` before any memory is allocated in the engine.
   """
 
-  import Bitwise
-
   alias AshGraphLaw.Refusal
 
   @abi_version 1
-  @u64 0x1_0000_0000_0000_0000
-  @u32_mask 0xFFFF_FFFF
   @max_request_bytes 16 * 1_048_576
 
   @doc "The ABI version this build of the library speaks."
@@ -57,8 +53,8 @@ defmodule AshGraphLaw.ABI do
   """
   @spec unpack_result(integer()) :: {non_neg_integer(), non_neg_integer()}
   def unpack_result(packed) when is_integer(packed) do
-    unsigned = if packed < 0, do: packed + @u64, else: packed
-    {unsigned >>> 32 &&& @u32_mask, unsigned &&& @u32_mask}
+    <<out_ptr::unsigned-size(32), out_len::unsigned-size(32)>> = <<packed::signed-size(64)>>
+    {out_ptr, out_len}
   end
 
   @doc """

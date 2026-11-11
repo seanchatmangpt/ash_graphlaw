@@ -26,9 +26,40 @@ graphlaw do
     projection MyApp.Projection   # AshGraphLaw.Projection
   end
 
-  capability :sparql do           # unique by name; name in Registry.names/0
+  capability :sparql do           # unique by name; name in AshGraphLaw.Capability.Registry.names/0
     ceiling :observe              # default :observe
     doc "read-only queries"
+  end
+end
+```
+
+## Golden Path Recipe
+
+```elixir
+defmodule MyApp.Invoice do
+  use Ash.Resource,
+    domain: MyApp.Domain,
+    data_layer: Ash.DataLayer.Ets,
+    extensions: [AshGraphLaw.Resource]
+
+  graphlaw do
+    runtime do
+      timeout_ms 5_000
+    end
+
+    admission :validate_schema do
+      step :shacl
+      law MyApp.InvoiceShapes
+      ceiling :construct
+    end
+  end
+
+  actions do
+    defaults [:read]
+
+    create :create do
+      change {AshGraphLaw.Change.Admit, admission: :validate_schema}
+    end
   end
 end
 ```

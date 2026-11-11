@@ -15,9 +15,9 @@ generated from it (`registry/capability-registry.json`).
 | Item | Value |
 |---|---|
 | ABI_VERSION | `1` |
-| Pinned GraphLaw release | `v26.10.28` |
-| Pinned asset | priv/graphlaw/graphlaw.wasm, sha256 34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08 |
-| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.10.28`; the same release this library pins |
+| Pinned GraphLaw release | `v26.11.10` |
+| Pinned asset | priv/graphlaw/graphlaw.wasm, sha256 62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8 |
+| Capability registry | `graphlaw.capability-registry/1`, GraphLaw `26.11.10`; the same release this library pins |
 
 `ABI_VERSION` is bumped on any incompatible request or response change. A host must compare the
 `abi` field of the `capabilities` response with its own expectation and refuse a mismatch

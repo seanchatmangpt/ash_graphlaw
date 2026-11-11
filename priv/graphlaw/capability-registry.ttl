@@ -2596,7 +2596,7 @@
     a gac:Registry ;
     gac:abiVersion 1 ;
     gac:dialectCount 14 ;
-    gac:graphlawVersion "26.10.28" ;
+    gac:graphlawVersion "26.11.10" ;
     gac:opCount 14 ;
     gac:receiptSurfaceBlake3 "blake3:11fb8f9ab810b8f387fb162da274cb53717752238b8d58b30fbb29e53042b5ca" ;
     gac:registryBlake3 "blake3:6e1103673508ade20f2276e93c7c948dd4f7c31689a25a325fac4a308856035d" ;

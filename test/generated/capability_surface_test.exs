@@ -30,7 +30,18 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
       function: :capabilities,
       result: AshGraphLaw.Result.Capabilities,
       tag_field: nil,
-      keys: [:abi, :abi_version, :crate, :authorities, :rdf_dialects, :other_dialects, :ops, :registry_schema, :registry_blake3, :surface_blake3],
+      keys: [
+        :abi,
+        :abi_version,
+        :crate,
+        :authorities,
+        :rdf_dialects,
+        :other_dialects,
+        :ops,
+        :registry_schema,
+        :registry_blake3,
+        :surface_blake3
+      ],
       required: [],
       args: []
     },
@@ -222,23 +233,23 @@ defmodule AshGraphLaw.Generated.CapabilitySurfaceTest do
   @limits [
     {:hooks_max_firings, 10000, "hooks"},
     {:hooks_max_rounds, 64, "hooks"},
-    {:hooks_max_state_quads, 1000000, "hooks"},
+    {:hooks_max_state_quads, 1_000_000, "hooks"},
     {:max_atoms_per_field, 10000, "abi"},
     {:max_json_depth, 64, "abi"},
-    {:max_outstanding_alloc_bytes, 16777216, "wasm"},
+    {:max_outstanding_alloc_bytes, 16_777_216, "wasm"},
     {:max_plan_actions, 1000, "abi"},
-    {:max_plan_total_atoms, 100000, "plan"},
-    {:max_policy_entries, 100000, "abi"},
-    {:max_request_bytes, 16777216, "abi"},
+    {:max_plan_total_atoms, 100_000, "plan"},
+    {:max_policy_entries, 100_000, "abi"},
+    {:max_request_bytes, 16_777_216, "abi"},
     {:n3_max_backward_depth, 32, "n3"},
     {:n3_max_backward_solutions_per_goal, 1024, "n3"},
-    {:n3_max_derived_facts, 500000, "n3"},
-    {:n3_max_iterations, 4000000, "n3"},
-    {:n3_max_match_steps, 200000, "n3"},
+    {:n3_max_derived_facts, 500_000, "n3"},
+    {:n3_max_iterations, 4_000_000, "n3"},
+    {:n3_max_match_steps, 200_000, "n3"},
     {:n3_max_term_bytes, 65536, "n3"},
     {:n3_max_term_depth, 64, "n3"},
-    {:n3_max_total_bytes, 268435456, "n3"},
-    {:n3_max_total_steps, 50000000, "n3"}
+    {:n3_max_total_bytes, 268_435_456, "n3"},
+    {:n3_max_total_steps, 50_000_000, "n3"}
   ]
 
   describe "positive control: the registry surface is present" do

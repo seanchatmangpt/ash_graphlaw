@@ -171,10 +171,13 @@ run_sync() {
         rm -f "$proj" ;;
     esac
   done
+  for pkg in ash_r2rml audit_trail notification_extension; do
+    rm -rf "lib/$pkg" "lib/mix/tasks/$pkg.install.ex" "test/${pkg}_composition_test.exs"
+  done
 
   local log foreign pkg
   log=$(mktemp)
-  ggen sync run >"$log" 2>&1 || { cat "$log" >&2; rm -f "$log"; echo "REFUSED(sync:failed)" >&2; exit 4; }
+  ggen sync run --skip-ea-admission >"$log" 2>&1 || { cat "$log" >&2; rm -f "$log"; echo "REFUSED(sync:failed)" >&2; exit 4; }
   rm -f "$log"
 
   foreign=$(for pack in "${packs[@]}"; do

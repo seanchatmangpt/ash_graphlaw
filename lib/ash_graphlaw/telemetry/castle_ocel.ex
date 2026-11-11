@@ -147,8 +147,9 @@ defmodule AshGraphLaw.Telemetry.CastleOcel do
   defp build_event(%{outcome: outcome} = element, index) do
     with {:ok, event_name} <- classify(outcome),
          {:ok, subject_id} <- subject_id(outcome, Map.get(element, :subject_id)),
-         {:ok, time} <- time(outcome, Map.get(element, :time)),
-         refusal_code = normalise_refusal_code(event_name, Map.get(element, :refusal_code)) do
+         {:ok, time} <- time(outcome, Map.get(element, :time)) do
+      refusal_code = normalise_refusal_code(event_name, Map.get(element, :refusal_code))
+
       attrs =
         %{
           "authority" => "none",

@@ -22,8 +22,9 @@ Attach handlers to the events the library emits. Event details are in the
 )
 ```
 
-`AshGraphLaw.Telemetry.events/0` lists the three capability span events and
-`[:ash_graphlaw, :admission, :stop]`. Host and engine events are attached by name.
+`AshGraphLaw.Telemetry.events/0` lists the capability span events (`:start`, `:stop`,
+`:exception`), `[:ash_graphlaw, :admission, :stop]`, host call events (`:start`, `:stop`),
+and instance recycle events (`[:ash_graphlaw, :host, :recycle]`).
 
 ## Aggregate refusals by code
 
@@ -37,6 +38,47 @@ Attach handlers to the events the library emits. Event details are in the
   end,
   nil
 )
+```
+
+## Phoenix Integration
+
+In your Phoenix application's telemetry module (`lib/my_app_web/telemetry.ex`), add GraphLaw metrics to `metrics/0`:
+
+```elixir
+def metrics do
+  [
+    # Phoenix / LiveView metrics ...
+
+    # AshGraphLaw Capability Spans
+    summary("ash_graphlaw.capability.stop.duration",
+      unit: {:native, :millisecond},
+      tags: [:op, :outcome],
+      description: "Latency of GraphLaw capability executions"
+    ),
+    counter("ash_graphlaw.capability.stop.count",
+      tags: [:op, :outcome, :refusal_code],
+      description: "Total capability invocations categorized by refusal code"
+    ),
+
+    # AshGraphLaw Host Execution
+    summary("ash_graphlaw.host.call.stop.duration",
+      unit: {:native, :millisecond},
+      tags: [:op, :outcome],
+      description: "Low-level WASM host invocation latency"
+    ),
+    counter("ash_graphlaw.host.recycle.count",
+      tags: [:reason],
+      description: "Count of WASM instance recycles"
+    ),
+
+    # Admission Change / Validation Latency
+    summary("ash_graphlaw.admission.stop.duration",
+      unit: {:native, :millisecond},
+      tags: [:admission, :outcome, :standing],
+      description: "Admission action hook duration"
+    )
+  ]
+end
 ```
 
 ## Rules

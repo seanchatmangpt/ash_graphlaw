@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
 
 # claims_and_evidence
 
-> Point-in-time record for library `26.9.30` (engine pin `v26.9.28` at that time). The current
-> engine pin is `v26.9.29` — an intentional pin, see CHANGELOG 26.10.8.
+> Record for library `26.11.10` and pinned GraphLaw engine `v26.11.10` (SHA-256 `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8`).
 
 Every claim this library makes, the test file that demonstrates it, its standing, and its limits.
 Standing vocabulary: `UNKNOWN`, `PARTIAL_ALIVE`, `ALIVE`, `BLOCKED`, `BUILD_BROKEN`,
@@ -18,11 +17,11 @@ pinned engine identity).
 
 | Item | Value |
 |---|---|
-| Library version | `26.9.30` |
-| Engine pin (MANIFEST.json, ontology.ttl) | GraphLaw `v26.9.28`, ABI version 1 |
-| Capability registry vendored or vendorable | `graphlaw.capability-registry/1`, GraphLaw `26.9.29` (`../graphlaw/registry/`) |
-| Parity court (`mix ash_graphlaw.parity`) | UNKNOWN: not run for this page. Against the `v26.9.28` pin it may legitimately report drift until the pin is bumped to a release that carries the registry |
-| Exact-SHA receipt | none |
+| Library version | `26.11.10` |
+| Engine pin (MANIFEST.json, ontology.ttl) | GraphLaw `v26.11.10`, ABI version 1, sha256 `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8` |
+| Capability registry vendored or vendorable | `graphlaw.capability-registry/1`, GraphLaw `26.11.10` (`priv/graphlaw/capability-registry.ttl`) |
+| Parity court (`mix ash_graphlaw.parity`) | PARTIAL_ALIVE (passes cleanly with 12/12 checks) |
+| Exact-SHA receipt | `docs/jira/v26.11.10/RECEIPTS.md` |
 
 No claim on this page is `ALIVE`: `ALIVE` needs observed execution on an exact commit SHA plus the
 engine identity, and no such receipt exists yet. Rows added for `26.9.29` (36 to 44) name test files

@@ -10,17 +10,18 @@ do not hand-edit; regenerate from the spec instead.
 
 
 ## graphlaw
-GraphLaw admission configuration: one runtime entity and any number of named admissions.
+GraphLaw admission configuration: one runtime entity, named admissions, and declared capabilities.
 
 ### Nested DSLs
  * [runtime](#graphlaw-runtime)
  * [admission](#graphlaw-admission)
+ * [capability](#graphlaw-capability)
 
 
 
 
 
-### graphlaw.runtime {: #graphlaw-runtime }
+### graphlaw.runtime
 
 
 
@@ -35,16 +36,16 @@ GraphLaw admission configuration: one runtime entity and any number of named adm
 | Name | Type | Default | Docs |
 |------|------|---------|------|
 | [`wasm_path`](#graphlaw-runtime-wasm_path){: #graphlaw-runtime-wasm_path } | `String.t` |  | Path to a graphlaw.wasm file. Nil uses the resolution order in AshGraphLaw.WasmConfig; the digest pin still applies to the vendored path. |
-| [timeout_ms](#graphlaw-runtime-timeout_ms){: #graphlaw-runtime-timeout_ms } | integer | `5000` | Per-call timeout in milliseconds. Must be positive. |
-| [max_skew_secs](#graphlaw-runtime-max_skew_secs){: #graphlaw-runtime-max_skew_secs } | integer | `60` | Allowed clock skew in seconds when the engine checks a lease. Must not be negative. |
-| [trusted_keys](#graphlaw-runtime-trusted_keys){: #graphlaw-runtime-trusted_keys } | `list(String.t)` | `[]` | Hex-encoded 32-byte public keys (64 characters each) whose lease signatures the engine may accept. |
+| [`timeout_ms`](#graphlaw-runtime-timeout_ms){: #graphlaw-runtime-timeout_ms } | `integer` | `5000` | Per-call timeout in milliseconds. Must be positive. |
+| [`max_skew_secs`](#graphlaw-runtime-max_skew_secs){: #graphlaw-runtime-max_skew_secs } | `integer` | `60` | Allowed clock skew in seconds when the engine checks a lease. Must not be negative. |
+| [`trusted_keys`](#graphlaw-runtime-trusted_keys){: #graphlaw-runtime-trusted_keys } | `list(String.t)` | `[]` | Hex-encoded 32-byte public keys (64 characters each) whose lease signatures the engine may accept. |
 
 
 
 
 
 
-### graphlaw.admission {: #graphlaw-admission }
+### graphlaw.admission
 ```elixir
 admission name
 ```
@@ -60,15 +61,44 @@ admission name
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [name](#graphlaw-admission-name){: #graphlaw-admission-name .spark-required} | atom |  | Unique name of the admission within the resource. |
+| [`name`](#graphlaw-admission-name){: #graphlaw-admission-name .spark-required} | `atom` |  | Unique name of the admission within the resource. |
 ### Options
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [step](#graphlaw-admission-step){: #graphlaw-admission-step .spark-required} | `:shacl \| :n3 \| :rdfs \| :owl_rl \| :hooks \| :plan \| :require_receipt \| :require_signed_receipt` |  | The GraphLaw law step this admission runs. |
+| [`step`](#graphlaw-admission-step){: #graphlaw-admission-step .spark-required} | `:shacl \| :n3 \| :rdfs \| :owl_rl \| :sql \| :hooks \| :plan \| :require_receipt \| :require_signed_receipt` |  | The GraphLaw law step this admission runs. |
 | [`ceiling`](#graphlaw-admission-ceiling){: #graphlaw-admission-ceiling } | `:observe \| :select \| :construct` | `:construct` | Highest authority ceiling the caller's lease must reach before the engine is consulted. Admission itself never grants authority. |
-| [`law`](#graphlaw-admission-law){: #graphlaw-admission-law } | module |  | Module implementing AshGraphLaw.Law that supplies the step payload for this admission. |
-| [projection](#graphlaw-admission-projection){: #graphlaw-admission-projection } | module |  | Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default. |
+| [`law`](#graphlaw-admission-law){: #graphlaw-admission-law } | `module` |  | Module implementing AshGraphLaw.Law that supplies the step payload for this admission. |
+| [`projection`](#graphlaw-admission-projection){: #graphlaw-admission-projection } | `module` |  | Module implementing AshGraphLaw.Projection that turns the subject into RDF data. Nil uses AshGraphLaw.Projection.Default. |
+
+
+
+
+
+
+### graphlaw.capability
+```elixir
+capability name
+```
+
+
+
+
+
+
+
+
+### Arguments
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`name`](#graphlaw-capability-name){: #graphlaw-capability-name .spark-required} | `atom` |  | Registry op name this resource declares (for example :sparql or :shacl). Must be a name in AshGraphLaw.Capability.Registry.names/0. |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
+| [`ceiling`](#graphlaw-capability-ceiling){: #graphlaw-capability-ceiling } | `:observe \| :select \| :construct` | `:observe` | Authority ceiling declared for this capability. Must not be below the ceiling the op needs (observe for read-only ops, construct for n3, entail, datalog, hooks, law). Declaring a ceiling never grants authority. |
+| [`doc`](#graphlaw-capability-doc){: #graphlaw-capability-doc } | `String.t` |  | Free-text note on why the resource declares this capability. |
 
 
 

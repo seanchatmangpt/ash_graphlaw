@@ -649,7 +649,7 @@ defmodule AshGraphLaw.Test.AdmissionOracle do
     # those cases only needs to be constructible, never verifiable.
     scope_json =
       case body["scope"] do
-        scope when is_list(scope) -> scope |> Enum.map(&Jason.encode!/1) |> Enum.join(",")
+        scope when is_list(scope) -> Enum.map_join(scope, ",", &Jason.encode!/1)
         other -> Jason.encode!(other)
       end
 

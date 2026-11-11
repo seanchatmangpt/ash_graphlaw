@@ -73,12 +73,12 @@ defmodule AshGraphLaw.Model.Attestation do
       [
         "payload_blake3",
         "key_id",
-        "signature",
+        "signature"
       ]
       |> Enum.zip([
         model.payload_blake3,
         model.key_id,
-        model.signature,
+        model.signature
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

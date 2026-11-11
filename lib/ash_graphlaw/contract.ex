@@ -187,7 +187,7 @@ defmodule AshGraphLaw.Contract do
     case Code.ensure_compiled(registry) do
       {:module, ^registry} ->
         if function_exported?(registry, :names, 0),
-          do: {:ok, apply(registry, :names, [])},
+          do: {:ok, registry.names()},
           else: {:error, "capability registry #{inspect(registry)} does not export names/0"}
 
       {:error, reason} ->

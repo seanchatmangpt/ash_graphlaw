@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 # AshGraphLaw Documentation Hub (Diataxis Framework)
 
-AshGraphLaw (library `26.9.30`, engine pin `v26.9.29`) lets an Ash action declare a named
+AshGraphLaw (library `26.11.10`, engine pin `v26.11.10`) lets an Ash action declare a named
 admission that a pinned GraphLaw WASM engine derives and validates against the action's projected
 data. A refusal is a typed value. An admission is an observation bound to one exact input digest
 and grants no authority.
@@ -105,8 +105,8 @@ Specifications and tables.
 - [Claims and Evidence](reference/claims_and_evidence.md) - Each claim, its test, status, limits.
 - [Conformance Claim](reference/conformance_claim.md) - What this release claims and does not.
 - [Support Matrix](reference/support_matrix.md) - Supported and unsupported surfaces.
-- [Assurance Case](assurance/ash-graphlaw-assurance-case-v26.9.29.md) - Argument and evidence for
-  the `26.9.29` release.
+- [Assurance Case](assurance/ash-graphlaw-assurance-case-v26.11.10.md) - Argument and evidence for
+  the `26.11.10` release.
 - Usage rules ([index](../usage-rules.md)):
   [setup](../usage-rules/setup.md), [dsl](../usage-rules/dsl.md),
   [admission](../usage-rules/admission.md), [wasm-host](../usage-rules/wasm-host.md),
@@ -133,7 +133,7 @@ Why the library is shaped as it is.
 - [WASM Host Design](topics/wasm_host_design.md) - Digest pin, import surface, recycling, shedding.
 - [Generation and Residue](topics/generation_and_residue.md) - What ggen projects and what is
   hand-written.
-- [Upgrading](topics/upgrading.md) - Moving from a pre-release to `26.9.29` and bumping the engine
+- [Upgrading](topics/upgrading.md) - Moving to `26.11.10` and bumping the engine
   pin.
 - [Troubleshooting](topics/troubleshooting.md) - Refusal code, cause, fix.
 
@@ -141,7 +141,7 @@ Why the library is shaped as it is.
 
 ## Project Files
 
-- [Changelog](../CHANGELOG.md) - Keep-a-Changelog history; the `26.9.30` entry.
+- [Changelog](../CHANGELOG.md) - Keep-a-Changelog history; the `26.11.10` entry.
 - [Security Policy](../SECURITY.md) - Reporting and supported versions.
 - [Contributing](../CONTRIBUTING.md) - Gates a change must pass.
 - [Agent Instructions](../AGENTS.md) - Rules for automated contributors.

@@ -298,6 +298,13 @@ defmodule AshGraphLaw.Host do
 
   defp run_request(body, op, timeout, from, state) do
     started = System.monotonic_time()
+
+    :telemetry.execute(
+      [:ash_graphlaw, :host, :call, :start],
+      %{system_time: System.system_time()},
+      %{op: op, server: self()}
+    )
+
     :ok = Wasmex.StoreOrCaller.set_fuel(state.store, state.limits.fuel)
     result = transact(state, body, timeout)
     emit_call(started, op, result)
@@ -420,16 +427,36 @@ defmodule AshGraphLaw.Host do
 
     with {:ok, store} <- new_store(memory_limits, engine),
          :ok <- Wasmex.StoreOrCaller.set_fuel(store, max(limits.fuel, limits.instantiate_fuel)),
-         {:ok, pid} <- start_instance(store, module),
-         {:ok, store} <- Wasmex.store(pid),
-         {:ok, memory} <- Wasmex.memory(pid),
-         live = Map.merge(state, %{pid: pid, store: store, memory: memory}),
-         :ok <- run_initialize(live) do
-      {:ok, live}
+         {:ok, pid} <- start_instance(store, module) do
+      try do
+        with {:ok, store} <- Wasmex.store(pid),
+             {:ok, memory} <- Wasmex.memory(pid),
+             live = Map.merge(state, %{pid: pid, store: store, memory: memory}),
+             :ok <- run_initialize(live) do
+          {:ok, live}
+        else
+          {:error, %Refusal{}} = refusal ->
+            cleanup_instance(pid)
+            refusal
+
+          other ->
+            cleanup_instance(pid)
+            {:error, failed_instantiation(other)}
+        end
+      rescue
+        error ->
+          cleanup_instance(pid)
+          {:error, failed_instantiation(error)}
+      end
     else
       {:error, %Refusal{}} = refusal -> refusal
       other -> {:error, failed_instantiation(other)}
     end
+  end
+
+  defp cleanup_instance(pid) when is_pid(pid) do
+    Process.unlink(pid)
+    Process.exit(pid, :kill)
   end
 
   defp new_store(memory_limits, engine) do
@@ -463,6 +490,7 @@ defmodule AshGraphLaw.Host do
   defp recycle(%{pid: old} = state, reason) do
     Process.unlink(old)
     Process.exit(old, :kill)
+    :erlang.garbage_collect(self())
     count = state.recycles + 1
 
     :telemetry.execute([:ash_graphlaw, :host, :recycle], %{count: count}, %{
@@ -584,9 +612,18 @@ defmodule AshGraphLaw.Host do
   end
 
   defp decode({:ok, bytes}) when is_binary(bytes) do
-    if String.valid?(bytes),
-      do: ABI.decode_response(bytes),
-      else: {:error, Refusal.new(:malformed_response, "engine response is not valid UTF-8")}
+    case ABI.decode_response(bytes) do
+      {:ok, response} ->
+        {:ok, response}
+
+      {:error, %Refusal{code: :invalid_json}} = error ->
+        if String.valid?(bytes),
+          do: error,
+          else: {:error, Refusal.new(:malformed_response, "engine response is not valid UTF-8")}
+
+      {:error, %Refusal{}} = refusal ->
+        refusal
+    end
   end
 
   defp decode({:error, %Refusal{}} = error), do: error
@@ -635,7 +672,7 @@ defmodule AshGraphLaw.Host do
     :telemetry.execute(
       [:ash_graphlaw, :host, :call, :stop],
       %{duration: System.monotonic_time() - started},
-      %{op: op, outcome: outcome, code: code}
+      %{op: op, outcome: outcome, code: code, server: self()}
     )
   end
 end

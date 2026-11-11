@@ -73,7 +73,7 @@ AshGraphLaw.Capability.API.sparql!(data: turtle_text, query: "SELECT * WHERE { ?
 - Raw stays lossless (`result.raw`), unknown response fields and enum values decode without
   failing, and refusals carry the whole engine error in `refusal.raw`.
 - Parity court: `mix ash_graphlaw.parity` fails on any drift between the live engine, the vendored
-  registry and the Elixir surface. Engine pin `v26.10.28`: parity against a pin older than the
+  registry and the Elixir surface. Engine pin `v26.11.10`: parity against a pin older than the
   registry is reported, never masked.
 - Registry pin: `scripts/vendor_registry.sh` and `scripts/import_registry.sh` carry the registry
   from the GraphLaw repository into `priv/graphlaw/` and `ontology.ttl` (`--check` in CI).
@@ -83,19 +83,19 @@ AshGraphLaw.Capability.API.sparql!(data: turtle_text, query: "SELECT * WHERE { ?
 
 Per-op pages: [capabilities reference](documentation/reference/capabilities.md).
 
-A2A v1.0 capability cards, one per registry capability: [capability cards](docs/a2a-capability-cards.md).
+A2A v1.0 capability cards, one per registry capability: [capability cards](https://github.com/seanchatmangpt/ash_graphlaw/blob/main/docs/a2a-capability-cards.md).
 
 ## Installation
 
 ```elixir
 def deps do
   [
-    {:ash_graphlaw, "~> 26.10.8"}
+    {:ash_graphlaw, "~> 26.11.10"}
   ]
 end
 ```
 
-The package version is `26.10.8` (calendar versioning). The `graphlaw.wasm` binary
+The package version is `26.11.10` (calendar versioning). The `graphlaw.wasm` binary
 is not shipped in the Hex package; fetch the pinned release asset with the vendor task (see
 [Vendoring the engine](#vendoring-the-engine)). With Igniter available, `mix igniter.install
 ash_graphlaw` runs `mix ash_graphlaw.install`.
@@ -202,7 +202,7 @@ See the [DSL cheat sheet](documentation/dsls/DSL-AshGraphLaw.Resource.md) for ev
 
 ## Vendoring the engine
 
-The engine binary is pinned by release tag `v26.10.28` (asset `graphlaw.wasm`, ABI
+The engine binary is pinned by release tag `v26.11.10` (asset `graphlaw.wasm`, ABI
 1) and by SHA-256. Fetch and check it:
 
 ```bash
@@ -210,9 +210,9 @@ mix ash_graphlaw.vendor   # downloads graphlaw.wasm into priv/graphlaw/, checks 
 mix ash_graphlaw.verify   # re-checks the digest and the WASI import allowlist
 ```
 
-Source: `https://github.com/seanchatmangpt/graphlaw/releases/download/v26.10.28/graphlaw.wasm`
+Source: `https://github.com/seanchatmangpt/graphlaw/releases/download/v26.11.10/graphlaw.wasm`
 
-Expected SHA-256: `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08`. A mismatch is refused; the binary is never used
+Expected SHA-256: `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8`. A mismatch is refused; the binary is never used
 unverified. See [vendor the wasm](documentation/how_to/vendor_the_wasm.md).
 
 ## Verification ladder
@@ -273,10 +273,10 @@ and the WASI import surface is allowlisted; the host never widens either.
 
 ## Manufactured provenance
 
-- ash_graphlaw: v26.10.8
-- GraphLaw court release: v26.10.28
+- ash_graphlaw: v26.11.10
+- GraphLaw court release: v26.11.10
 - GraphLaw ABI: 1
-- graphlaw.wasm SHA-256: `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08`
+- graphlaw.wasm SHA-256: `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8`
 - ggen source pin: `ff96f04e8c7b851e5cca53f3faf5ce1d5f43ce6e`
 - ggen-marketplace pin: `86735f4e2683cace11f92824af0ac3875ec5e3fb`
 

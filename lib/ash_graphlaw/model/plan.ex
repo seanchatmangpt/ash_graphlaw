@@ -73,12 +73,12 @@ defmodule AshGraphLaw.Model.Plan do
       [
         "actions",
         "goal",
-        "goal_not",
+        "goal_not"
       ]
       |> Enum.zip([
         encode_list(model.actions, &AshGraphLaw.Model.Action.to_map/1),
         model.goal,
-        model.goal_not,
+        model.goal_not
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

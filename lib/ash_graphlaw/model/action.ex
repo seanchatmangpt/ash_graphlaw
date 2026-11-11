@@ -83,14 +83,14 @@ defmodule AshGraphLaw.Model.Action do
         "pre",
         "pre_not",
         "add",
-        "del",
+        "del"
       ]
       |> Enum.zip([
         model.name,
         model.pre,
         model.pre_not,
         model.add,
-        model.del,
+        model.del
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

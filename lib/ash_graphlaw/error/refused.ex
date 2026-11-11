@@ -13,11 +13,11 @@ defmodule AshGraphLaw.Error.Refused do
   `Ash.Error.to_error_class/1` with `AshGraphLaw.Error.refusals/1`.
   """
 
-  use Splode.Error, fields: [:refusal], class: :invalid
+  use Splode.Error, fields: [:refusal, :field], class: :invalid
 
   alias AshGraphLaw.Refusal
 
-  @type t :: %__MODULE__{refusal: Refusal.t() | nil}
+  @type t :: %__MODULE__{refusal: Refusal.t() | nil, field: atom() | nil, path: list() | nil}
 
   @doc """
   The refusal code (for example `:not_admitted`), or `nil` when no refusal is attached.
@@ -54,6 +54,10 @@ defmodule AshGraphLaw.Error.Refused do
   """
   @impl true
   @spec message(t()) :: String.t()
+  def message(%__MODULE__{refusal: %Refusal{code: code, message: msg}}) when is_binary(msg) and msg != "" do
+    "GraphLaw refused: #{code} - #{msg}"
+  end
+
   def message(%__MODULE__{refusal: %Refusal{code: code}}), do: "GraphLaw refused: #{code}"
   def message(%__MODULE__{}), do: "GraphLaw refused: unknown"
 end

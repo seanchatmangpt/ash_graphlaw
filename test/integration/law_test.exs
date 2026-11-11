@@ -196,17 +196,17 @@ defmodule AshGraphLaw.Integration.LawTest do
     defp blake3hex(bytes) do
       path = Path.join(System.tmp_dir!(), "ash-graphlaw-law-#{System.unique_integer([:positive])}")
 
-    try do
-      File.write!(path, bytes)
+      try do
+        File.write!(path, bytes)
 
-      case System.cmd("b3sum", [path], stderr_to_stdout: true) do
-        {out, 0} -> out |> String.split() |> List.first()
-        {out, code} -> raise "b3sum failed (exit #{code}): #{String.trim(out)}"
+        case System.cmd("b3sum", [path], stderr_to_stdout: true) do
+          {out, 0} -> out |> String.split() |> List.first()
+          {out, code} -> raise "b3sum failed (exit #{code}): #{String.trim(out)}"
+        end
+      after
+        File.rm(path)
       end
-    after
-      File.rm(path)
     end
-  end
 
     defp signed_lease({pub, priv}, expires, tamper_expires \\ nil) do
       payload =
@@ -244,7 +244,7 @@ defmodule AshGraphLaw.Integration.LawTest do
       server: s
     } do
       k = keypair(3)
-            assert {:ok, %Admitted{receipts: [%Receipt{}]}} = run(s, signed_lease(k, 4_000_000_000), k)
+      assert {:ok, %Admitted{receipts: [%Receipt{}]}} = run(s, signed_lease(k, 4_000_000_000), k)
     end
 
     @tag skip:

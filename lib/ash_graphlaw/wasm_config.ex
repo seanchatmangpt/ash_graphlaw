@@ -241,6 +241,16 @@ defmodule AshGraphLaw.WasmConfig do
     end
   end
 
+  defp limit(opts, :timeout_ms, default) do
+    val =
+      Keyword.get(opts, :timeout_ms) ||
+        Keyword.get(opts, :timeout) ||
+        Application.get_env(:ash_graphlaw, :timeout_ms) ||
+        Application.get_env(:ash_graphlaw, :timeout)
+
+    if is_integer(val) and val >= min_limit(:timeout_ms), do: val, else: default
+  end
+
   defp limit(opts, key, default) do
     [Keyword.get(opts, key), Application.get_env(:ash_graphlaw, key)]
     |> Enum.find(default, &(is_integer(&1) and &1 >= min_limit(key)))

@@ -9,6 +9,41 @@ All notable changes to this project are documented in this file. The format foll
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses calendar versioning
 (`YY.M.N`).
 
+## [26.11.10] - 2026-11-10
+
+GraphLaw engine adoption milestone v26.11.10: adopts the slimmed WebAssembly kernel
+(GL28-13 relink, 62.9MB, SHA-256 `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8`),
+reducing initial linear memory allocation by 248 pages (-15.37 MiB) while maintaining 100%
+capability parity across all 14 ops. Bumps package version and version bindings to 26.11.10.
+
+### 10-Persona Expert Review Panel
+
+- Reviewed and hardened across 10 expert perspectives (Zach Daniel, Joe Armstrong, José Valim, Chris McCord, Pragmatic Programmers, Robert Virding, Saša Jurić, Andrea Leopardi, Wojtek Mach, Typed Systems & Formal Verification Expert).
+- Added comprehensive panel audit and domain assessments in `docs/PERSONA_REVIEW_PANEL.md`.
+- Enriched `AshGraphLaw.Error.Refused` message formatting with underlying refusal message, added `:field` mapping, and synchronized Spark DSL section description and cheat sheet (`capability` entity).
+- Hardened OTP fault tolerance: eliminated worker process leaks on instantiation error in `Host`, increased `Pool` supervisor restart limits (`max_restarts: 10, max_seconds: 10`), and added transient restart retry in `Pool.request/2`.
+- Eliminated bitstring pin warnings in tests (`^last`, `^pos`), resolved Credo `with` non-pattern clause, and cleaned all ExDoc documentation cross-reference warnings.
+- Upgraded `Host.call` to Telemetry 1.0 span triad (`:start`, `:stop`), included host events in `Telemetry.events/0`, and authored Phoenix `Telemetry.Metrics` integration guide.
+- Supported `:timeout` as alias for `:timeout_ms` across `WasmConfig.limits/1` and authored golden path resource and error recovery recipes.
+- Guaranteed prompt native ResourceArc reclamation via `:erlang.garbage_collect(self())` upon instance recycle.
+- Optimized `Host.decode/1` eliminating redundant $O(N)$ 32 MiB UTF-8 scans on happy path, and updated ABI result unpacking to native BEAM 64-bit binary matching.
+- Verified 273 KB reproducible Hex release archive (`ash_graphlaw-26.11.10.tar`) excluding 62.9 MB WebAssembly binary, and verified zero-debt Dialyzer baseline (`.dialyzer_ignore.exs` empty, 0 errors).
+- Expanded Jira release tracking with tickets `GL1110-PANEL-1` through `GL1110-PANEL-5` in `docs/jira/v26.11.10/INDEX.md`.
+
+### Added
+
+- Jira adoption tickets GL1110-ADOPT-1 through GL1110-ADOPT-8 under `docs/jira/v26.11.10/INDEX.md`.
+- Automated receipt generator `docs/jira/v26.11.10/gen_receipts.py` recording observed execution
+  receipts in `docs/jira/v26.11.10/RECEIPTS.md`.
+
+### Changed
+
+- Engine release pin bumped to `v26.11.10` with vendored WebAssembly binary SHA-256
+  `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8`.
+- Synchronized ggen projections from `ontology.ttl` across `MANIFEST.json`, `mix.exs`,
+  `lib/ash_graphlaw.ex`, `README.md`, `CITATION.cff`, and `engineering-standards.json`.
+- Updated test pin assertions and documentation references to `26.11.10`.
+
 ## [26.10.8] - 2026-10-08
 
 Version bump to 26.10.8: refreshes the five stale `glx:VersionBinding` package rows in

@@ -50,7 +50,7 @@ generated registry and the typed modules:
 
 | Check | Claim |
 |---|---|
-| P1 | live ops equal `Registry.names/0`, in order |
+| P1 | live ops equal `AshGraphLaw.Capability.Registry.names/0`, in order |
 | P2 | live dialect lists equal the registry |
 | P3 | surface and registry digests match (declared digest key: blake3, or legacy sha256) |
 | P4, P5 | typed modules and API cover exactly the registry ops |
@@ -58,14 +58,14 @@ generated registry and the typed modules:
 | P7 | every registry refusal code maps to a known atom |
 | P8 | no supported op needs `call/2` |
 | P9 | every op example reproduces through the typed API on the live engine |
-| R1 | the vendored registry JSON digest equals `Registry.digest/0` |
+| R1 | the vendored registry JSON digest equals `AshGraphLaw.Capability.Registry.digest/0` |
 
 A failing check is a failing court: `[capability_parity_drift] <ids>`. The court never skips.
 
 ## Status of this release
 
-The engine pin is `v26.10.28` (asset sha256 `34fd4ada…`), and the vendored registry is the same
-release (`26.10.28`), declaring blake3 digests. The engine reports `registry_blake3`/
+The engine pin is `v26.11.10` (asset sha256 `62cd95d4…`), and the vendored registry is the same
+release (`26.11.10`), declaring blake3 digests. The engine reports `registry_blake3`/
 `surface_blake3`, so `P3`'s registry field matches live. Whether every check passes is what a court
 run shows; a drift is reported, never masked. A pass is `PARTIAL_ALIVE`.
 

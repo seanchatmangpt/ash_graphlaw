@@ -68,11 +68,11 @@ defmodule AshGraphLaw.Model.SignedLease do
     declared =
       [
         "lease",
-        "attestation",
+        "attestation"
       ]
       |> Enum.zip([
         encode_one(model.lease, &AshGraphLaw.Model.Lease.to_map/1),
-        encode_one(model.attestation, &AshGraphLaw.Model.Attestation.to_map/1),
+        encode_one(model.attestation, &AshGraphLaw.Model.Attestation.to_map/1)
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

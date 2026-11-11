@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 By the end you will have an Ash resource whose `:open` action is admitted by a SHACL shape run in
 GraphLaw, an `AshGraphLaw.Evidence` value from an admitted call, and a typed refusal from a
-rejected one. Complete [Getting Started](getting_started.md) first: the engine (release `v26.9.28`)
+rejected one. Complete [Getting Started](getting_started.md) first: the engine (release `v26.11.10`)
 must be vendored and verified, and the pool started. The results named below are what the
 documented API returns for these inputs; run each snippet and compare. The repository's `:wasm`
 tests exercise the same paths against the vendored engine (standing of this tutorial's own run in

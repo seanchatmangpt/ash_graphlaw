@@ -53,7 +53,7 @@ defmodule AshGraphLaw.Model.Receipt do
 
   @keys ["parent", "child", "step", "authority", "revision", "added", "lease_id", "plan_blake3", "subject_blake3"]
 
-  @required ["parent", "child", "step", "authority", "revision", "added", ]
+  @required ["parent", "child", "step", "authority", "revision", "added"]
 
   @doc "The wire keys this model declares, in registry order."
   @spec keys() :: [String.t()]
@@ -103,7 +103,7 @@ defmodule AshGraphLaw.Model.Receipt do
         "added",
         "lease_id",
         "plan_blake3",
-        "subject_blake3",
+        "subject_blake3"
       ]
       |> Enum.zip([
         model.parent,
@@ -114,7 +114,7 @@ defmodule AshGraphLaw.Model.Receipt do
         model.added,
         model.lease_id,
         model.plan_blake3,
-        model.subject_blake3,
+        model.subject_blake3
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

@@ -53,7 +53,7 @@ It never skips. Run `mix ash_graphlaw.vendor` first.
 
 Failure raises `Mix.Error` with a bracketed code: `[capability_parity_drift] <check ids>`,
 `[wasm_not_vendored]`, `[invalid_options]`, `[evidence_unwritable]`, or another refusal code that
-blocked the run. A pass is `PARTIAL_ALIVE` for that engine and registry. The pinned `v26.10.28`
+blocked the run. A pass is `PARTIAL_ALIVE` for that engine and registry. The pinned `v26.11.10`
 engine reports the blake3 registry digests, so `P3`'s registry field matches live.
 See [run the parity court](../how_to/run_the_parity_court.md).
 

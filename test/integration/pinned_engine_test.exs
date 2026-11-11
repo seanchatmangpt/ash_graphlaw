@@ -10,7 +10,7 @@ defmodule AshGraphLaw.Integration.PinnedEngineTest do
   would let a green run say nothing about the pinned engine. This file closes that gap in three
   layers:
 
-    * wasm-free: the manifest pins graphlaw `v26.10.28` to a fixed SHA-256, and the pin resolvers
+    * wasm-free: the manifest pins graphlaw `v26.11.10` to a fixed SHA-256, and the pin resolvers
       keep it fixed against the environment;
     * the gate: with `ASH_GRAPHLAW_REQUIRE_ENGINE=1` an unvendored engine is a FAILURE, never a
       skip. The gate test is deliberately untagged, so the `:wasm` exclusion cannot hide it;
@@ -25,17 +25,17 @@ defmodule AshGraphLaw.Integration.PinnedEngineTest do
 
   alias AshGraphLaw.{EngineLoad, Host, Refusal, WasmConfig}
 
-  @pin "34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08"
-  @tag_url "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.10.28/graphlaw.wasm"
+  @pin "62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8"
+  @tag_url "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.11.10/graphlaw.wasm"
   @require_env "ASH_GRAPHLAW_REQUIRE_ENGINE"
 
   defp sha(bin), do: Base.encode16(:crypto.hash(:sha256, bin), case: :lower)
   defp require_engine?, do: System.get_env(@require_env) in ["1", "true"]
 
   describe "the pin (no engine needed)" do
-    test "the manifest pins graphlaw v26.10.28 to the fixed digest and release URL" do
+    test "the manifest pins graphlaw v26.11.10 to the fixed digest and release URL" do
       assert {:ok, manifest} = WasmConfig.manifest()
-      assert manifest["graphlaw_version"] == "26.10.28"
+      assert manifest["graphlaw_version"] == "26.11.10"
       assert get_in(manifest, ["artifact", "sha256"]) == @pin
       assert get_in(manifest, ["artifact", "url"]) == @tag_url
       assert get_in(manifest, ["artifact", "file"]) == "graphlaw.wasm"
@@ -129,7 +129,7 @@ defmodule AshGraphLaw.Integration.PinnedEngineTest do
       assert {:ok, %{wasm_sha256: @pin}} = EngineLoad.admit(bytes, [])
 
       pos = div(byte_size(bytes), 2)
-      <<head::binary-size(pos), byte, tail::binary>> = bytes
+      <<head::binary-size(^pos), byte, tail::binary>> = bytes
       flipped = <<head::binary, Bitwise.bxor(byte, 1), tail::binary>>
       refute sha(flipped) == @pin
 
@@ -142,7 +142,7 @@ defmodule AshGraphLaw.Integration.PinnedEngineTest do
       assert {:ok, %{"ok" => true}} = Host.request(good, %{"op" => "capabilities"})
 
       pos = div(byte_size(bytes), 3)
-      <<head::binary-size(pos), byte, tail::binary>> = bytes
+      <<head::binary-size(^pos), byte, tail::binary>> = bytes
       flipped = <<head::binary, Bitwise.bxor(byte, 1), tail::binary>>
 
       bad = start_host!(bytes: flipped, expected_sha256: @pin)

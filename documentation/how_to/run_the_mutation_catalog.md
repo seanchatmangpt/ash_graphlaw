@@ -47,7 +47,7 @@ A surviving mutant is a finding about the tests, not the library. Write the miss
 (with its positive control), rerun that id, and confirm `mutant_killed`. Two examples from this
 repository: `AGL-MUT-010` (a host UTF-8 guard) survived because the request codec rejected invalid
 UTF-8 before the guard could ever see it, so the refusal moved into `AshGraphLaw.ABI` and the entry
-now targets `AshGraphLaw.ABI.classify_encode_error/1`; `AGL-MUT-006` (redaction of sensitive
+now targets `AshGraphLaw.ABI` (classify_encode_error); `AGL-MUT-006` (redaction of sensitive
 arguments) survived until a resource with a sensitive action argument was added to the tests.
 
 ## 4. Add a mutation

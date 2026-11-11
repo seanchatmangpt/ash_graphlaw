@@ -14,8 +14,8 @@ result here is UNKNOWN.
 
 | Input | Where | Value |
 |---|---|---|
-| Library version | `mix.exs`, `glx:packageVersion` | `26.9.30` |
-| Engine release | `glx:engineReleaseTag`, `priv/graphlaw/MANIFEST.json` | `v26.10.28`, sha256 `34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08` |
+| Library version | `mix.exs`, `glx:packageVersion` | `26.11.10` |
+| Engine release | `glx:engineReleaseTag`, `priv/graphlaw/MANIFEST.json` | `v26.11.10`, sha256 `62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8` |
 | Capability registry | `glx:registrySha256`, `priv/graphlaw/capability-registry.json` | `registry_blake3` (b3sum) of the vendored file, carried as the `blake3:` literal |
 | Marketplace | `glx:marketplaceSha`, `vendor/ggen-marketplace/.pin` | commit that carries both packs |
 | Generator | `glx:ggenSha` | ggen commit the projections were produced with |

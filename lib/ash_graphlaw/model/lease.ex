@@ -88,7 +88,7 @@ defmodule AshGraphLaw.Model.Lease do
         "ceiling",
         "scope",
         "expires_unix",
-        "issued_unix",
+        "issued_unix"
       ]
       |> Enum.zip([
         model.id,
@@ -96,7 +96,7 @@ defmodule AshGraphLaw.Model.Lease do
         model.ceiling,
         model.scope,
         model.expires_unix,
-        model.issued_unix,
+        model.issued_unix
       ])
       |> Enum.reject(fn {k, v} -> is_nil(v) and k not in @required end)
       |> Map.new()

@@ -120,8 +120,8 @@ defmodule AshGraphLaw.ParityTest do
   end
 
   describe "R3: the release-pin identity (library == manifest == ontology tag)" do
-    @manifest_version_pattern ~s("graphlaw_version": "26.10.28")
-    @ontology_tag_pattern "gac:graphlawVersion \"26.10.28\""
+    @manifest_version_pattern ~s("graphlaw_version": "26.11.10")
+    @ontology_tag_pattern "gac:graphlawVersion \"26.11.10\""
 
     defp copied(dir, src, name) do
       dst = Path.join(dir, name)

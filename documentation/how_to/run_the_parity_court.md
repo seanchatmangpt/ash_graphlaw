@@ -28,7 +28,7 @@ in both cases.
 
 ## The pin
 
-The engine pin is `v26.10.28`; the vendored registry is the same release and declares blake3
+The engine pin is `v26.11.10`; the vendored registry is the same release and declares blake3
 digests. The pinned engine reports `registry_blake3` and `surface_blake3`, so `P3`'s registry field
 matches live. A drift is still reported, never masked.
 

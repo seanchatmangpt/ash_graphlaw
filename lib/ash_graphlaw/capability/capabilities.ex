@@ -35,8 +35,7 @@ defmodule AshGraphLaw.Capability.Capabilities do
 
   @op "capabilities"
 
-  @request_fields [
-  ]
+  @request_fields []
 
   @response_fields [
     %{

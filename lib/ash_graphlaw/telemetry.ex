@@ -47,7 +47,10 @@ defmodule AshGraphLaw.Telemetry do
       @prefix ++ [:start],
       @prefix ++ [:stop],
       @prefix ++ [:exception],
-      [:ash_graphlaw, :admission, :stop]
+      [:ash_graphlaw, :admission, :stop],
+      [:ash_graphlaw, :host, :call, :start],
+      [:ash_graphlaw, :host, :call, :stop],
+      [:ash_graphlaw, :host, :recycle]
     ]
   end
 

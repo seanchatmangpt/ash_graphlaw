@@ -1,11 +1,11 @@
 {
   "schema": "ash_graphlaw.graphlaw.manifest/v1",
-  "graphlaw_version": "26.10.28",
+  "graphlaw_version": "26.11.10",
   "abi_version": 1,
   "artifact": {
     "file": "graphlaw.wasm",
-    "sha256": "34fd4ada7ffe57f3f07de14232f8faacab67ef78a4d9afc3a12e79d78f865d08",
-    "url": "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.10.28/graphlaw.wasm"
+    "sha256": "62cd95d4ef7294dcd5976a2f685b71580bb834816e9f4bba0d13d5555e35c8f8",
+    "url": "https://github.com/seanchatmangpt/graphlaw/releases/download/v26.11.10/graphlaw.wasm"
   },
   "host_abi": {
     "exports": ["gl_alloc", "gl_call", "gl_free", "memory"],

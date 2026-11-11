@@ -105,7 +105,8 @@ defmodule AshGraphLaw.Unit.CapabilityCanonicalJSONTest do
         "other_dialects" => ["n3"]
       }
 
-      assert CanonicalJSON.surface_digest(response) == @surface_sha # blake3 (v26.10.28+)
+      # blake3 (v26.10.28+)
+      assert CanonicalJSON.surface_digest(response) == @surface_sha
     end
 
     test "surface_digest/1 accepts op and dialect maps and atom keys" do

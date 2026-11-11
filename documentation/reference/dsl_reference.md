@@ -27,9 +27,9 @@ it gets the struct defaults of `runtime` (see below), no admissions and no decla
 
 | Item | Kind | Cardinality | Struct |
 |---|---|---|---|
-| `runtime` | entity | singleton (at most one) | `AshGraphLaw.Dsl.Runtime` |
-| `admission` | entity | zero or more, unique by name | `AshGraphLaw.Dsl.Admission` |
-| `capability` | entity | zero or more, unique by name | `AshGraphLaw.Dsl.Capability` |
+| `runtime` | entity | singleton (at most one) | <code>AshGraphLaw.Dsl.Runtime</code> |
+| `admission` | entity | zero or more, unique by name | <code>AshGraphLaw.Dsl.Admission</code> |
+| `capability` | entity | zero or more, unique by name | <code>AshGraphLaw.Dsl.Capability</code> |
 
 ```elixir
 graphlaw do
@@ -135,7 +135,7 @@ Whether the generated cheat sheet already lists this entity is UNKNOWN until
 | `:invalid_trusted_key` | a trusted_keys entry is not 64 hex characters |
 | `:invalid_runtime_option` | timeout_ms is not above 0, or max_skew_secs is negative |
 | `:duplicate_capability` | two capability entities share a name (raised by Contract; no duplicate_capability row exists in ontology.ttl, so it is not in the closed refusal table) |
-| `:unknown_capability` | a `capability` name is not in `Registry.names/0`, or the registry module is unavailable |
+| `:unknown_capability` | a `capability` name is not in `AshGraphLaw.Capability.Registry.names/0`, or the registry module is unavailable |
 | `:ceiling_unmet` | a `capability` ceiling is below the op's minimum |
 
 ## Reading the DSL

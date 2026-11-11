@@ -14,7 +14,7 @@ By the end you will have a small Mix application in which a `Ticket` resource:
 - reports every failure as a typed `AshGraphLaw.Refusal`,
 - and is covered by a Chicago-style ExUnit test with a real pool and no mocks.
 
-Prerequisites: [Getting Started](getting_started.md) is done (engine `v26.9.28` vendored and
+Prerequisites: [Getting Started](getting_started.md) is done (engine `v26.11.10` vendored and
 `mix ash_graphlaw.verify` passes). The snippets use `MyApp` as the application module. Nothing
 below states output the tutorial did not observe; each step says what to look for. Standing of
 the end-to-end run in this release: `UNKNOWN` `<<RECEIPT:claim-3>>`.

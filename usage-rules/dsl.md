@@ -33,8 +33,8 @@ end
 
 | Entity | Struct | Fields |
 |---|---|---|
-| `runtime` (singleton) | `AshGraphLaw.Dsl.Runtime` | `wasm_path` (nil), `timeout_ms` (5000), `max_skew_secs` (60), `trusted_keys` ([]) |
-| `admission` (arg `:name`) | `AshGraphLaw.Dsl.Admission` | `name` (required), `step` (required), `ceiling` (`:construct`), `law` (nil), `projection` (nil) |
+| `runtime` (singleton) | <code>AshGraphLaw.Dsl.Runtime</code> | `wasm_path` (nil), `timeout_ms` (5000), `max_skew_secs` (60), `trusted_keys` ([]) |
+| `admission` (arg `:name`) | <code>AshGraphLaw.Dsl.Admission</code> | `name` (required), `step` (required), `ceiling` (`:construct`), `law` (nil), `projection` (nil) |
 
 `step` is one of `:shacl :n3 :rdfs :owl_rl :hooks :plan :require_receipt
 :require_signed_receipt`. `ceiling` is one of `:observe :select :construct`.

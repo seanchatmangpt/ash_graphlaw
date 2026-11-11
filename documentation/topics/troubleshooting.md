@@ -23,7 +23,7 @@ Symptom, cause, fix. Refusal codes are the closed table in
 | `:ceiling_unmet` | lease claims less than the admission or capability ceiling | present a signed lease with a higher ceiling |
 | `:lease_refused` | engine rejected the lease | read `details["reason"]` |
 | `:invalid_capability_request` | unknown key, missing field or wrong type | read details: unknown_keys, missing, type_errors |
-| `:unknown_capability` | op name not in the registry | use `Registry.names/0` |
+| `:unknown_capability` | op name not in the registry | use `AshGraphLaw.Capability.Registry.names/0` |
 | `:capability_not_declared` | resource declares capabilities but not this op | add `capability :op` or declare none |
 | `:capability_response_undecodable` | engine answer is not a JSON object or not the shape a lifecycle module needs | inspect details, refusal.raw |
 | `:capability_parity_drift` | typed surface differs from the live engine | read the failing check ids in `parity_report.json` |
@@ -36,13 +36,39 @@ Symptom, cause, fix. Refusal codes are the closed table in
 |---|---|---|
 | `:wasm` tests skipped | engine not vendored | `mix ash_graphlaw.vendor` |
 | `mix ash_graphlaw.parity` raises `[wasm_not_vendored]` | the court never skips | vendor the engine |
-| parity reports P3 UNKNOWN for the registry digest | engine older than `v26.10.28` | vendor the pinned `v26.10.28` engine; expected only on a pre-`v26.10.28` pin |
+| parity reports P3 UNKNOWN for the registry digest | engine older than `v26.10.28` | vendor the pinned `v26.11.10` engine; expected only on a pre-`v26.10.28` pin |
 | Ash.bulk_update refused | admission is not atomic | `require_atomic? false`, `strategy: :stream` |
 | scripts/ggen_sync.sh exit 3 | vendored marketplace sha differs from ontology.ttl | `scripts/vendor_marketplace.sh` |
 | `ggen_sync.sh --check-ledger` exit 7 | a residue path is missing from HANDWRITTEN.md | add the row |
 | generated capability modules missing | `scripts/ggen_sync.sh` not run | run it; never write them by hand |
 | installer --target raises SyntaxError | known pack defect (UNSUPPORTED) | add the extension by hand |
 | Reactor step returns `"Reactor library is not loaded"` | optional `:reactor` absent | add the dependency |
+
+## Actionable Diagnostic Recovery
+
+When an Ash action returns `{:error, error}`, recover the underlying typed refusals with `AshGraphLaw.Error.refusals/1`:
+
+```elixir
+case Ash.create(changeset) do
+  {:ok, record} ->
+    record
+
+  {:error, error} ->
+    case AshGraphLaw.Error.refusals(error) do
+      [%AshGraphLaw.Refusal{code: :not_admitted, message: msg} | _] ->
+        Logger.error("Admission failed SHACL validation: #{msg}")
+
+      [%AshGraphLaw.Refusal{code: :resource_limit, details: %{bytes: b}} | _] ->
+        Logger.error("Payload exceeded limit: #{b} bytes")
+
+      [%AshGraphLaw.Refusal{code: code} | _] ->
+        Logger.error("GraphLaw refused with code: #{code}")
+
+      [] ->
+        Logger.error("Non-GraphLaw error: #{inspect(error)}")
+    end
+end
+```
 
 ## See Also
 
