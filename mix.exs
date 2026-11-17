@@ -234,7 +234,7 @@ defmodule AshGraphLaw.MixProject do
       {:jason, "~> 1.4"},
       # The WASM host. 0.15.x pins the wasmtime/WASI surface allowlisted in priv/graphlaw/MANIFEST.json;
       # a minor bump requires re-running `mix ash_graphlaw.verify` against the pinned engine.
-      {:wasmex, "~> 0.15.1"},
+      {:wasmex, "~> 0.16.0"},
       # Telemetry events are emitted by the host and admission change; ~> 1.0 is the stable API.
       {:telemetry, "~> 1.0"},
       # Optional: AshGraphLaw.Reactor steps compile only when Reactor.Step is loadable in the consumer.
