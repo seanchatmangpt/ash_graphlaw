@@ -13,6 +13,7 @@ defmodule Mix.Tasks.AshGraphlaw.VerifyAndMutateTest do
   # UNSUPPORTED(generator-capability): hand-written Chicago test; no mocks. The working directory is
   # process-global, so this module is async: false and always restores it.
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Test.WasmFixtures
   alias Mix.Tasks.AshGraphlaw.{Mutate, Verify}

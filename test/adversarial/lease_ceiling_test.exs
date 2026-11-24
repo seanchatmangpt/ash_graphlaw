@@ -20,6 +20,7 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
   """
 
   use AshGraphLaw.Test.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Error
   alias AshGraphLaw.Test.Ticket
@@ -194,8 +195,6 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
       assert_ceiling_refused(close(signed(:observe)), :select)
     end
 
-    @tag skip:
-           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification); claim stays with the ceiling pre-check"
     test "a forged signed lease passes the claim pre-check and is refused by the engine, never admitted" do
       # positive control: the same claim, correctly signed by the trusted signer, is admitted
       assert {:ok, _} = open(signed(:construct), "admitted probe")
@@ -217,8 +216,6 @@ defmodule AshGraphLaw.Adversarial.LeaseCeilingTest do
       end
     end
 
-    @tag skip:
-           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification); claim stays with the ceiling pre-check"
     test "trust anchors and the clock in caller context are ignored: only runtime.trusted_keys counts" do
       untrusted = Lease.signed(:construct, signer: :untrusted)
       pub = Lease.public_key_hex(:untrusted)

@@ -15,6 +15,7 @@ defmodule AshGraphLaw.Livebooks.SemanticIntegrityTest do
   # UNSUPPORTED(generator-capability): hand-written Chicago test. async: false because notebooks
   # start the fixed-name AshGraphLaw.Pool.
   use AshGraphLaw.Test.Case, async: false
+  @moduletag :slow
 
   alias Mix.Tasks.AshGraphlaw.TestLivebooks
 

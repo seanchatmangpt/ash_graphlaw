@@ -14,6 +14,7 @@ defmodule AshGraphLaw.Integration.HostRecycleLoadTest do
   UNSUPPORTED(generator-capability): hand-written.
   """
   use AshGraphLaw.Test.Case
+  alias AshGraphLaw.Test.Eventually
 
   @moduletag :wasm
   @moduletag :slow
@@ -120,17 +121,7 @@ defmodule AshGraphLaw.Integration.HostRecycleLoadTest do
     assert eventually_ok(fn -> Host.request(host, law_req(), timeout: 30_000) end)
   end
 
-  defp eventually_ok(fun, attempts \\ 50) do
-    case fun.() do
-      {:ok, %{"ok" => true}} ->
-        true
-
-      _ when attempts > 0 ->
-        Process.sleep(100)
-        eventually_ok(fun, attempts - 1)
-
-      _ ->
-        false
-    end
+  defp eventually_ok(fun) do
+    Eventually.await(fn -> match?({:ok, %{"ok" => true}}, fun.()) end, & &1, 5_000)
   end
 end

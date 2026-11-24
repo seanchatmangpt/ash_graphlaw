@@ -14,6 +14,7 @@ defmodule AshGraphLaw.ParityTest do
   """
 
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Capability.CanonicalJSON
   alias AshGraphLaw.Parity

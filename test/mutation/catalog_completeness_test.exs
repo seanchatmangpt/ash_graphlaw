@@ -19,6 +19,7 @@ defmodule AshGraphLaw.Mutation.CatalogCompletenessTest do
   """
 
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Mutation
   alias AshGraphLaw.Mutation.Catalog

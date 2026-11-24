@@ -19,6 +19,7 @@ defmodule Mix.Tasks.AshGraphlaw.MutateTaskSubprocessTest do
 
   # UNSUPPORTED(generator-capability): hand-written Chicago test; no mocks, real subprocess.
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Mutation.Catalog
 

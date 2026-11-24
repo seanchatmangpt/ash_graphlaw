@@ -15,6 +15,8 @@ defmodule AshGraphLaw.HostLifecycleTest do
 
   # UNSUPPORTED(generator-capability): hand-written Chicago test; no mocks, no stubs.
   use AshGraphLaw.Test.Case, async: false
+  alias AshGraphLaw.Test.Eventually
+  @moduletag :slow
 
   alias AshGraphLaw.Host
   alias AshGraphLaw.Pool
@@ -26,13 +28,7 @@ defmodule AshGraphLaw.HostLifecycleTest do
     start_host!(Keyword.merge([name: nil, expected_sha256: :unpinned], opts))
   end
 
-  defp eventually(fun, tries \\ 100) do
-    cond do
-      fun.() -> :ok
-      tries == 0 -> flunk("condition never became true")
-      true -> Process.sleep(50) && eventually(fun, tries - 1)
-    end
-  end
+  defp eventually(fun), do: Eventually.await!(fun)
 
   defp registry!(name) do
     start_supervised!({Registry, keys: :duplicate, name: name})
@@ -89,11 +85,13 @@ defmodule AshGraphLaw.HostLifecycleTest do
     test "a host whose engine keeps failing keeps retrying with capped backoff and never dies", %{tmp_dir: dir} do
       host = host!(wasm_path: Path.join(dir, "never.wasm"), retry_base_ms: 10, retry_max_ms: 20)
 
-      for _ <- 1..5 do
-        Process.sleep(30)
-        assert Process.alive?(host)
-        assert {:error, %Refusal{code: :wasm_not_vendored}} = Host.info(host)
-      end
+      Eventually.hold!(
+        fn ->
+          assert Process.alive?(host)
+          assert {:error, %Refusal{code: :wasm_not_vendored}} = Host.info(host)
+        end,
+        150
+      )
     end
   end
 

@@ -70,6 +70,8 @@ end
 
 defmodule AshGraphLaw.MutationEngineTest do
   use ExUnit.Case, async: false
+  alias AshGraphLaw.Test.Eventually
+  @moduletag :slow
 
   alias AshGraphLaw.Mutation
   alias AshGraphLaw.Mutation.{Catalog, Collector, Verdict}
@@ -463,17 +465,5 @@ defmodule AshGraphLaw.MutationEngineTest do
     end
   end
 
-  defp eventually(fun, attempts \\ 100) do
-    cond do
-      fun.() ->
-        true
-
-      attempts == 0 ->
-        false
-
-      true ->
-        Process.sleep(50)
-        eventually(fun, attempts - 1)
-    end
-  end
+  defp eventually(fun), do: Eventually.await(fun) == true
 end

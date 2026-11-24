@@ -65,9 +65,9 @@ defmodule AshGraphLaw.MixProject do
   def cli do
     [
       preferred_envs: [
-        credo: :test,
-        dialyzer: :test,
-        sobelow: :test,
+        credo: :dev,
+        dialyzer: :dev,
+        sobelow: :dev,
         "test.all": :test,
         ci: :test,
         "ash_graphlaw.test_livebooks": :test,
@@ -243,12 +243,12 @@ defmodule AshGraphLaw.MixProject do
       {:igniter, ">= 0.6.29 and < 1.0.0-0", optional: true},
       # stream_data (test/property) arrives transitively through ash; declaring it here with only: :test
       # conflicts with ash's own non-test requirement and breaks dependency resolution in dev.
-      {:ex_doc, "~> 0.38", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.38", only: :dev, runtime: false},
       # Static analysis and audit tooling: dev/test only, never shipped.
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
-      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.4", only: :dev, runtime: false},
+      {:sobelow, "~> 0.13", only: :dev, runtime: false},
+      {:mix_audit, "~> 2.1", only: :dev, runtime: false}
     ]
   end
 
@@ -262,9 +262,9 @@ defmodule AshGraphLaw.MixProject do
       ci: [
         "format --check-formatted",
         "compile --warnings-as-errors",
-        "credo",
-        "sobelow",
-        "dialyzer",
+        "cmd MIX_ENV=dev mix credo",
+        "cmd MIX_ENV=dev mix sobelow",
+        "cmd MIX_ENV=dev mix dialyzer",
         "test.all",
         "hex.build"
       ],

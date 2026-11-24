@@ -25,6 +25,7 @@ defmodule Mix.Tasks.AshGraphlaw.MutateTaskTest do
 
   # UNSUPPORTED(generator-capability): hand-written Chicago test; no mocks.
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   alias AshGraphLaw.Mutation
   alias AshGraphLaw.Mutation.{Catalog, Runner}

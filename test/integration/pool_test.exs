@@ -8,6 +8,7 @@ defmodule AshGraphLaw.Integration.PoolTest do
   UNSUPPORTED(generator-capability): hand-written.
   """
   use AshGraphLaw.Test.Case
+  alias AshGraphLaw.Test.Eventually
 
   alias AshGraphLaw.{Host, Pool, Refusal}
 
@@ -22,24 +23,7 @@ defmodule AshGraphLaw.Integration.PoolTest do
 
   defp members, do: Registry.lookup(Pool.registry(), :members)
 
-  defp eventually(fun, attempts \\ 100) do
-    case fun.() do
-      {:ok, _} = ok ->
-        ok
-
-      other when attempts > 0 ->
-        Process.sleep(100)
-
-        eventually(fun, attempts - 1)
-        |> case do
-          {:ok, _} = ok -> ok
-          _ -> other
-        end
-
-      other ->
-        other
-    end
-  end
+  defp eventually(fun), do: Eventually.await(fun, &match?({:ok, _}, &1), 10_000)
 
   test "a pool of size 3 registers 3 members and serves concurrent requests" do
     start_pool!(size: 3)

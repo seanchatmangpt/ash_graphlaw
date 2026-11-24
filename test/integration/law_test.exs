@@ -116,8 +116,6 @@ defmodule AshGraphLaw.Integration.LawTest do
     assert Standing.of({:error, r}) == :UNKNOWN
   end
 
-  @tag skip:
-         "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification, no lease_id on receipts)"
   test "a valid unverified lease admits and the receipt carries the lease id", %{server: s} do
     lease = %{
       "id" => "L1",
@@ -136,8 +134,6 @@ defmodule AshGraphLaw.Integration.LawTest do
              )
   end
 
-  @tag skip:
-         "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification, no lease_id on receipts)"
   test "an expired lease is refused :lease_refused with reason expired", %{server: s} do
     lease = %{
       "id" => "L1",
@@ -159,8 +155,6 @@ defmodule AshGraphLaw.Integration.LawTest do
     assert r.broken_term == :R_missing_authority
   end
 
-  @tag skip:
-         "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification, no lease_id on receipts)"
   test "an unsigned lease without :unverified_lease is refused (typed, not admitted)", %{server: s} do
     lease = %{
       "id" => "L1",
@@ -247,15 +241,11 @@ defmodule AshGraphLaw.Integration.LawTest do
       assert {:ok, %Admitted{receipts: [%Receipt{}]}} = run(s, signed_lease(k, 4_000_000_000), k)
     end
 
-    @tag skip:
-           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification, no lease_id on receipts)"
     test "trusted, unexpired, untampered signed lease is admitted", %{server: s} do
       k = keypair(3)
       assert {:ok, %Admitted{receipts: [%Receipt{lease_id: "L1"}]}} = run(s, signed_lease(k, 4_000_000_000), k)
     end
 
-    @tag skip:
-           "UNSUPPORTED(engine-capability): graphlaw v26.9.28 ignores lease keys (no expiry, signature or signer verification, no lease_id on receipts)"
     test "expired (module clock), untrusted signer and tampered lease are each refused", %{server: s} do
       k = keypair(3)
       # positive control

@@ -34,3 +34,7 @@ erl_crash.dump
 .lumen/
 .claude/
 .fetch/
+
+# Measurement scratch (baseline receipts build from git archive under $HOME)
+/.baseline.*/
+/.agl-scratch.*/

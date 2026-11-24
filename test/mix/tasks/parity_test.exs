@@ -15,6 +15,7 @@ defmodule Mix.Tasks.AshGraphlaw.ParityTest do
   """
 
   use ExUnit.Case, async: false
+  @moduletag :slow
 
   import ExUnit.CaptureIO
 

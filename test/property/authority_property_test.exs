@@ -5,6 +5,7 @@
 defmodule AshGraphLaw.Property.AuthorityTest do
   # UNSUPPORTED(generator-capability): hand-written Chicago property suite; real resource, real Ed25519 leases.
   use AshGraphLaw.Test.PropertyCase, async: true
+  @moduletag :slow
 
   alias AshGraphLaw.Authority
   alias AshGraphLaw.Test.{Lease, Ticket}
