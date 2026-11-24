@@ -238,7 +238,7 @@ defmodule AshGraphLaw.MutationEngineTest do
             m,
             fn _applied ->
               send(test_pid, :mutant_live)
-              Process.sleep(:infinity)
+              Process.sleep(:infinity) # sleep-ok: parks the owner process, coordinates nothing
             end,
             @apps
           )

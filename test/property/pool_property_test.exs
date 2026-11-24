@@ -29,7 +29,7 @@ defmodule AshGraphLaw.Property.ScriptedHost do
 
   def handle_call({:request, body, op, _timeout}, _from, state) do
     request = Jason.decode!(body)
-    if state.work_ms > 0, do: Process.sleep(:rand.uniform(state.work_ms))
+    if state.work_ms > 0, do: Process.sleep(:rand.uniform(state.work_ms)) # sleep-ok: models host work time
     reply = {:ok, %{"ok" => true, "op" => op, "id" => request["id"], "member" => inspect(self())}}
     {:reply, reply, %{state | served: state.served + 1}}
   end
